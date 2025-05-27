@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -97,6 +96,8 @@ const BusinessDashboard = () => {
         .insert(businessData)
         .select()
         .single();
+
+      console.log("Business insert result:", { business, error });
 
       if (error) throw error;
 

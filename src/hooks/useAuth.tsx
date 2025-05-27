@@ -69,18 +69,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         data: userData,
       },
     });
+    console.log("Auth signUp result:", { data, error });
 
     // If sign up succeeded, insert profile row
     if (data.user) {
-      await supabase.from('profiles').insert([
+      const { data: profileData, error: profileError } = await supabase.from('profiles').insert([
         {
           id: data.user.id,
           name: userData.name,
           user_role: userData.user_role,
           business_type: userData.business_type || null,
-          // add other fields as needed
         }
       ]);
+      console.log("Profile insert result:", { profileData, profileError });
     }
 
     return { data, error };

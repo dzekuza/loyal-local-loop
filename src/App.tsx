@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -12,6 +11,7 @@ import LoginPage from "./pages/auth/LoginPage";
 import BusinessDashboard from "./pages/business/BusinessDashboard";
 import BusinessDirectory from "./pages/customer/BusinessDirectory";
 import BusinessDetailPage from "./pages/customer/BusinessDetailPage";
+import ScanQRCodePage from "./pages/customer/ScanQRCodePage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -32,6 +32,7 @@ const App = () => (
               <Route path="/dashboard" element={<BusinessDashboard />} />
               <Route path="/businesses" element={<BusinessDirectory />} />
               <Route path="/business/:businessId" element={<BusinessDetailPage />} />
+              <Route path="/scan" element={<ScanQRCodePage />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </div>

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -7,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
+import { useAppStore } from '@/store/useAppStore';
 
 const LoginPage = () => {
   const navigate = useNavigate();
@@ -17,6 +17,7 @@ const LoginPage = () => {
     email: '',
     password: '',
   });
+  const { userRole } = useAppStore();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,10 +36,13 @@ const LoginPage = () => {
         title: "Welcome back!",
         description: "You have been successfully logged in.",
       });
-      
-      // Navigate based on user role (will be determined after profile fetch)
+      // Wait for userRole to be set in the store (profile fetch is async)
       setTimeout(() => {
-        navigate('/dashboard');
+        if (userRole === 'business') {
+          navigate('/dashboard');
+        } else {
+          navigate('/businesses');
+        }
       }, 1000);
     }
 

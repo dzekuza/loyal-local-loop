@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,12 +6,15 @@ import { Badge } from '@/components/ui/badge';
 import BusinessCard from '@/components/business/BusinessCard';
 import { Search, Store } from 'lucide-react';
 import { Business } from '@/types';
+import { useNavigate } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
 
 const BusinessDirectory = () => {
   const [businesses, setBusinesses] = useState<Business[]>([]);
   const [filteredBusinesses, setFilteredBusinesses] = useState<Business[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchBusinesses();
@@ -77,6 +79,11 @@ const BusinessDirectory = () => {
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="container mx-auto px-4">
+        <div className="flex justify-end mb-4">
+          <Button onClick={() => navigate('/scan')} className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white">
+            Scan QR Code
+          </Button>
+        </div>
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-4">

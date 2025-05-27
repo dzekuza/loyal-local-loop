@@ -1,4 +1,3 @@
-
 import { useState, useEffect, createContext, useContext } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
@@ -70,6 +69,20 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         data: userData,
       },
     });
+
+    // If sign up succeeded, insert profile row
+    if (data.user) {
+      await supabase.from('profiles').insert([
+        {
+          id: data.user.id,
+          name: userData.name,
+          user_role: userData.user_role,
+          business_type: userData.business_type || null,
+          // add other fields as needed
+        }
+      ]);
+    }
+
     return { data, error };
   };
 

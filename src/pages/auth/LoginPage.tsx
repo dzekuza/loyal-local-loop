@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -17,7 +17,7 @@ const LoginPage = () => {
     email: '',
     password: '',
   });
-  const { userRole } = useAppStore();
+  const { userRole, isAuthenticated } = useAppStore();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,18 +36,21 @@ const LoginPage = () => {
         title: "Welcome back!",
         description: "You have been successfully logged in.",
       });
-      // Wait for userRole to be set in the store (profile fetch is async)
-      setTimeout(() => {
-        if (userRole === 'business') {
-          navigate('/dashboard');
-        } else {
-          navigate('/businesses');
-        }
-      }, 1000);
+      // Navigation is now handled by useEffect below
     }
 
     setLoading(false);
   };
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      if (userRole === 'business') {
+        navigate('/dashboard');
+      } else if (userRole === 'customer') {
+        navigate('/businesses');
+      }
+    }
+  }, [userRole, isAuthenticated, navigate]);
 
   return (
     <div className="login-page min-h-screen bg-gray-50 py-12">

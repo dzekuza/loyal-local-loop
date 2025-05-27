@@ -9,6 +9,45 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      businesses: {
+        Row: {
+          business_type: string
+          created_at: string
+          description: string | null
+          email: string
+          id: string
+          logo: string | null
+          name: string
+          qr_code: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          business_type: string
+          created_at?: string
+          description?: string | null
+          email: string
+          id?: string
+          logo?: string | null
+          name: string
+          qr_code: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          business_type?: string
+          created_at?: string
+          description?: string | null
+          email?: string
+          id?: string
+          logo?: string | null
+          name?: string
+          qr_code?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       cards: {
         Row: {
           barcode_type: string
@@ -38,6 +77,109 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      loyalty_offers: {
+        Row: {
+          business_id: string
+          created_at: string
+          id: string
+          is_active: boolean
+          points_earned: number
+          reward_description: string
+          reward_image: string | null
+          reward_threshold: number
+          spend_amount: number
+          updated_at: string
+        }
+        Insert: {
+          business_id: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          points_earned: number
+          reward_description: string
+          reward_image?: string | null
+          reward_threshold: number
+          spend_amount: number
+          updated_at?: string
+        }
+        Update: {
+          business_id?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          points_earned?: number
+          reward_description?: string
+          reward_image?: string | null
+          reward_threshold?: number
+          spend_amount?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "loyalty_offers_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          updated_at: string
+          user_role: string
+        }
+        Insert: {
+          created_at?: string
+          id: string
+          name: string
+          updated_at?: string
+          user_role: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          updated_at?: string
+          user_role?: string
+        }
+        Relationships: []
+      }
+      user_points: {
+        Row: {
+          business_id: string
+          customer_id: string
+          id: string
+          last_activity: string
+          total_points: number
+        }
+        Insert: {
+          business_id: string
+          customer_id: string
+          id?: string
+          last_activity?: string
+          total_points?: number
+        }
+        Update: {
+          business_id?: string
+          customer_id?: string
+          id?: string
+          last_activity?: string
+          total_points?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_points_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useAppStore } from '../../store/useAppStore';
+import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Badge } from '../../components/ui/badge';
@@ -12,27 +12,90 @@ import { Business, LoyaltyOffer } from '../../types';
 const BusinessDetailPage = () => {
   const { businessId } = useParams<{ businessId: string }>();
   const navigate = useNavigate();
-  const { businesses, loyaltyOffers } = useAppStore();
   const [business, setBusiness] = useState<Business | null>(null);
   const [offer, setOffer] = useState<LoyaltyOffer | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (businessId) {
-      const foundBusiness = businesses.find(b => b.id === businessId);
-      setBusiness(foundBusiness || null);
-      
-      // Find loyalty offer for this business
-      const foundOffer = loyaltyOffers.find(o => o.businessId === businessId && o.isActive);
-      setOffer(foundOffer || null);
+      loadBusinessData();
     }
-  }, [businessId, businesses, loyaltyOffers]);
+  }, [businessId]);
 
-  if (!business) {
+  const loadBusinessData = async () => {
+    try {
+      // Load business data
+      const { data: businessData, error: businessError } = await supabase
+        .from('businesses')
+        .select('*')
+        .eq('id', businessId)
+        .single();
+
+      if (businessError) throw businessError;
+
+      const formattedBusiness: Business = {
+        id: businessData.id,
+        name: businessData.name,
+        email: businessData.email,
+        logo: businessData.logo,
+        businessType: businessData.business_type,
+        description: businessData.description,
+        qrCode: businessData.qr_code,
+        createdAt: new Date(businessData.created_at),
+      };
+
+      setBusiness(formattedBusiness);
+
+      // Load loyalty offer
+      const { data: offerData, error: offerError } = await supabase
+        .from('loyalty_offers')
+        .select('*')
+        .eq('business_id', businessId)
+        .eq('is_active', true)
+        .single();
+
+      if (offerData && !offerError) {
+        const formattedOffer: LoyaltyOffer = {
+          id: offerData.id,
+          businessId: offerData.business_id,
+          spendAmount: offerData.spend_amount,
+          pointsEarned: offerData.points_earned,
+          rewardThreshold: offerData.reward_threshold,
+          rewardDescription: offerData.reward_description,
+          rewardImage: offerData.reward_image,
+          isActive: offerData.is_active,
+          createdAt: new Date(offerData.created_at),
+        };
+
+        setOffer(formattedOffer);
+      }
+    } catch (error) {
+      console.error('Error loading business data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
     return (
       <div className="business-detail-loading min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
           <p className="text-gray-600">Loading business details...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!business) {
+    return (
+      <div className="business-detail-error min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-xl font-semibold mb-2">Business not found</h2>
+          <p className="text-gray-600 mb-4">The business you're looking for doesn't exist.</p>
+          <Button onClick={() => navigate('/businesses')}>
+            Back to Directory
+          </Button>
         </div>
       </div>
     );

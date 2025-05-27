@@ -1,74 +1,81 @@
 
 import React, { useState } from 'react';
+import { useAuth } from '@/hooks/useAuth';
+import { useAppStore } from '@/store/useAppStore';
+import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Textarea } from '../ui/textarea';
-import { LoyaltyOffer } from '../../types';
-import { useAppStore } from '../../store/useAppStore';
-import { useToast } from '../../hooks/use-toast';
-import { Gift, Euro, Award } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { Gift } from 'lucide-react';
 
-interface OfferFormProps {
-  offer?: LoyaltyOffer;
-  onSuccess?: () => void;
-}
-
-const OfferForm: React.FC<OfferFormProps> = ({ offer, onSuccess }) => {
-  const { currentBusiness, addLoyaltyOffer, updateLoyaltyOffer } = useAppStore();
+const OfferForm = () => {
+  const { user } = useAuth();
+  const { currentBusiness } = useAppStore();
   const { toast } = useToast();
-  
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
-    spendAmount: offer?.spendAmount || 10,
-    pointsEarned: offer?.pointsEarned || 10,
-    rewardThreshold: offer?.rewardThreshold || 100,
-    rewardDescription: offer?.rewardDescription || '',
-    rewardImage: offer?.rewardImage || '',
+    spendAmount: '',
+    pointsEarned: '',
+    rewardThreshold: '',
+    rewardDescription: '',
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!currentBusiness) {
+    if (!user || !currentBusiness) {
       toast({
         title: "Error",
-        description: "No business selected",
+        description: "You must be logged in as a business owner",
         variant: "destructive",
       });
       return;
     }
 
-    const offerData: LoyaltyOffer = {
-      id: offer?.id || `offer_${Date.now()}`,
-      businessId: currentBusiness.id,
-      ...formData,
-      isActive: true,
-      createdAt: offer?.createdAt || new Date(),
-    };
+    setLoading(true);
 
-    if (offer) {
-      updateLoyaltyOffer(offerData);
+    try {
+      const offerData = {
+        business_id: currentBusiness.id,
+        spend_amount: parseInt(formData.spendAmount),
+        points_earned: parseInt(formData.pointsEarned),
+        reward_threshold: parseInt(formData.rewardThreshold),
+        reward_description: formData.rewardDescription,
+        is_active: true,
+      };
+
+      const { error } = await supabase
+        .from('loyalty_offers')
+        .insert(offerData);
+
+      if (error) throw error;
+
       toast({
-        title: "Offer Updated",
-        description: "Your loyalty offer has been updated successfully.",
+        title: "Loyalty Offer Created!",
+        description: "Your loyalty program is now active.",
       });
-    } else {
-      addLoyaltyOffer(offerData);
+
+      // Reset form
+      setFormData({
+        spendAmount: '',
+        pointsEarned: '',
+        rewardThreshold: '',
+        rewardDescription: '',
+      });
+
+    } catch (error) {
+      console.error('Error creating offer:', error);
       toast({
-        title: "Offer Created",
-        description: "Your loyalty offer has been created successfully.",
+        title: "Error",
+        description: "Failed to create loyalty offer",
+        variant: "destructive",
       });
+    } finally {
+      setLoading(false);
     }
-
-    onSuccess?.();
-  };
-
-  const handleInputChange = (field: string, value: string | number) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
   };
 
   return (
@@ -76,87 +83,90 @@ const OfferForm: React.FC<OfferFormProps> = ({ offer, onSuccess }) => {
       <CardHeader>
         <CardTitle className="flex items-center space-x-2">
           <Gift className="w-5 h-5" />
-          <span>{offer ? 'Edit Loyalty Offer' : 'Create Loyalty Offer'}</span>
+          <span>Create Loyalty Offer</span>
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="form-group-spend">
-              <Label htmlFor="spendAmount" className="flex items-center space-x-2">
-                <Euro className="w-4 h-4" />
-                <span>Spend Amount (€)</span>
-              </Label>
+            <div className="form-group">
+              <Label htmlFor="spendAmount">Spend Amount (€)</Label>
               <Input
                 id="spendAmount"
                 type="number"
-                min="1"
+                placeholder="10"
                 value={formData.spendAmount}
-                onChange={(e) => handleInputChange('spendAmount', parseInt(e.target.value))}
-                className="input-spend-amount"
+                onChange={(e) => setFormData({ ...formData, spendAmount: e.target.value })}
                 required
+                className="input-spend-amount"
               />
             </div>
 
-            <div className="form-group-points">
-              <Label htmlFor="pointsEarned" className="flex items-center space-x-2">
-                <Award className="w-4 h-4" />
-                <span>Points Earned</span>
-              </Label>
+            <div className="form-group">
+              <Label htmlFor="pointsEarned">Points Earned</Label>
               <Input
                 id="pointsEarned"
                 type="number"
-                min="1"
+                placeholder="10"
                 value={formData.pointsEarned}
-                onChange={(e) => handleInputChange('pointsEarned', parseInt(e.target.value))}
-                className="input-points-earned"
+                onChange={(e) => setFormData({ ...formData, pointsEarned: e.target.value })}
                 required
+                className="input-points-earned"
               />
             </div>
           </div>
 
-          <div className="form-group-threshold">
-            <Label htmlFor="rewardThreshold">Points Required for Reward</Label>
+          <div className="form-group">
+            <Label htmlFor="rewardThreshold">Reward Threshold (Points)</Label>
             <Input
               id="rewardThreshold"
               type="number"
-              min="1"
+              placeholder="100"
               value={formData.rewardThreshold}
-              onChange={(e) => handleInputChange('rewardThreshold', parseInt(e.target.value))}
-              className="input-reward-threshold"
+              onChange={(e) => setFormData({ ...formData, rewardThreshold: e.target.value })}
               required
+              className="input-reward-threshold"
             />
           </div>
 
-          <div className="form-group-description">
+          <div className="form-group">
             <Label htmlFor="rewardDescription">Reward Description</Label>
             <Textarea
               id="rewardDescription"
-              placeholder="e.g., Free coffee, 20% discount, etc."
+              placeholder="Free coffee or 10% discount"
               value={formData.rewardDescription}
-              onChange={(e) => handleInputChange('rewardDescription', e.target.value)}
-              className="textarea-reward-description"
+              onChange={(e) => setFormData({ ...formData, rewardDescription: e.target.value })}
               required
+              className="textarea-reward-description"
             />
           </div>
 
-          <div className="offer-preview bg-gradient-to-r from-purple-50 to-blue-50 p-4 rounded-lg border">
-            <h4 className="font-semibold text-gray-900 mb-2">Offer Preview:</h4>
+          <div className="offer-preview bg-gradient-to-r from-purple-50 to-blue-50 p-4 rounded-lg">
+            <h4 className="font-semibold text-gray-900 mb-2">Preview:</h4>
             <p className="text-sm text-gray-700">
-              Spend <span className="font-bold">€{formData.spendAmount}</span> → 
-              Earn <span className="font-bold">{formData.pointsEarned} points</span>
+              {formData.spendAmount && formData.pointsEarned ? (
+                <>
+                  Spend <span className="font-bold">€{formData.spendAmount}</span> → 
+                  Earn <span className="font-bold">{formData.pointsEarned} points</span>
+                </>
+              ) : (
+                'Enter spending amount and points to see preview'
+              )}
             </p>
-            <p className="text-sm text-gray-700">
-              Collect <span className="font-bold">{formData.rewardThreshold} points</span> → 
-              Get <span className="font-bold">{formData.rewardDescription}</span>
-            </p>
+            {formData.rewardThreshold && formData.rewardDescription && (
+              <p className="text-sm text-gray-700 mt-1">
+                Collect <span className="font-bold">{formData.rewardThreshold} points</span> → 
+                Get <span className="font-bold">{formData.rewardDescription}</span>
+              </p>
+            )}
           </div>
 
           <Button 
             type="submit" 
-            className="btn-submit-offer w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+            className="btn-create-offer w-full" 
+            disabled={loading}
           >
-            {offer ? 'Update Offer' : 'Create Offer'}
+            {loading ? 'Creating Offer...' : 'Create Loyalty Offer'}
           </Button>
         </form>
       </CardContent>

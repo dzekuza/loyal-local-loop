@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { useAppStore } from '../../store/useAppStore';
+import { supabase } from '@/integrations/supabase/client';
 import BusinessCard from '../../components/business/BusinessCard';
 import { Input } from '../../components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
@@ -8,56 +8,43 @@ import { Search, Filter } from 'lucide-react';
 import { Business } from '../../types';
 
 const BusinessDirectory = () => {
-  const { businesses, setBusinesses } = useAppStore();
+  const [businesses, setBusinesses] = useState<Business[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedType, setSelectedType] = useState('all');
   const [filteredBusinesses, setFilteredBusinesses] = useState<Business[]>([]);
 
-  // Sample business data for demo
   useEffect(() => {
-    if (businesses.length === 0) {
-      const sampleBusinesses: Business[] = [
-        {
-          id: 'business_1',
-          name: 'Café Delight',
-          email: 'info@cafedelight.com',
-          businessType: 'Cafe',
-          description: 'Artisan coffee and fresh pastries in the heart of the city. Join our loyalty program and earn points with every purchase!',
-          qrCode: 'qr_business_1',
-          createdAt: new Date(),
-        },
-        {
-          id: 'business_2',
-          name: 'Fresh Fitness Studio',
-          email: 'hello@freshfitness.com',
-          businessType: 'Fitness Center',
-          description: 'Modern fitness studio with state-of-the-art equipment. Get rewarded for staying healthy with our points system.',
-          qrCode: 'qr_business_2',
-          createdAt: new Date(),
-        },
-        {
-          id: 'business_3',
-          name: 'BookWorm Corner',
-          email: 'books@bookwormcorner.com',
-          businessType: 'Bookstore',
-          description: 'Independent bookstore featuring local authors and rare finds. Every book purchase earns you loyalty points.',
-          qrCode: 'qr_business_3',
-          createdAt: new Date(),
-        },
-        {
-          id: 'business_4',
-          name: 'Bella Vista Restaurant',
-          email: 'dining@bellavista.com',
-          businessType: 'Restaurant',
-          description: 'Authentic Italian cuisine with a modern twist. Dine with us and collect points for exclusive rewards.',
-          qrCode: 'qr_business_4',
-          createdAt: new Date(),
-        }
-      ];
-      
-      setBusinesses(sampleBusinesses);
+    loadBusinesses();
+  }, []);
+
+  const loadBusinesses = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('businesses')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      const formattedBusinesses: Business[] = data.map(business => ({
+        id: business.id,
+        name: business.name,
+        email: business.email,
+        logo: business.logo,
+        businessType: business.business_type,
+        description: business.description,
+        qrCode: business.qr_code,
+        createdAt: new Date(business.created_at),
+      }));
+
+      setBusinesses(formattedBusinesses);
+    } catch (error) {
+      console.error('Error loading businesses:', error);
+    } finally {
+      setLoading(false);
     }
-  }, [businesses.length, setBusinesses]);
+  };
 
   // Filter businesses based on search and type
   useEffect(() => {
@@ -77,7 +64,18 @@ const BusinessDirectory = () => {
     setFilteredBusinesses(filtered);
   }, [businesses, searchTerm, selectedType]);
 
-  const businessTypes = ['all', 'Restaurant', 'Cafe', 'Retail Store', 'Beauty Salon', 'Fitness Center', 'Bookstore', 'Pharmacy'];
+  const businessTypes = ['all', 'Restaurant', 'Cafe', 'Retail Store', 'Beauty Salon', 'Fitness Center', 'Bookstore', 'Pharmacy', 'Other'];
+
+  if (loading) {
+    return (
+      <div className="business-directory-loading min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading businesses...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="business-directory min-h-screen bg-gray-50 py-8">
@@ -146,10 +144,13 @@ const BusinessDirectory = () => {
               <Search className="w-12 h-12 text-gray-400" />
             </div>
             <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              No businesses found
+              {businesses.length === 0 ? 'No businesses yet' : 'No businesses found'}
             </h3>
             <p className="text-gray-600">
-              Try adjusting your search terms or filters
+              {businesses.length === 0 
+                ? 'Be the first business to join our loyalty program!'
+                : 'Try adjusting your search terms or filters'
+              }
             </p>
           </div>
         )}

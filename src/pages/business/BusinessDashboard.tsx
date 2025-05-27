@@ -1,23 +1,28 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAppStore } from '../../store/useAppStore';
+import { useAuth } from '@/hooks/useAuth';
+import { useAppStore } from '@/store/useAppStore';
+import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import QRGenerator from '../../components/business/QRGenerator';
 import OfferForm from '../../components/offers/OfferForm';
 import { Store, Users, Gift, TrendingUp } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 const BusinessDashboard = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { toast } = useToast();
   const { 
     isAuthenticated, 
     userRole, 
     currentUser, 
     currentBusiness, 
-    setCurrentBusiness,
-    addBusiness 
+    setCurrentBusiness 
   } = useAppStore();
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!isAuthenticated || userRole !== 'business') {
@@ -25,24 +30,98 @@ const BusinessDashboard = () => {
       return;
     }
 
-    // Create or load business profile
-    if (!currentBusiness && currentUser) {
-      const business = {
-        id: `business_${currentUser.id}`,
-        name: currentUser.name,
-        email: currentUser.email,
-        businessType: currentUser.businessType || 'Restaurant',
-        description: `Welcome to ${currentUser.name}! We offer great products and services.`,
-        qrCode: `qr_${currentUser.id}`,
-        createdAt: new Date(),
-      };
-      
-      addBusiness(business);
-      setCurrentBusiness(business);
-    }
-  }, [isAuthenticated, userRole, currentUser, currentBusiness]);
+    loadBusinessProfile();
+  }, [isAuthenticated, userRole, user]);
 
-  if (!currentBusiness) {
+  const loadBusinessProfile = async () => {
+    if (!user) return;
+
+    try {
+      // Check if business profile exists
+      const { data: business, error } = await supabase
+        .from('businesses')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        throw error;
+      }
+
+      if (business) {
+        setCurrentBusiness({
+          id: business.id,
+          name: business.name,
+          email: business.email,
+          logo: business.logo,
+          businessType: business.business_type,
+          description: business.description,
+          qrCode: business.qr_code,
+          createdAt: new Date(business.created_at),
+        });
+      } else {
+        // Create business profile if it doesn't exist
+        await createBusinessProfile();
+      }
+    } catch (error) {
+      console.error('Error loading business profile:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load business profile",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const createBusinessProfile = async () => {
+    if (!user || !currentUser) return;
+
+    try {
+      const businessData = {
+        user_id: user.id,
+        name: currentUser.name,
+        email: user.email,
+        business_type: currentUser.businessType || 'Restaurant',
+        description: `Welcome to ${currentUser.name}! We offer great products and services.`,
+        qr_code: `qr_${user.id}`,
+      };
+
+      const { data: business, error } = await supabase
+        .from('businesses')
+        .insert(businessData)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setCurrentBusiness({
+        id: business.id,
+        name: business.name,
+        email: business.email,
+        logo: business.logo,
+        businessType: business.business_type,
+        description: business.description,
+        qrCode: business.qr_code,
+        createdAt: new Date(business.created_at),
+      });
+
+      toast({
+        title: "Business Profile Created",
+        description: "Your business profile has been set up successfully!",
+      });
+    } catch (error) {
+      console.error('Error creating business profile:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create business profile",
+        variant: "destructive",
+      });
+    }
+  };
+
+  if (loading) {
     return (
       <div className="dashboard-loading min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -53,24 +132,37 @@ const BusinessDashboard = () => {
     );
   }
 
+  if (!currentBusiness) {
+    return (
+      <div className="dashboard-error min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-gray-600">Unable to load business profile. Please try again.</p>
+          <Button onClick={loadBusinessProfile} className="mt-4">
+            Retry
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   const stats = [
     {
       title: 'Total Customers',
-      value: '24',
+      value: '0',
       icon: <Users className="w-5 h-5" />,
-      change: '+12%'
-    },
-    {
-      title: 'Active Offers',
-      value: '1',
-      icon: <Gift className="w-5 h-5" />,
       change: 'New'
     },
     {
+      title: 'Active Offers',
+      value: '0',
+      icon: <Gift className="w-5 h-5" />,
+      change: 'Create one'
+    },
+    {
       title: 'Points Distributed',
-      value: '1,240',
+      value: '0',
       icon: <TrendingUp className="w-5 h-5" />,
-      change: '+8%'
+      change: 'Start earning'
     }
   ];
 
@@ -88,14 +180,6 @@ const BusinessDashboard = () => {
               <p className="text-gray-600">{currentBusiness.businessType}</p>
             </div>
           </div>
-          
-          <Button 
-            onClick={() => navigate('/profile')}
-            variant="outline"
-            className="btn-edit-profile"
-          >
-            Edit Profile
-          </Button>
         </div>
 
         {/* Stats */}
@@ -113,7 +197,7 @@ const BusinessDashboard = () => {
                   </div>
                 </div>
                 <div className="mt-2">
-                  <span className="text-sm text-green-600 font-medium">{stat.change}</span>
+                  <span className="text-sm text-gray-500">{stat.change}</span>
                 </div>
               </CardContent>
             </Card>
@@ -122,7 +206,6 @@ const BusinessDashboard = () => {
 
         {/* Main Content */}
         <div className="dashboard-content grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* QR Code Section */}
           <div className="qr-section">
             <QRGenerator 
               businessId={currentBusiness.id}
@@ -130,44 +213,9 @@ const BusinessDashboard = () => {
             />
           </div>
 
-          {/* Offer Form Section */}
           <div className="offer-section">
             <OfferForm />
           </div>
-        </div>
-
-        {/* Quick Actions */}
-        <div className="quick-actions mt-8">
-          <Card>
-            <CardHeader>
-              <CardTitle>Quick Actions</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <Button 
-                  variant="outline"
-                  className="btn-view-analytics"
-                  onClick={() => navigate('/analytics')}
-                >
-                  View Analytics
-                </Button>
-                <Button 
-                  variant="outline"
-                  className="btn-manage-customers"
-                  onClick={() => navigate('/customers')}
-                >
-                  Manage Customers
-                </Button>
-                <Button 
-                  variant="outline"
-                  className="btn-download-qr"
-                  onClick={() => {/* Handle QR download */}}
-                >
-                  Download QR Code
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
         </div>
       </div>
     </div>

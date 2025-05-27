@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -62,7 +61,7 @@ const BusinessDetailPage = () => {
 
       // Fetch active offers
       const { data: offersData, error: offersError } = await supabase
-        .from('loyalty_offers')
+        .from('rewards')
         .select('*')
         .eq('business_id', businessId)
         .eq('is_active', true)

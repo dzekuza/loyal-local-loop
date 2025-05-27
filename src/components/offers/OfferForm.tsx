@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useAppStore } from '@/store/useAppStore';
@@ -52,7 +51,7 @@ const OfferForm: React.FC<OfferFormProps> = ({ onOfferCreated }) => {
       };
 
       const { error } = await supabase
-        .from('loyalty_offers')
+        .from('rewards')
         .insert(offerData);
 
       if (error) throw error;

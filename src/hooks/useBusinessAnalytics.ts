@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAppStore } from '@/store/useAppStore';
@@ -35,7 +34,7 @@ export const useBusinessAnalytics = () => {
 
         // Fetch active offers
         const { data: offers, error: offersError } = await supabase
-          .from('loyalty_offers')
+          .from('rewards')
           .select('*')
           .eq('business_id', currentBusiness.id)
           .eq('is_active', true);

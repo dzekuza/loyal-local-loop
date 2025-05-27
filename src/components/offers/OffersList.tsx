@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAppStore } from '@/store/useAppStore';
@@ -35,7 +34,7 @@ const OffersList = () => {
 
     try {
       const { data, error } = await supabase
-        .from('loyalty_offers')
+        .from('rewards')
         .select('*')
         .eq('business_id', currentBusiness.id)
         .order('created_at', { ascending: false });
@@ -58,7 +57,7 @@ const OffersList = () => {
   const toggleOfferStatus = async (offerId: string, currentStatus: boolean) => {
     try {
       const { error } = await supabase
-        .from('loyalty_offers')
+        .from('rewards')
         .update({ is_active: !currentStatus })
         .eq('id', offerId);
 
@@ -82,7 +81,7 @@ const OffersList = () => {
   const deleteOffer = async (offerId: string) => {
     try {
       const { error } = await supabase
-        .from('loyalty_offers')
+        .from('rewards')
         .delete()
         .eq('id', offerId);
 

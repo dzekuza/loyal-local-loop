@@ -3,11 +3,13 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useAppStore } from '@/store/useAppStore';
+import { useBusinessAnalytics } from '@/hooks/useBusinessAnalytics';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import QRGenerator from '../../components/business/QRGenerator';
 import OfferForm from '../../components/offers/OfferForm';
+import OffersList from '../../components/offers/OffersList';
 import { Store, Users, Gift, TrendingUp } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -22,7 +24,9 @@ const BusinessDashboard = () => {
     currentBusiness, 
     setCurrentBusiness 
   } = useAppStore();
+  const { analytics, loading: analyticsLoading } = useBusinessAnalytics();
   const [loading, setLoading] = useState(true);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
     if (!isAuthenticated || userRole !== 'business') {
@@ -121,6 +125,10 @@ const BusinessDashboard = () => {
     }
   };
 
+  const handleOfferCreated = () => {
+    setRefreshKey(prev => prev + 1);
+  };
+
   if (loading) {
     return (
       <div className="dashboard-loading min-h-screen flex items-center justify-center">
@@ -148,21 +156,21 @@ const BusinessDashboard = () => {
   const stats = [
     {
       title: 'Total Customers',
-      value: '0',
+      value: analyticsLoading ? '...' : analytics.totalCustomers.toString(),
       icon: <Users className="w-5 h-5" />,
-      change: 'New'
+      change: analytics.totalCustomers > 0 ? '+' + analytics.totalCustomers : 'No customers yet'
     },
     {
       title: 'Active Offers',
-      value: '0',
+      value: analyticsLoading ? '...' : analytics.activeOffers.toString(),
       icon: <Gift className="w-5 h-5" />,
-      change: 'Create one'
+      change: analytics.activeOffers > 0 ? 'Live offers' : 'Create your first offer'
     },
     {
       title: 'Points Distributed',
-      value: '0',
+      value: analyticsLoading ? '...' : analytics.totalPointsDistributed.toString(),
       icon: <TrendingUp className="w-5 h-5" />,
-      change: 'Start earning'
+      change: analytics.totalPointsDistributed > 0 ? 'Total earned' : 'Start earning points'
     }
   ];
 
@@ -205,16 +213,23 @@ const BusinessDashboard = () => {
         </div>
 
         {/* Main Content */}
-        <div className="dashboard-content grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <div className="qr-section">
-            <QRGenerator 
-              businessId={currentBusiness.id}
-              businessName={currentBusiness.name}
-            />
+        <div className="dashboard-content space-y-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className="qr-section">
+              <QRGenerator 
+                businessId={currentBusiness.id}
+                businessName={currentBusiness.name}
+              />
+            </div>
+
+            <div className="offer-section">
+              <OfferForm onOfferCreated={handleOfferCreated} />
+            </div>
           </div>
 
-          <div className="offer-section">
-            <OfferForm />
+          {/* Offers List */}
+          <div className="offers-list-section">
+            <OffersList key={refreshKey} />
           </div>
         </div>
       </div>

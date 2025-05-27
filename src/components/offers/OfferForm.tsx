@@ -11,7 +11,11 @@ import { Textarea } from '../ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { Gift } from 'lucide-react';
 
-const OfferForm = () => {
+interface OfferFormProps {
+  onOfferCreated?: () => void;
+}
+
+const OfferForm: React.FC<OfferFormProps> = ({ onOfferCreated }) => {
   const { user } = useAuth();
   const { currentBusiness } = useAppStore();
   const { toast } = useToast();
@@ -65,6 +69,14 @@ const OfferForm = () => {
         rewardThreshold: '',
         rewardDescription: '',
       });
+
+      // Trigger refresh of offers list if callback provided
+      if (onOfferCreated) {
+        onOfferCreated();
+      }
+
+      // Refresh the page to update offers list and analytics
+      window.location.reload();
 
     } catch (error) {
       console.error('Error creating offer:', error);

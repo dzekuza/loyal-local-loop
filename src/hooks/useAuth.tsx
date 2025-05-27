@@ -3,6 +3,7 @@ import { useState, useEffect, createContext, useContext } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
 import { useAppStore } from '@/store/useAppStore';
+import { UserRole } from '@/types';
 
 interface AuthContextType {
   user: User | null;
@@ -54,7 +55,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         .single();
 
       if (profile) {
-        setStoreUser(profile, profile.user_role);
+        setStoreUser(profile, profile.user_role as UserRole);
       }
     } catch (error) {
       console.error('Error fetching user profile:', error);

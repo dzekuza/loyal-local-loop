@@ -9,6 +9,7 @@ import { Button } from '../../components/ui/button';
 import QRGenerator from '../../components/business/QRGenerator';
 import OfferForm from '../../components/offers/OfferForm';
 import OffersList from '../../components/offers/OffersList';
+import PointCollection from '../../components/business/PointCollection';
 import { Store, Users, Gift, TrendingUp } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -130,6 +131,12 @@ const BusinessDashboard = () => {
     setRefreshKey(prev => prev + 1);
   };
 
+  const handlePointsAwarded = () => {
+    setRefreshKey(prev => prev + 1);
+    // Refresh analytics
+    window.location.reload();
+  };
+
   if (loading) {
     return (
       <div className="dashboard-loading min-h-screen flex items-center justify-center">
@@ -215,6 +222,15 @@ const BusinessDashboard = () => {
 
         {/* Main Content */}
         <div className="dashboard-content space-y-8">
+          {/* Point Collection - Featured at the top */}
+          <div className="point-collection-section">
+            <PointCollection 
+              businessId={currentBusiness.id}
+              businessName={currentBusiness.name}
+              onScanSuccess={handlePointsAwarded}
+            />
+          </div>
+
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <div className="qr-section">
               <QRGenerator 

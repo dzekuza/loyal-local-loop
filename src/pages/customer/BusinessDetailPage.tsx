@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -8,9 +7,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { Store, Gift, Star, ArrowLeft, CreditCard, CheckCircle } from 'lucide-react';
+import { Store, Gift, Star, ArrowLeft, CreditCard, CheckCircle, QrCode } from 'lucide-react';
 import { Business, LoyaltyOffer } from '@/types';
 import AppleWalletButton from '@/components/wallet/AppleWalletButton';
+import CustomerQRCode from '@/components/customer/CustomerQRCode';
 
 const BusinessDetailPage = () => {
   const { businessId } = useParams<{ businessId: string }>();
@@ -223,9 +223,19 @@ const BusinessDetailPage = () => {
                           </span>
                         </div>
                         <p className="text-green-700 text-sm mb-4">
-                          Show this page or your QR code when making purchases to earn points!
+                          Show your QR code when making purchases to earn points!
                         </p>
-                        <AppleWalletButton business={business} customerId={user.id} />
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <AppleWalletButton business={business} customerId={user.id} />
+                          <Button 
+                            onClick={() => navigate('/scan')}
+                            variant="outline"
+                            className="w-full"
+                          >
+                            <QrCode className="w-4 h-4 mr-2" />
+                            Show QR Code
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   ) : (
@@ -264,6 +274,47 @@ const BusinessDetailPage = () => {
               </div>
             </CardContent>
           </Card>
+
+          {/* Customer QR Code Section - Only show if enrolled */}
+          {isEnrolled && (
+            <Card className="mb-8">
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <QrCode className="w-5 h-5" />
+                  <span>Your QR Code for {business.name}</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <CustomerQRCode 
+                    customerId={user.id}
+                    customerName={user.email || 'Customer'}
+                  />
+                  <div className="space-y-4">
+                    <h3 className="font-semibold text-lg">How to earn points:</h3>
+                    <ol className="space-y-2 text-sm text-gray-600">
+                      <li className="flex items-start space-x-2">
+                        <span className="bg-purple-100 text-purple-800 rounded-full w-6 h-6 flex items-center justify-center text-xs font-medium">1</span>
+                        <span>Make a purchase at {business.name}</span>
+                      </li>
+                      <li className="flex items-start space-x-2">
+                        <span className="bg-purple-100 text-purple-800 rounded-full w-6 h-6 flex items-center justify-center text-xs font-medium">2</span>
+                        <span>Show this QR code to the cashier</span>
+                      </li>
+                      <li className="flex items-start space-x-2">
+                        <span className="bg-purple-100 text-purple-800 rounded-full w-6 h-6 flex items-center justify-center text-xs font-medium">3</span>
+                        <span>They'll scan it and award you points automatically</span>
+                      </li>
+                      <li className="flex items-start space-x-2">
+                        <span className="bg-purple-100 text-purple-800 rounded-full w-6 h-6 flex items-center justify-center text-xs font-medium">4</span>
+                        <span>Redeem points for rewards when you reach the threshold</span>
+                      </li>
+                    </ol>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Offers */}
           <Card>

@@ -119,6 +119,39 @@ export type Database = {
           },
         ]
       }
+      point_transactions: {
+        Row: {
+          amount_spent: number
+          business_id: string
+          created_at: string
+          customer_id: string
+          id: string
+          points_earned: number
+          processed_by: string | null
+          transaction_date: string
+        }
+        Insert: {
+          amount_spent: number
+          business_id: string
+          created_at?: string
+          customer_id: string
+          id?: string
+          points_earned: number
+          processed_by?: string | null
+          transaction_date?: string
+        }
+        Update: {
+          amount_spent?: number
+          business_id?: string
+          created_at?: string
+          customer_id?: string
+          id?: string
+          points_earned?: number
+          processed_by?: string | null
+          transaction_date?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           business_type: string | null

@@ -35,10 +35,9 @@ export const useBusinessAnalytics = () => {
 
         if (customersError) {
           console.error('Error fetching customers:', customersError);
-          throw customersError;
         }
 
-        // Fetch active offers with better error handling
+        // Fetch offers for this business (now that we have proper RLS policies)
         const { data: offers, error: offersError } = await supabase
           .from('loyalty_offers')
           .select('*')
@@ -47,8 +46,6 @@ export const useBusinessAnalytics = () => {
 
         if (offersError) {
           console.error('Error fetching offers:', offersError);
-          // Don't throw here, just log and continue with 0 offers
-          console.log('Continuing with 0 active offers due to fetch error');
         }
 
         // Fetch total points distributed
@@ -59,7 +56,6 @@ export const useBusinessAnalytics = () => {
 
         if (pointsError) {
           console.error('Error fetching points:', pointsError);
-          throw pointsError;
         }
 
         const totalPoints = points?.reduce((sum, p) => sum + p.total_points, 0) || 0;
@@ -80,7 +76,6 @@ export const useBusinessAnalytics = () => {
         });
       } catch (error) {
         console.error('Error fetching analytics:', error);
-        // Set fallback values instead of leaving everything at 0
         setAnalytics({
           totalCustomers: 0,
           activeOffers: 0,

@@ -7,7 +7,7 @@ import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import { Switch } from '../ui/switch';
 import { useToast } from '@/hooks/use-toast';
-import { Gift, Edit, Trash2, AlertCircle } from 'lucide-react';
+import { Gift, Trash2, AlertCircle } from 'lucide-react';
 
 interface LoyaltyOffer {
   id: string;
@@ -42,20 +42,7 @@ const OffersList = () => {
     setError(null);
 
     try {
-      // Test basic connectivity first
-      const { data: testData, error: testError } = await supabase
-        .from('loyalty_offers')
-        .select('count', { count: 'exact' });
-
-      console.log('Test query result:', { testData, testError });
-
-      if (testError) {
-        console.error('Test query failed:', testError);
-        setError(`Database access test failed: ${testError.message}`);
-        return;
-      }
-
-      // Now fetch the actual offers
+      // Fetch all offers for this business (RLS policies will handle authorization)
       const { data, error } = await supabase
         .from('loyalty_offers')
         .select('*')
@@ -66,7 +53,7 @@ const OffersList = () => {
 
       if (error) {
         console.error('Error fetching offers:', error);
-        setError(`Failed to load offers: ${error.message} (Code: ${error.code})`);
+        setError(`Failed to load offers: ${error.message}`);
         toast({
           title: "Database Error",
           description: `Failed to load offers: ${error.message}`,

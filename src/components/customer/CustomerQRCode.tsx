@@ -1,6 +1,7 @@
 
+
 import React from 'react';
-import QRCode from 'qrcode.react';
+import { QRCodeSVG } from 'qrcode.react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { QrCode } from 'lucide-react';
 
@@ -29,7 +30,7 @@ const CustomerQRCode: React.FC<CustomerQRCodeProps> = ({ customerId, customerNam
       </CardHeader>
       <CardContent className="flex flex-col items-center space-y-4">
         <div className="bg-white p-4 rounded-lg border">
-          <QRCode 
+          <QRCodeSVG 
             value={qrData}
             size={200}
             level="M"
@@ -46,3 +47,4 @@ const CustomerQRCode: React.FC<CustomerQRCodeProps> = ({ customerId, customerNam
 };
 
 export default CustomerQRCode;
+

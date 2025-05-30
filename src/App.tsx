@@ -5,7 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./hooks/useAuth";
-import { Header1 } from "./components/ui/header";
+import Header from "./components/layout/Header";
 import HomePage from "./pages/HomePage";
 import RegisterPage from "./pages/auth/RegisterPage";
 import LoginPage from "./pages/auth/LoginPage";
@@ -25,7 +25,7 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <div className="min-h-screen bg-white">
-            <Header1 />
+            <Header />
             <Routes>
               <Route path="/" element={<HomePage />} />
               <Route path="/register" element={<RegisterPage />} />

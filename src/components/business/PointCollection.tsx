@@ -6,7 +6,7 @@ import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { useToast } from '../../hooks/use-toast';
 import { supabase } from '../../integrations/supabase/client';
-import { Scan, DollarSign, Gift, CheckCircle } from 'lucide-react';
+import { Scan, DollarSign, Gift, CheckCircle, X } from 'lucide-react';
 
 interface PointCollectionProps {
   businessId: string;
@@ -63,13 +63,20 @@ const PointCollection: React.FC<PointCollectionProps> = ({
   };
 
   const handleAwardPoints = async () => {
-    if (!scannedCustomer || !amount) return;
+    if (!scannedCustomer || !amount) {
+      toast({
+        title: "Missing Information",
+        description: "Please scan a customer and enter an amount",
+        variant: "destructive",
+      });
+      return;
+    }
 
     setProcessing(true);
     try {
       const spendAmount = parseFloat(amount);
       if (isNaN(spendAmount) || spendAmount <= 0) {
-        throw new Error('Invalid amount');
+        throw new Error('Please enter a valid amount greater than 0');
       }
 
       // Get the active loyalty offer for this business
@@ -80,10 +87,13 @@ const PointCollection: React.FC<PointCollectionProps> = ({
         .eq('is_active', true)
         .limit(1);
 
-      if (offersError) throw offersError;
+      if (offersError) {
+        console.error('Error fetching offers:', offersError);
+        throw new Error('Failed to fetch loyalty offers');
+      }
 
       if (!offers || offers.length === 0) {
-        throw new Error('No active loyalty offers found for this business');
+        throw new Error('No active loyalty offers found for this business. Please create an offer first.');
       }
 
       const offer = offers[0];
@@ -97,7 +107,15 @@ const PointCollection: React.FC<PointCollectionProps> = ({
           description: `Minimum spend of $${offer.spend_amount} required to earn points`,
           variant: "destructive",
         });
+        setProcessing(false);
         return;
+      }
+
+      // Get current user for processed_by field
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        throw new Error('You must be logged in to award points');
       }
 
       // Create point transaction
@@ -108,10 +126,13 @@ const PointCollection: React.FC<PointCollectionProps> = ({
           business_id: businessId,
           amount_spent: spendAmount,
           points_earned: pointsEarned,
-          processed_by: (await supabase.auth.getUser()).data.user?.id
+          processed_by: user.id
         });
 
-      if (transactionError) throw transactionError;
+      if (transactionError) {
+        console.error('Transaction error:', transactionError);
+        throw new Error('Failed to record point transaction');
+      }
 
       toast({
         title: "Points Awarded! 🎉",
@@ -136,94 +157,114 @@ const PointCollection: React.FC<PointCollectionProps> = ({
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center space-x-2">
-          <Scan className="w-5 h-5" />
-          <span>Award Points</span>
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {!scannedCustomer ? (
-          <div className="text-center">
-            <Button 
-              onClick={() => setShowScanner(true)}
-              className="w-full"
-              size="lg"
-            >
-              <Scan className="w-5 h-5 mr-2" />
-              Scan Customer QR Code
-            </Button>
-            <p className="text-sm text-gray-600 mt-2">
-              Ask customer to show their QR code
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            <div className="p-4 bg-green-50 rounded-lg border border-green-200">
-              <div className="flex items-center space-x-2 mb-2">
-                <CheckCircle className="w-5 h-5 text-green-600" />
-                <span className="font-medium text-green-800">Customer Scanned</span>
-              </div>
-              <p className="text-green-700">{scannedCustomer.customerName}</p>
-              <p className="text-xs text-green-600">ID: {scannedCustomer.customerId.slice(0, 8)}...</p>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="amount">Purchase Amount ($)</Label>
-              <div className="relative">
-                <DollarSign className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
-                <Input
-                  id="amount"
-                  type="number"
-                  step="0.01"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                  placeholder="0.00"
-                  className="pl-10"
-                />
-              </div>
-            </div>
-
-            <div className="flex space-x-2">
-              <Button
-                onClick={handleAwardPoints}
-                disabled={!amount || processing}
-                className="flex-1"
+    <>
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <Scan className="w-5 h-5" />
+            <span>Award Points</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {!scannedCustomer ? (
+            <div className="text-center">
+              <Button 
+                onClick={() => setShowScanner(true)}
+                className="w-full"
+                size="lg"
               >
-                {processing ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    Processing...
-                  </>
-                ) : (
-                  <>
-                    <Gift className="w-4 h-4 mr-2" />
-                    Award Points
-                  </>
-                )}
+                <Scan className="w-5 h-5 mr-2" />
+                Scan Customer QR Code
               </Button>
-              <Button
-                variant="outline"
-                onClick={() => setScannedCustomer(null)}
-                disabled={processing}
-              >
-                Cancel
-              </Button>
+              <p className="text-sm text-gray-600 mt-2">
+                Ask customer to show their QR code
+              </p>
             </div>
-          </div>
-        )}
+          ) : (
+            <div className="space-y-4">
+              <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+                <div className="flex items-center space-x-2 mb-2">
+                  <CheckCircle className="w-5 h-5 text-green-600" />
+                  <span className="font-medium text-green-800">Customer Scanned</span>
+                </div>
+                <p className="text-green-700">{scannedCustomer.customerName}</p>
+                <p className="text-xs text-green-600">ID: {scannedCustomer.customerId.slice(0, 8)}...</p>
+              </div>
 
-        {showScanner && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white p-6 rounded-lg max-w-md w-full mx-4">
-              <h3 className="text-lg font-semibold mb-4">Scan Customer QR Code</h3>
-              <div className="mb-4">
-                {/* QR Scanner would go here - using react-qr-scanner */}
-                <div className="bg-gray-100 aspect-square rounded-lg flex items-center justify-center">
-                  <p className="text-gray-600">Camera view would appear here</p>
+              <div className="space-y-2">
+                <Label htmlFor="amount">Purchase Amount ($)</Label>
+                <div className="relative">
+                  <DollarSign className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
+                  <Input
+                    id="amount"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                    placeholder="0.00"
+                    className="pl-10"
+                  />
                 </div>
               </div>
+
+              <div className="flex space-x-2">
+                <Button
+                  onClick={handleAwardPoints}
+                  disabled={!amount || processing}
+                  className="flex-1"
+                >
+                  {processing ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Processing...
+                    </>
+                  ) : (
+                    <>
+                      <Gift className="w-4 h-4 mr-2" />
+                      Award Points
+                    </>
+                  )}
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => setScannedCustomer(null)}
+                  disabled={processing}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* QR Scanner Modal with proper overlay */}
+      {showScanner && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100] p-4">
+          <div className="bg-white rounded-lg max-w-md w-full mx-4 relative">
+            <div className="flex items-center justify-between p-6 border-b">
+              <h3 className="text-lg font-semibold">Scan Customer QR Code</h3>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowScanner(false)}
+                className="h-8 w-8 p-0"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+            
+            <div className="p-6">
+              <div className="mb-4">
+                <div className="bg-gray-100 aspect-square rounded-lg flex items-center justify-center">
+                  <p className="text-gray-600 text-center">
+                    Camera view would appear here<br />
+                    <span className="text-sm">Point camera at customer's QR code</span>
+                  </p>
+                </div>
+              </div>
+              
               <div className="flex space-x-2">
                 <Button
                   variant="outline"
@@ -250,9 +291,9 @@ const PointCollection: React.FC<PointCollectionProps> = ({
               </div>
             </div>
           </div>
-        )}
-      </CardContent>
-    </Card>
+        </div>
+      )}
+    </>
   );
 };
 

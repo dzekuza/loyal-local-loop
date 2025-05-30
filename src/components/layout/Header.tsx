@@ -54,7 +54,7 @@ const Header = () => {
                   <div className="user-avatar w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
                     <User className="w-4 h-4 text-gray-600" />
                   </div>
-                  <span className="user-name text-sm font-medium text-gray-900">
+                  <span className="user-name text-sm font-medium text-gray-900 hidden sm:block">
                     {currentUser?.name || user.email}
                   </span>
                 </div>
@@ -62,9 +62,10 @@ const Header = () => {
                   variant="ghost"
                   size="sm"
                   onClick={handleSignOut}
-                  className="btn-signout"
+                  className="btn-signout flex items-center space-x-1"
                 >
                   <LogOut className="w-4 h-4" />
+                  <span className="hidden sm:inline">Sign Out</span>
                 </Button>
               </div>
             ) : (

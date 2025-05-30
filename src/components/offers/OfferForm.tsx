@@ -28,11 +28,27 @@ const OfferForm = ({ onOfferCreated }: OfferFormProps) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!currentBusiness || !user) return;
+    if (!currentBusiness || !user) {
+      toast({
+        title: "Error",
+        description: "Business profile or user authentication missing",
+        variant: "destructive",
+      });
+      return;
+    }
 
     setLoading(true);
 
     try {
+      console.log('Creating offer with data:', {
+        business_id: currentBusiness.id,
+        reward_description: formData.reward_description,
+        spend_amount: parseInt(formData.spend_amount),
+        points_earned: parseInt(formData.points_earned),
+        reward_threshold: parseInt(formData.reward_threshold),
+        is_active: true
+      });
+
       const { data, error } = await supabase
         .from('loyalty_offers')
         .insert({
@@ -42,9 +58,21 @@ const OfferForm = ({ onOfferCreated }: OfferFormProps) => {
           points_earned: parseInt(formData.points_earned),
           reward_threshold: parseInt(formData.reward_threshold),
           is_active: true
-        });
+        })
+        .select()
+        .single();
 
-      if (error) throw error;
+      console.log('Offer creation result:', { data, error });
+
+      if (error) {
+        console.error('Error creating offer:', error);
+        toast({
+          title: "Database Error",
+          description: `Failed to create offer: ${error.message}`,
+          variant: "destructive",
+        });
+        return;
+      }
 
       toast({
         title: "Offer Created",
@@ -60,10 +88,11 @@ const OfferForm = ({ onOfferCreated }: OfferFormProps) => {
 
       onOfferCreated?.();
     } catch (error) {
-      console.error('Error creating offer:', error);
+      console.error('Unexpected error creating offer:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
       toast({
         title: "Error",
-        description: "Failed to create offer. Please try again.",
+        description: `Unexpected error: ${errorMessage}`,
         variant: "destructive",
       });
     } finally {

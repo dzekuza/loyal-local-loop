@@ -7,7 +7,7 @@ import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import { Switch } from '../ui/switch';
 import { useToast } from '@/hooks/use-toast';
-import { Gift, Edit, Trash2 } from 'lucide-react';
+import { Gift, Edit, Trash2, AlertCircle } from 'lucide-react';
 
 interface LoyaltyOffer {
   id: string;
@@ -26,6 +26,7 @@ const OffersList = () => {
   const { toast } = useToast();
   const [offers, setOffers] = useState<LoyaltyOffer[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (currentBusiness) {
@@ -36,20 +37,53 @@ const OffersList = () => {
   const fetchOffers = async () => {
     if (!currentBusiness) return;
 
+    console.log('Fetching offers for business:', currentBusiness.id);
+    setLoading(true);
+    setError(null);
+
     try {
+      // Test basic connectivity first
+      const { data: testData, error: testError } = await supabase
+        .from('loyalty_offers')
+        .select('count', { count: 'exact' });
+
+      console.log('Test query result:', { testData, testError });
+
+      if (testError) {
+        console.error('Test query failed:', testError);
+        setError(`Database access test failed: ${testError.message}`);
+        return;
+      }
+
+      // Now fetch the actual offers
       const { data, error } = await supabase
         .from('loyalty_offers')
         .select('*')
         .eq('business_id', currentBusiness.id)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      console.log('Offers fetch result:', { data, error, businessId: currentBusiness.id });
+
+      if (error) {
+        console.error('Error fetching offers:', error);
+        setError(`Failed to load offers: ${error.message} (Code: ${error.code})`);
+        toast({
+          title: "Database Error",
+          description: `Failed to load offers: ${error.message}`,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      console.log('Successfully fetched offers:', data);
       setOffers(data || []);
     } catch (error) {
-      console.error('Error fetching offers:', error);
+      console.error('Unexpected error fetching offers:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      setError(`Unexpected error: ${errorMessage}`);
       toast({
         title: "Error",
-        description: "Failed to load offers",
+        description: "An unexpected error occurred while loading offers",
         variant: "destructive",
       });
     } finally {
@@ -59,12 +93,17 @@ const OffersList = () => {
 
   const toggleOfferStatus = async (offerId: string, isActive: boolean) => {
     try {
+      console.log('Toggling offer status:', { offerId, isActive });
+      
       const { error } = await supabase
         .from('loyalty_offers')
         .update({ is_active: isActive })
         .eq('id', offerId);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error updating offer:', error);
+        throw error;
+      }
 
       setOffers(offers.map(offer => 
         offer.id === offerId ? { ...offer, is_active: isActive } : offer
@@ -86,12 +125,17 @@ const OffersList = () => {
 
   const deleteOffer = async (offerId: string) => {
     try {
+      console.log('Deleting offer:', offerId);
+      
       const { error } = await supabase
         .from('loyalty_offers')
         .delete()
         .eq('id', offerId);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error deleting offer:', error);
+        throw error;
+      }
 
       setOffers(offers.filter(offer => offer.id !== offerId));
 
@@ -113,7 +157,27 @@ const OffersList = () => {
     return (
       <Card>
         <CardContent className="p-6">
-          <div className="text-center">Loading offers...</div>
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto mb-2"></div>
+            <p>Loading offers...</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <div className="text-center">
+            <AlertCircle className="w-12 h-12 mx-auto mb-4 text-red-500" />
+            <h3 className="text-lg font-medium text-red-800 mb-2">Error Loading Offers</h3>
+            <p className="text-sm text-red-600 mb-4">{error}</p>
+            <Button onClick={fetchOffers} variant="outline">
+              Try Again
+            </Button>
+          </div>
         </CardContent>
       </Card>
     );
@@ -125,6 +189,9 @@ const OffersList = () => {
         <CardTitle className="flex items-center space-x-2">
           <Gift className="w-5 h-5" />
           <span>Your Loyalty Offers</span>
+          <Button onClick={fetchOffers} variant="ghost" size="sm" className="ml-auto">
+            Refresh
+          </Button>
         </CardTitle>
       </CardHeader>
       <CardContent>

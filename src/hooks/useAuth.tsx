@@ -11,6 +11,7 @@ interface AuthContextType {
   signUp: (email: string, password: string, userData: any) => Promise<any>;
   signIn: (email: string, password: string) => Promise<any>;
   signOut: () => Promise<void>;
+  checkSubscription: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -61,7 +62,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       console.log(`Fetching profile for user: ${user.id}`);
       
-      // Try to fetch existing profile
       const { data: profile, error: fetchError } = await supabase
         .from('profiles')
         .select('*')
@@ -72,7 +72,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       if (fetchError && fetchError.code !== 'PGRST116') {
         console.error('Error fetching profile:', fetchError);
-        // Set basic auth state as fallback
         setStoreUser({ id: user.id, email: user.email }, 'customer');
         return;
       }
@@ -81,7 +80,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         console.log('Profile not found, creating new profile');
         const success = await createUserProfile(user);
         if (success) {
-          // Retry fetching the profile after creation
           const { data: newProfile } = await supabase
             .from('profiles')
             .select('*')
@@ -101,6 +99,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         console.log('Setting user with existing profile:', profile);
         setStoreUser(profile, profile.user_role as UserRole);
       }
+
+      // Check subscription after profile is loaded
+      checkSubscription();
     } catch (error) {
       console.error('Error in handleUserProfile:', error);
       setStoreUser({ id: user.id, email: user.email }, 'customer');
@@ -136,6 +137,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     } catch (error) {
       console.error('Error in createUserProfile:', error);
       return false;
+    }
+  };
+
+  const checkSubscription = async () => {
+    if (!user) return;
+    
+    try {
+      console.log('Checking subscription status');
+      await supabase.functions.invoke('check-subscription');
+    } catch (error) {
+      console.error('Error checking subscription:', error);
     }
   };
 
@@ -207,6 +219,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         signUp,
         signIn,
         signOut,
+        checkSubscription,
       }}
     >
       {children}

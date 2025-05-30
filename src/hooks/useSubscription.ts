@@ -8,6 +8,7 @@ interface SubscriptionData {
   trialDaysLeft: number;
   hasActiveSubscription: boolean;
   subscriptionStatus: string | null;
+  subscriptionTier: string | null;
 }
 
 export const useSubscription = () => {
@@ -16,7 +17,8 @@ export const useSubscription = () => {
     isTrialActive: false,
     trialDaysLeft: 0,
     hasActiveSubscription: false,
-    subscriptionStatus: null
+    subscriptionStatus: null,
+    subscriptionTier: null
   });
   const [loading, setLoading] = useState(true);
 
@@ -30,7 +32,10 @@ export const useSubscription = () => {
     if (!user) return;
 
     try {
-      // Check if user has subscription data
+      // Check subscription status via edge function
+      const { data: subscriptionCheck } = await supabase.functions.invoke('check-subscription');
+      
+      // Also check profile for trial data
       const { data: profile } = await supabase
         .from('profiles')
         .select('trial_start_date, subscription_status, subscription_end_date')
@@ -48,8 +53,9 @@ export const useSubscription = () => {
         setSubscriptionData({
           isTrialActive,
           trialDaysLeft,
-          hasActiveSubscription: profile.subscription_status === 'active',
-          subscriptionStatus: profile.subscription_status
+          hasActiveSubscription: subscriptionCheck?.subscribed || profile.subscription_status === 'active',
+          subscriptionStatus: profile.subscription_status,
+          subscriptionTier: subscriptionCheck?.subscription_tier || null
         });
       }
     } catch (error) {
@@ -78,10 +84,24 @@ export const useSubscription = () => {
     }
   };
 
+  const checkSubscription = async () => {
+    try {
+      const { data } = await supabase.functions.invoke('check-subscription');
+      if (data) {
+        loadSubscriptionData();
+      }
+      return data;
+    } catch (error) {
+      console.error('Error checking subscription:', error);
+      return null;
+    }
+  };
+
   return {
     ...subscriptionData,
     loading,
     startFreeTrial,
+    checkSubscription,
     refreshSubscription: loadSubscriptionData
   };
 };

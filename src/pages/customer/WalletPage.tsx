@@ -5,19 +5,18 @@ import { useAuth } from '@/hooks/useAuth';
 import { useAppStore } from '@/store/useAppStore';
 import { useSubscription } from '@/hooks/useSubscription';
 import { supabase } from '@/integrations/supabase/client';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, Wallet, Download, Share, Plus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from 'react-i18next';
-import LanguageSwitcher from '@/components/ui/language-switcher';
+import WalletHeader from '@/components/wallet/WalletHeader';
+import EmptyWalletState from '@/components/wallet/EmptyWalletState';
+import SubscriptionBanner from '@/components/subscription/SubscriptionBanner';
+import SubscriptionManager from '@/components/subscription/SubscriptionManager';
 import PWAWalletCard from '@/components/wallet/PWAWalletCard';
 import GoogleWalletCard from '@/components/wallet/GoogleWalletCard';
 import DownloadableCard from '@/components/wallet/DownloadableCard';
 import WebWalletCard from '@/components/wallet/WebWalletCard';
 import PassKitWalletCard from '@/components/wallet/PassKitWalletCard';
-import SubscriptionBanner from '@/components/subscription/SubscriptionBanner';
 
 interface WalletCard {
   id: string;
@@ -38,7 +37,7 @@ const WalletPage: React.FC = () => {
   const { userRole } = useAppStore();
   const { toast } = useToast();
   const { t } = useTranslation();
-  const { isTrialActive, trialDaysLeft, hasActiveSubscription } = useSubscription();
+  const { isTrialActive, trialDaysLeft, hasActiveSubscription, checkSubscription } = useSubscription();
   const [walletCards, setWalletCards] = useState<WalletCard[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -48,6 +47,9 @@ const WalletPage: React.FC = () => {
       return;
     }
     loadWalletCards();
+    
+    // Check subscription on mount
+    checkSubscription();
   }, [user, userRole]);
 
   const loadWalletCards = async () => {
@@ -92,12 +94,22 @@ const WalletPage: React.FC = () => {
     }
   };
 
-  const handleSubscribe = () => {
-    // This will trigger Stripe checkout when implemented
-    toast({
-      title: "Subscription",
-      description: "Stripe integration will be implemented once Supabase is connected",
-    });
+  const handleSubscribe = async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke('create-checkout');
+      
+      if (error) throw error;
+      
+      if (data?.url) {
+        window.location.href = data.url;
+      }
+    } catch (error) {
+      console.error('Subscription error:', error);
+      toast({
+        title: "Subscription",
+        description: "Please ensure Stripe is properly configured",
+      });
+    }
   };
 
   if (loading) {
@@ -114,28 +126,12 @@ const WalletPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="container mx-auto px-4 max-w-4xl">
-        {/* Header with Language Switcher */}
-        <div className="flex items-center justify-between mb-6">
-          <Button
-            variant="ghost"
-            onClick={() => navigate('/businesses')}
-            className="flex items-center space-x-2"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span>{t('wallet.backToBusinesses')}</span>
-          </Button>
-          
-          <div className="flex items-center space-x-4">
-            <LanguageSwitcher />
-            <Button onClick={() => navigate('/businesses')} className="flex items-center space-x-2">
-              <Plus className="w-4 h-4" />
-              <span>{t('wallet.addCards')}</span>
-            </Button>
-          </div>
-        </div>
+        <WalletHeader 
+          onBack={() => navigate('/businesses')}
+          onAddCards={() => navigate('/businesses')}
+        />
 
-        {/* Subscription Banner */}
-        {(!hasActiveSubscription && userRole === 'business') && (
+        {(!hasActiveSubscription && !isTrialActive) && (
           <div className="mb-6">
             <SubscriptionBanner 
               trialDaysLeft={trialDaysLeft}
@@ -144,29 +140,15 @@ const WalletPage: React.FC = () => {
           </div>
         )}
 
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2 flex items-center justify-center space-x-2">
-            <Wallet className="w-8 h-8" />
-            <span>{t('wallet.title')}</span>
-          </h1>
-          <p className="text-gray-600">
-            {t('wallet.description')}
-          </p>
+        <div className="mb-6">
+          <SubscriptionManager 
+            isSubscribed={hasActiveSubscription}
+            onSubscriptionChange={checkSubscription}
+          />
         </div>
 
         {walletCards.length === 0 ? (
-          <Card>
-            <CardContent className="text-center py-12">
-              <Wallet className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">{t('wallet.noCards')}</h3>
-              <p className="text-gray-600 mb-4">
-                {t('wallet.noCardsDescription')}
-              </p>
-              <Button onClick={() => navigate('/businesses')}>
-                {t('wallet.exploreBusinesses')}
-              </Button>
-            </CardContent>
-          </Card>
+          <EmptyWalletState onExploreBusinesses={() => navigate('/businesses')} />
         ) : (
           <Tabs defaultValue="web" className="space-y-6">
             <TabsList className="grid w-full grid-cols-5">

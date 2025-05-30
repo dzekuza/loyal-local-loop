@@ -1,15 +1,15 @@
 
 import React, { useState } from 'react';
-import QrScanner from 'react-qr-scanner';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useAppStore } from '@/store/useAppStore';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import CustomerQRCode from '@/components/customer/CustomerQRCode';
-import PointCollection from '@/components/business/PointCollection';
-import { QrCode, ArrowLeft } from 'lucide-react';
+import QRCodeScanner from '@/components/qr/QRCodeScanner';
+import { QrCode, ArrowLeft, Award } from 'lucide-react';
 
 const ScanQRCodePage: React.FC = () => {
   const { user } = useAuth();
@@ -17,25 +17,67 @@ const ScanQRCodePage: React.FC = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [scanResult, setScanResult] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
 
-  const handleScan = (data: any) => {
-    if (data && data.text) {
-      setScanResult(data.text);
+  const handleScan = async (result: string) => {
+    console.log('QR Code scanned:', result);
+    setScanResult(result);
+
+    if (userRole === 'business' && currentBusiness) {
+      await processBusinessScan(result);
+    } else {
       toast({
         title: 'QR Code Scanned',
-        description: data.text,
+        description: result,
       });
     }
   };
 
-  const handleError = (err: any) => {
-    setError('Camera error: ' + err?.message || 'Unknown error');
-    toast({
-      title: 'Camera Error',
-      description: err?.message || 'Unknown error',
-      variant: 'destructive',
-    });
+  const processBusinessScan = async (customerData: string) => {
+    if (!currentBusiness) return;
+
+    setIsProcessing(true);
+    try {
+      // Parse customer data - expecting format like "customer_id"
+      const customerId = customerData.replace('customer_', '');
+      
+      // For demo, let's award 10 points for a $10 purchase
+      const pointsToAward = 10;
+      const amountSpent = 10.00;
+
+      // Create point transaction
+      const { data: transaction, error: transactionError } = await supabase
+        .from('point_transactions')
+        .insert({
+          customer_id: customerId,
+          business_id: currentBusiness.id,
+          amount_spent: amountSpent,
+          points_earned: pointsToAward,
+          processed_by: user?.id,
+        })
+        .select()
+        .single();
+
+      if (transactionError) {
+        throw transactionError;
+      }
+
+      toast({
+        title: "Points Awarded!",
+        description: `Successfully awarded ${pointsToAward} points to customer`,
+      });
+
+      setScanResult(null);
+    } catch (error) {
+      console.error('Error processing scan:', error);
+      toast({
+        title: "Error",
+        description: "Failed to award points. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   if (!user) {
@@ -102,42 +144,41 @@ const ScanQRCodePage: React.FC = () => {
             // Business view - point collection interface
             <div className="space-y-6">
               <div className="text-center">
-                <h1 className="text-2xl font-bold text-gray-900 mb-2">Point Collection</h1>
+                <h1 className="text-2xl font-bold text-gray-900 mb-2 flex items-center justify-center space-x-2">
+                  <Award className="w-6 h-6" />
+                  <span>Award Points</span>
+                </h1>
                 <p className="text-gray-600">
-                  Scan customer QR codes and award points for purchases
+                  Scan customer QR codes to award loyalty points
                 </p>
               </div>
 
-              <PointCollection 
-                businessId={currentBusiness.id}
-                businessName={currentBusiness.name}
-                onScanSuccess={() => {
-                  toast({
-                    title: "Success!",
-                    description: "Points awarded successfully",
-                  });
-                }}
+              <QRCodeScanner 
+                onScan={handleScan}
+                title="Scan Customer QR Code"
               />
+
+              {scanResult && (
+                <Card>
+                  <CardContent className="pt-6">
+                    <div className="text-center">
+                      <p className="text-sm text-gray-600 mb-2">Scanned:</p>
+                      <p className="font-mono text-sm bg-gray-100 p-2 rounded">{scanResult}</p>
+                      {isProcessing && (
+                        <p className="text-sm text-purple-600 mt-2">Processing transaction...</p>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
             </div>
           ) : (
             // Fallback for other cases
-            <div className="w-full max-w-md bg-white rounded-lg shadow-lg p-6 flex flex-col items-center mx-auto">
-              <h2 className="text-2xl font-bold mb-4">Scan QR Code</h2>
-              <div className="w-full flex flex-col items-center mb-4">
-                <QrScanner
-                  delay={300}
-                  style={{ width: '100%' }}
-                  onError={handleError}
-                  onScan={handleScan}
-                />
-              </div>
-              {scanResult && (
-                <div className="mb-4 text-green-600 font-semibold">Result: {scanResult}</div>
-              )}
-              {error && (
-                <div className="mb-4 text-red-600 font-semibold">{error}</div>
-              )}
-              <Button onClick={() => navigate(-1)} variant="outline">Back</Button>
+            <div className="text-center">
+              <QRCodeScanner 
+                onScan={handleScan}
+                title="QR Code Scanner"
+              />
             </div>
           )}
         </div>

@@ -10,6 +10,8 @@ import HomePage from "./pages/HomePage";
 import RegisterPage from "./pages/auth/RegisterPage";
 import LoginPage from "./pages/auth/LoginPage";
 import BusinessDashboard from "./pages/business/BusinessDashboard";
+import BusinessProfilePage from "./pages/business/BusinessProfilePage";
+import CustomerProfilePage from "./pages/customer/CustomerProfilePage";
 import BusinessDirectory from "./pages/customer/BusinessDirectory";
 import BusinessDetailPage from "./pages/customer/BusinessDetailPage";
 import ScanQRCodePage from "./pages/customer/ScanQRCodePage";
@@ -31,6 +33,8 @@ const App = () => (
               <Route path="/register" element={<RegisterPage />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/dashboard" element={<BusinessDashboard />} />
+              <Route path="/business-profile" element={<BusinessProfilePage />} />
+              <Route path="/customer-profile" element={<CustomerProfilePage />} />
               <Route path="/businesses" element={<BusinessDirectory />} />
               <Route path="/business/:id" element={<BusinessDetailPage />} />
               <Route path="/scan" element={<ScanQRCodePage />} />

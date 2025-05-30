@@ -29,8 +29,22 @@ const BusinessDashboard = () => {
   const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
-    if (!isAuthenticated || userRole !== 'business') {
+    console.log('Dashboard: checking auth state', { isAuthenticated, userRole, user });
+    
+    if (!isAuthenticated) {
+      console.log('Not authenticated, redirecting to login');
       navigate('/login');
+      return;
+    }
+
+    if (userRole !== 'business') {
+      console.log('Not a business user, redirecting to businesses page');
+      toast({
+        title: "Access Denied",
+        description: "You need a business account to access the dashboard",
+        variant: "destructive",
+      });
+      navigate('/businesses');
       return;
     }
 
@@ -38,9 +52,14 @@ const BusinessDashboard = () => {
   }, [isAuthenticated, userRole, user]);
 
   const loadBusinessProfile = async () => {
-    if (!user) return;
+    if (!user) {
+      console.log('No user found');
+      return;
+    }
 
     try {
+      console.log('Loading business profile for user:', user.id);
+      
       // Check if business profile exists
       const { data: business, error } = await supabase
         .from('businesses')
@@ -49,10 +68,12 @@ const BusinessDashboard = () => {
         .single();
 
       if (error && error.code !== 'PGRST116') {
+        console.error('Error fetching business:', error);
         throw error;
       }
 
       if (business) {
+        console.log('Business found:', business);
         setCurrentBusiness({
           id: business.id,
           name: business.name,
@@ -64,7 +85,7 @@ const BusinessDashboard = () => {
           createdAt: new Date(business.created_at),
         });
       } else {
-        // Create business profile if it doesn't exist
+        console.log('No business found, creating one');
         await createBusinessProfile();
       }
     } catch (error) {
@@ -80,7 +101,10 @@ const BusinessDashboard = () => {
   };
 
   const createBusinessProfile = async () => {
-    if (!user || !currentUser) return;
+    if (!user || !currentUser) {
+      console.log('Missing user or currentUser data');
+      return;
+    }
 
     try {
       const businessData = {
@@ -92,15 +116,20 @@ const BusinessDashboard = () => {
         qr_code: `qr_${user.id}`,
       };
 
+      console.log('Creating business with data:', businessData);
+
       const { data: business, error } = await supabase
         .from('businesses')
         .insert(businessData)
         .select()
         .single();
 
-      console.log("Business insert result:", { business, error });
+      if (error) {
+        console.error('Error creating business:', error);
+        throw error;
+      }
 
-      if (error) throw error;
+      console.log('Business created successfully:', business);
 
       setCurrentBusiness({
         id: business.id,
@@ -133,8 +162,6 @@ const BusinessDashboard = () => {
 
   const handlePointsAwarded = () => {
     setRefreshKey(prev => prev + 1);
-    // Refresh analytics
-    window.location.reload();
   };
 
   if (loading) {
@@ -152,8 +179,8 @@ const BusinessDashboard = () => {
     return (
       <div className="dashboard-error min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <p className="text-gray-600">Unable to load business profile. Please try again.</p>
-          <Button onClick={loadBusinessProfile} className="mt-4">
+          <p className="text-gray-600 mb-4">Unable to load business profile.</p>
+          <Button onClick={loadBusinessProfile}>
             Retry
           </Button>
         </div>

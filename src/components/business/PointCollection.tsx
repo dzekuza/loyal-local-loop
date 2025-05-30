@@ -54,11 +54,46 @@ const PointCollection: React.FC<PointCollectionProps> = ({
         }
       }
     } catch (error) {
+      console.error('QR scan error:', error);
       toast({
         title: "QR Code Error",
         description: "Unable to read QR code data",
         variant: "destructive",
       });
+    }
+  };
+
+  const ensureUserPointsRecord = async (customerId: string, businessId: string) => {
+    try {
+      // Check if user_points record exists
+      const { data: existingPoints, error: fetchError } = await supabase
+        .from('user_points')
+        .select('*')
+        .eq('customer_id', customerId)
+        .eq('business_id', businessId)
+        .single();
+
+      if (fetchError && fetchError.code === 'PGRST116') {
+        // Record doesn't exist, create it
+        const { error: insertError } = await supabase
+          .from('user_points')
+          .insert({
+            customer_id: customerId,
+            business_id: businessId,
+            total_points: 0
+          });
+
+        if (insertError) {
+          console.error('Error creating user_points record:', insertError);
+          throw new Error(`Failed to initialize customer points: ${insertError.message}`);
+        }
+      } else if (fetchError) {
+        console.error('Error checking user_points:', fetchError);
+        throw new Error(`Failed to check customer points: ${fetchError.message}`);
+      }
+    } catch (error) {
+      console.error('Error in ensureUserPointsRecord:', error);
+      throw error;
     }
   };
 
@@ -118,6 +153,9 @@ const PointCollection: React.FC<PointCollectionProps> = ({
         throw new Error('You must be logged in to award points');
       }
 
+      // Ensure user_points record exists
+      await ensureUserPointsRecord(scannedCustomer.customerId, businessId);
+
       // Create point transaction
       const { error: transactionError } = await supabase
         .from('point_transactions')
@@ -131,7 +169,7 @@ const PointCollection: React.FC<PointCollectionProps> = ({
 
       if (transactionError) {
         console.error('Transaction error:', transactionError);
-        throw new Error('Failed to record point transaction');
+        throw new Error(`Failed to record point transaction: ${transactionError.message}`);
       }
 
       toast({
@@ -239,9 +277,9 @@ const PointCollection: React.FC<PointCollectionProps> = ({
         </CardContent>
       </Card>
 
-      {/* QR Scanner Modal with proper overlay */}
+      {/* QR Scanner Modal */}
       {showScanner && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100] p-4">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999] p-4">
           <div className="bg-white rounded-lg max-w-md w-full mx-4 relative">
             <div className="flex items-center justify-between p-6 border-b">
               <h3 className="text-lg font-semibold">Scan Customer QR Code</h3>

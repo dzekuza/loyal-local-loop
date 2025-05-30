@@ -23,7 +23,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     console.log('AuthProvider: Setting up auth state listener');
     
-    // Listen for auth changes FIRST
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
@@ -32,10 +31,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setUser(session?.user ?? null);
       
       if (session?.user) {
-        console.log('User authenticated, fetching profile with retry logic');
-        // Use setTimeout to avoid blocking the auth callback
+        console.log('User authenticated, fetching/creating profile');
         setTimeout(() => {
-          fetchUserProfileWithRetry(session.user.id);
+          handleUserProfile(session.user);
         }, 0);
       } else {
         console.log('User not authenticated, clearing store');
@@ -44,12 +42,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setLoading(false);
     });
 
-    // Get initial session SECOND
     supabase.auth.getSession().then(({ data: { session } }) => {
       console.log('Initial session check:', { session: !!session, user: !!session?.user });
       setUser(session?.user ?? null);
       if (session?.user) {
-        fetchUserProfileWithRetry(session.user.id);
+        handleUserProfile(session.user);
       }
       setLoading(false);
     });
@@ -60,61 +57,63 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     };
   }, []);
 
-  const fetchUserProfileWithRetry = async (userId: string, retryCount = 0) => {
+  const handleUserProfile = async (user: User) => {
     try {
-      console.log(`Fetching user profile for: ${userId} (attempt ${retryCount + 1})`);
-      const { data: profile, error } = await supabase
+      console.log(`Fetching profile for user: ${user.id}`);
+      
+      // Try to fetch existing profile
+      const { data: profile, error: fetchError } = await supabase
         .from('profiles')
         .select('*')
-        .eq('id', userId)
-        .single();
+        .eq('id', user.id)
+        .maybeSingle();
 
-      console.log('Profile fetch result:', { profile, error });
+      console.log('Profile fetch result:', { profile, error: fetchError });
 
-      if (error) {
-        if (error.code === 'PGRST116' && retryCount < 2) {
-          // Profile not found, try to create it from auth metadata
-          console.log('Profile not found, attempting to create from auth metadata');
-          const success = await createMissingProfile(userId);
-          if (success && retryCount < 1) {
-            // Retry fetching after creating
-            return fetchUserProfileWithRetry(userId, retryCount + 1);
-          }
-        } else {
-          console.error('Error fetching user profile:', error);
-        }
-        
-        // Fallback: set basic auth state without profile
-        console.log('Using fallback: setting user without complete profile');
-        setStoreUser({ id: userId }, 'customer');
+      if (fetchError && fetchError.code !== 'PGRST116') {
+        console.error('Error fetching profile:', fetchError);
+        // Set basic auth state as fallback
+        setStoreUser({ id: user.id, email: user.email }, 'customer');
         return;
       }
 
-      if (profile) {
-        console.log('Setting user in store:', { profile, role: profile.user_role });
+      if (!profile) {
+        console.log('Profile not found, creating new profile');
+        const success = await createUserProfile(user);
+        if (success) {
+          // Retry fetching the profile after creation
+          const { data: newProfile } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', user.id)
+            .maybeSingle();
+          
+          if (newProfile) {
+            console.log('Setting user with newly created profile:', newProfile);
+            setStoreUser(newProfile, newProfile.user_role as UserRole);
+          } else {
+            setStoreUser({ id: user.id, email: user.email }, 'customer');
+          }
+        } else {
+          setStoreUser({ id: user.id, email: user.email }, 'customer');
+        }
+      } else {
+        console.log('Setting user with existing profile:', profile);
         setStoreUser(profile, profile.user_role as UserRole);
       }
     } catch (error) {
-      console.error('Error in fetchUserProfileWithRetry:', error);
-      // Fallback: set basic auth state
-      setStoreUser({ id: userId }, 'customer');
+      console.error('Error in handleUserProfile:', error);
+      setStoreUser({ id: user.id, email: user.email }, 'customer');
     }
   };
 
-  const createMissingProfile = async (userId: string) => {
+  const createUserProfile = async (user: User): Promise<boolean> => {
     try {
-      console.log('Creating missing profile for user:', userId);
+      console.log('Creating profile for user:', user.id);
       
-      // Get user metadata from auth
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        console.error('No user found in auth');
-        return false;
-      }
-
       const userData = user.user_metadata || {};
       const profileData = {
-        id: userId,
+        id: user.id,
         name: userData.name || user.email || 'Unknown User',
         user_role: userData.user_role || 'customer',
       };
@@ -135,7 +134,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       console.log('Successfully created profile:', data);
       return true;
     } catch (error) {
-      console.error('Error in createMissingProfile:', error);
+      console.error('Error in createUserProfile:', error);
       return false;
     }
   };
@@ -153,7 +152,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     
     console.log("Auth signUp result:", { data, error });
 
-    // Enhanced profile creation with better error handling
     if (data.user && !error) {
       try {
         const profileData = {
@@ -162,19 +160,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           user_role: userData.user_role,
         };
         
-        console.log("Creating profile with data:", profileData);
+        console.log("Creating profile during signup:", profileData);
         
-        const { data: profileData_result, error: profileError } = await supabase
+        const { data: profileResult, error: profileError } = await supabase
           .from('profiles')
           .insert([profileData])
           .select()
           .single();
           
         if (profileError) {
-          console.error("Profile creation error:", profileError);
-          // Don't fail the signup, but log the error
+          console.error("Profile creation error during signup:", profileError);
         } else {
-          console.log("Profile created successfully:", profileData_result);
+          console.log("Profile created successfully during signup:", profileResult);
         }
       } catch (profileCreationError) {
         console.error("Unexpected error during profile creation:", profileCreationError);

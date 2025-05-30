@@ -36,4 +36,4 @@ export interface UserPoints {
   lastActivity: Date;
 }
 
-export type UserRole = 'business' | 'customer';
+export type UserRole = 'business' | 'customer' | 'admin';

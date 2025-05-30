@@ -45,8 +45,8 @@ const SupabaseConnectionTest = () => {
         profilesTableAccessible: true,
         currentUser: session?.user || null,
         userProfile: userProfile,
-        supabaseUrl: supabase.supabaseUrl,
-        supabaseKey: supabase.supabaseKey.substring(0, 20) + '...',
+        supabaseUrl: 'https://eghaglafhlqajdktorjb.supabase.co',
+        supabaseKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...', // Truncated for security
       });
 
       setConnectionStatus('connected');

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -9,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { Store, Users } from 'lucide-react';
+import SupabaseConnectionTest from '@/components/SupabaseConnectionTest';
 
 const RegisterPage = () => {
   const navigate = useNavigate();

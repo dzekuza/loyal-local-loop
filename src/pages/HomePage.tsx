@@ -7,6 +7,7 @@ import { Card, CardContent } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
 import { HeroGeometric } from '../components/ui/shape-landing-hero';
 import { Testimonials } from '../components/ui/testimonials';
+import { FeaturesSectionWithHoverEffects } from '../components/ui/feature-section-with-hover-effects';
 import { Store, Smartphone, QrCode, Gift, Award, CheckCircle, ArrowRight, Users, TrendingUp } from 'lucide-react';
 
 const HomePage = () => {
@@ -24,29 +25,6 @@ const HomePage = () => {
   const handleBusinessSignup = () => {
     navigate('/register');
   };
-
-  const features = [
-    {
-      icon: <Smartphone className="w-6 h-6" />,
-      title: "Digital Loyalty Cards",
-      description: "Store all your loyalty cards in Apple Wallet - no more plastic cards to lose"
-    },
-    {
-      icon: <QrCode className="w-6 h-6" />,
-      title: "Quick QR Scanning",
-      description: "Earn points instantly by scanning QR codes at participating businesses"
-    },
-    {
-      icon: <Gift className="w-6 h-6" />,
-      title: "Exclusive Rewards",
-      description: "Unlock special offers and rewards based on your loyalty level"
-    },
-    {
-      icon: <Award className="w-6 h-6" />,
-      title: "Track Progress",
-      description: "See your points, achievements, and progress toward your next reward"
-    }
-  ];
 
   const testimonials = [
     {
@@ -121,23 +99,7 @@ const HomePage = () => {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {features.map((feature, index) => (
-              <Card key={index} className="text-center hover:shadow-lg transition-all duration-300 border-0 shadow-md">
-                <CardContent className="p-8">
-                  <div className="w-12 h-12 bg-gradient-to-br from-purple-100 to-indigo-100 rounded-xl flex items-center justify-center mx-auto mb-6 text-purple-600">
-                    {feature.icon}
-                  </div>
-                  <h3 className="font-semibold text-lg text-gray-900 mb-3">
-                    {feature.title}
-                  </h3>
-                  <p className="text-gray-600 leading-relaxed">
-                    {feature.description}
-                  </p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+          <FeaturesSectionWithHoverEffects />
         </div>
       </section>
 

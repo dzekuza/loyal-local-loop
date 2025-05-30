@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,6 +15,7 @@ const BusinessDirectory = () => {
   const [filteredBusinesses, setFilteredBusinesses] = useState<Business[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -34,13 +36,21 @@ const BusinessDirectory = () => {
   }, [searchTerm, businesses]);
 
   const fetchBusinesses = async () => {
+    console.log('Fetching businesses...');
     try {
+      setError(null);
       const { data, error } = await supabase
         .from('businesses')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      console.log('Businesses data:', data);
+      console.log('Error:', error);
+
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
 
       const mappedBusinesses: Business[] = (data || []).map(business => ({
         id: business.id,
@@ -53,9 +63,11 @@ const BusinessDirectory = () => {
         createdAt: new Date(business.created_at),
       }));
 
+      console.log('Mapped businesses:', mappedBusinesses);
       setBusinesses(mappedBusinesses);
     } catch (error) {
       console.error('Error fetching businesses:', error);
+      setError(error instanceof Error ? error.message : 'Failed to load businesses');
     } finally {
       setLoading(false);
     }
@@ -74,6 +86,29 @@ const BusinessDirectory = () => {
     );
   }
 
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-8">
+        <div className="container mx-auto px-4">
+          <Card className="max-w-md mx-auto">
+            <CardContent className="p-6 text-center">
+              <div className="text-red-500 mb-4">
+                <Store className="w-16 h-16 mx-auto mb-2" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                Error Loading Businesses
+              </h3>
+              <p className="text-gray-600 mb-4">{error}</p>
+              <Button onClick={fetchBusinesses} variant="outline">
+                Try Again
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
   const businessTypes = [...new Set(businesses.map(b => b.businessType))];
 
   return (
@@ -84,6 +119,7 @@ const BusinessDirectory = () => {
             Scan QR Code
           </Button>
         </div>
+        
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-4">
@@ -109,13 +145,15 @@ const BusinessDirectory = () => {
                   />
                 </div>
               </div>
-              <div className="flex gap-2 flex-wrap">
-                {businessTypes.map(type => (
-                  <Badge key={type} variant="outline" className="cursor-pointer hover:bg-gray-100">
-                    {type}
-                  </Badge>
-                ))}
-              </div>
+              {businessTypes.length > 0 && (
+                <div className="flex gap-2 flex-wrap">
+                  {businessTypes.map(type => (
+                    <Badge key={type} variant="outline" className="cursor-pointer hover:bg-gray-100">
+                      {type}
+                    </Badge>
+                  ))}
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -141,12 +179,17 @@ const BusinessDirectory = () => {
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
                 {searchTerm ? 'No businesses found' : 'No businesses yet'}
               </h3>
-              <p className="text-gray-600">
+              <p className="text-gray-600 mb-4">
                 {searchTerm 
                   ? 'Try adjusting your search terms'
-                  : 'Be the first to register your business!'
+                  : 'Be the first to register your business or check back later!'
                 }
               </p>
+              {!searchTerm && (
+                <Button onClick={() => navigate('/register')} className="mt-2">
+                  Register Your Business
+                </Button>
+              )}
             </CardContent>
           </Card>
         ) : (

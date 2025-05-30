@@ -39,14 +39,24 @@ export const useAppStore = create<AppState>()(
       // Actions
       setUser: (user, role) => {
         console.log('Store: Setting user', { user, role });
+        
+        // Validate role
+        const validRoles: UserRole[] = ['customer', 'business', 'admin'];
+        const validatedRole = validRoles.includes(role) ? role : 'customer';
+        
+        if (role !== validatedRole) {
+          console.warn(`Invalid role "${role}" provided, defaulting to "customer"`);
+        }
+        
         set({ 
           currentUser: user, 
-          userRole: role, 
+          userRole: validatedRole, 
           isAuthenticated: true 
         });
+        
         console.log('Auth state change:', {
           isAuthenticated: true,
-          userRole: role,
+          userRole: validatedRole,
           user: user
         });
       },

@@ -28,22 +28,25 @@ const LoginPage = () => {
       const { data, error } = await signIn(formData.email, formData.password);
 
       if (error) {
+        console.error('Login error:', error);
         toast({
           title: "Login failed",
-          description: error.message,
+          description: error.message || "Please check your credentials and try again.",
           variant: "destructive",
         });
       } else if (data.user) {
+        console.log('Login successful for user:', data.user.id);
         toast({
           title: "Welcome back!",
           description: "You have been successfully logged in.",
         });
-        // Don't navigate here - let useEffect handle it after state updates
+        // Navigation will be handled by useEffect
       }
     } catch (error) {
+      console.error('Unexpected login error:', error);
       toast({
         title: "Login failed",
-        description: "An unexpected error occurred",
+        description: "An unexpected error occurred. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -53,16 +56,24 @@ const LoginPage = () => {
 
   // Handle navigation after authentication state changes
   useEffect(() => {
-    console.log('Auth state change:', { isAuthenticated, userRole, user });
+    console.log('Login page auth state change:', { isAuthenticated, userRole, user });
     
     if (isAuthenticated && userRole && user) {
-      if (userRole === 'business') {
-        console.log('Navigating to dashboard');
-        navigate('/dashboard');
-      } else if (userRole === 'customer') {
-        console.log('Navigating to businesses');
-        navigate('/businesses');
-      }
+      console.log('User is authenticated, determining redirect...');
+      
+      // Add a small delay to ensure state is fully updated
+      setTimeout(() => {
+        if (userRole === 'business') {
+          console.log('Redirecting business user to dashboard');
+          navigate('/dashboard', { replace: true });
+        } else if (userRole === 'customer') {
+          console.log('Redirecting customer to businesses page');
+          navigate('/businesses', { replace: true });
+        } else {
+          console.log('Unknown role, redirecting to home');
+          navigate('/', { replace: true });
+        }
+      }, 100);
     }
   }, [userRole, isAuthenticated, user, navigate]);
 
@@ -86,6 +97,7 @@ const LoginPage = () => {
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     required
                     className="input-email"
+                    disabled={loading}
                   />
                 </div>
 
@@ -98,6 +110,7 @@ const LoginPage = () => {
                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                     required
                     className="input-password"
+                    disabled={loading}
                   />
                 </div>
 

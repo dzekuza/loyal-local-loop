@@ -18,31 +18,36 @@ const SupabaseConnectionTest = () => {
     try {
       console.log('Testing Supabase connection...');
       
-      // Test 1: Basic connection
-      const { data, error: healthError } = await supabase
-        .from('profiles')
-        .select('count(*)', { count: 'exact', head: true });
-
-      if (healthError) {
-        throw new Error(`Database connection failed: ${healthError.message}`);
-      }
-
-      // Test 2: Auth status
+      // Test 1: Auth status
       const { data: { session } } = await supabase.auth.getSession();
       
-      // Test 3: Get user info if logged in
+      // Test 2: Basic database connectivity using businesses table (which allows public read)
+      const { data: businessData, error: businessError } = await supabase
+        .from('businesses')
+        .select('count', { count: 'exact', head: true });
+
+      if (businessError) {
+        throw new Error(`Database connection failed: ${businessError.message}`);
+      }
+
+      // Test 3: Get user profile if logged in
       let userProfile = null;
       if (session?.user) {
-        const { data: profile } = await supabase
+        const { data: profile, error: profileError } = await supabase
           .from('profiles')
           .select('*')
           .eq('id', session.user.id)
-          .single();
-        userProfile = profile;
+          .maybeSingle();
+        
+        if (profileError) {
+          console.warn('Profile fetch error:', profileError);
+        } else {
+          userProfile = profile;
+        }
       }
 
       setDetails({
-        profilesTableAccessible: true,
+        databaseConnected: true,
         currentUser: session?.user || null,
         userProfile: userProfile,
         supabaseUrl: 'https://eghaglafhlqajdktorjb.supabase.co',
@@ -98,7 +103,7 @@ const SupabaseConnectionTest = () => {
             <div className="p-3 bg-gray-50 rounded text-sm space-y-1">
               <p><strong>Supabase URL:</strong> {details.supabaseUrl}</p>
               <p><strong>API Key:</strong> {details.supabaseKey}</p>
-              <p><strong>Profiles Table:</strong> {details.profilesTableAccessible ? '✅ Accessible' : '❌ Not accessible'}</p>
+              <p><strong>Database:</strong> {details.databaseConnected ? '✅ Connected' : '❌ Not connected'}</p>
               <p><strong>Current User:</strong> {details.currentUser ? `✅ ${details.currentUser.email}` : '❌ Not logged in'}</p>
               <p><strong>User Profile:</strong> {details.userProfile ? `✅ Found (${details.userProfile.name})` : '❌ Not found'}</p>
             </div>

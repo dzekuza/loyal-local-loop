@@ -1,0 +1,64 @@
+
+{
+  "nav": {
+    "home": "Pagrindinis",
+    "businesses": "Verslas",
+    "wallet": "Piniginė",
+    "dashboard": "Valdymo skydelis",
+    "profile": "Profilis",
+    "login": "Prisijungti",
+    "register": "Registruotis",
+    "logout": "Atsijungti"
+  },
+  "wallet": {
+    "title": "Mano Piniginė",
+    "description": "Tvarkykite savo lojalumo korteles įvairiais formatais - viskas nemokamai!",
+    "addCards": "Pridėti Korteles",
+    "backToBusinesses": "Grįžti į Verslus",
+    "noCards": "Kol Kas Nėra Lojalumo Kortelių",
+    "noCardsDescription": "Prisijunkite prie verslo lojalumo programų ir pradėkite kaupti taškus",
+    "exploreBusinesses": "Naršyti Verslus",
+    "totalPoints": "Visi Taškai",
+    "points": "Taškai",
+    "lastActivity": "Paskutinis aktyvumas",
+    "viewBusinessDetails": "Peržiūrėti Verslo Detales",
+    "tabs": {
+      "web": "Web Kortelės",
+      "pwa": "PWA Piniginė",
+      "google": "Google Piniginė",
+      "apple": "Apple Piniginė",
+      "download": "Atsisiųsti"
+    }
+  },
+  "appleWallet": {
+    "addToWallet": "Pridėti į Apple Piniginę",
+    "generating": "Generuojamas Praleistumas...",
+    "success": "Pridėta į Apple Piniginę!",
+    "error": "Nepavyko pridėti į Apple Piniginę",
+    "description": "Pridėkite šią lojalumo kortelę į Apple Piniginę lengvam priėjimui"
+  },
+  "subscription": {
+    "freeTrial": "Nemokamas Bandymas",
+    "trialDaysLeft": "Liko {{days}} dienų",
+    "trialExpired": "Bandymas Baigėsi",
+    "subscribe": "Prenumeruoti Dabar",
+    "monthly": "Mėnesinis",
+    "price": "€19/mėn",
+    "features": {
+      "unlimited": "Neribotai lojalumo programų",
+      "analytics": "Išplėstinė analitika",
+      "support": "Pirmenybės palaikymas",
+      "integrations": "Trečiųjų šalių integracijos"
+    }
+  },
+  "common": {
+    "loading": "Kraunama...",
+    "error": "Klaida",
+    "success": "Sėkmė",
+    "cancel": "Atšaukti",
+    "save": "Išsaugoti",
+    "delete": "Ištrinti",
+    "edit": "Redaguoti",
+    "back": "Atgal"
+  }
+}

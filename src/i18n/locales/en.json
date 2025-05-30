@@ -1,0 +1,64 @@
+
+{
+  "nav": {
+    "home": "Home",
+    "businesses": "Businesses",
+    "wallet": "Wallet",
+    "dashboard": "Dashboard",
+    "profile": "Profile",
+    "login": "Login",
+    "register": "Register",
+    "logout": "Logout"
+  },
+  "wallet": {
+    "title": "My Wallet",
+    "description": "Manage your loyalty cards in multiple formats - all free!",
+    "addCards": "Add Cards",
+    "backToBusinesses": "Back to Businesses",
+    "noCards": "No Loyalty Cards Yet",
+    "noCardsDescription": "Join business loyalty programs to start earning points",
+    "exploreBusinesses": "Explore Businesses",
+    "totalPoints": "Total Points",
+    "points": "Points",
+    "lastActivity": "Last activity",
+    "viewBusinessDetails": "View Business Details",
+    "tabs": {
+      "web": "Web Cards",
+      "pwa": "PWA Wallet",
+      "google": "Google Wallet",
+      "apple": "Apple Wallet",
+      "download": "Download"
+    }
+  },
+  "appleWallet": {
+    "addToWallet": "Add to Apple Wallet",
+    "generating": "Generating Pass...",
+    "success": "Added to Apple Wallet!",
+    "error": "Failed to add to Apple Wallet",
+    "description": "Add this loyalty card to Apple Wallet for easy access"
+  },
+  "subscription": {
+    "freeTrial": "Free Trial",
+    "trialDaysLeft": "{{days}} days left",
+    "trialExpired": "Trial Expired",
+    "subscribe": "Subscribe Now",
+    "monthly": "Monthly",
+    "price": "€19/month",
+    "features": {
+      "unlimited": "Unlimited loyalty programs",
+      "analytics": "Advanced analytics",
+      "support": "Priority support",
+      "integrations": "Third-party integrations"
+    }
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "back": "Back"
+  }
+}

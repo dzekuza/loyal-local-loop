@@ -3,16 +3,21 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useAppStore } from '@/store/useAppStore';
+import { useSubscription } from '@/hooks/useSubscription';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ArrowLeft, Wallet, Download, Share, Plus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useTranslation } from 'react-i18next';
+import LanguageSwitcher from '@/components/ui/language-switcher';
 import PWAWalletCard from '@/components/wallet/PWAWalletCard';
 import GoogleWalletCard from '@/components/wallet/GoogleWalletCard';
 import DownloadableCard from '@/components/wallet/DownloadableCard';
 import WebWalletCard from '@/components/wallet/WebWalletCard';
+import PassKitWalletCard from '@/components/wallet/PassKitWalletCard';
+import SubscriptionBanner from '@/components/subscription/SubscriptionBanner';
 
 interface WalletCard {
   id: string;
@@ -32,6 +37,8 @@ const WalletPage: React.FC = () => {
   const { user } = useAuth();
   const { userRole } = useAppStore();
   const { toast } = useToast();
+  const { t } = useTranslation();
+  const { isTrialActive, trialDaysLeft, hasActiveSubscription } = useSubscription();
   const [walletCards, setWalletCards] = useState<WalletCard[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -76,7 +83,7 @@ const WalletPage: React.FC = () => {
     } catch (error) {
       console.error('Error loading wallet cards:', error);
       toast({
-        title: "Error",
+        title: t('common.error'),
         description: "Failed to load wallet cards",
         variant: "destructive",
       });
@@ -85,12 +92,20 @@ const WalletPage: React.FC = () => {
     }
   };
 
+  const handleSubscribe = () => {
+    // This will trigger Stripe checkout when implemented
+    toast({
+      title: "Subscription",
+      description: "Stripe integration will be implemented once Supabase is connected",
+    });
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading your wallet...</p>
+          <p className="text-gray-600">{t('common.loading')}</p>
         </div>
       </div>
     );
@@ -99,7 +114,7 @@ const WalletPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="container mx-auto px-4 max-w-4xl">
-        {/* Header */}
+        {/* Header with Language Switcher */}
         <div className="flex items-center justify-between mb-6">
           <Button
             variant="ghost"
@@ -107,22 +122,35 @@ const WalletPage: React.FC = () => {
             className="flex items-center space-x-2"
           >
             <ArrowLeft className="w-4 h-4" />
-            <span>Back to Businesses</span>
+            <span>{t('wallet.backToBusinesses')}</span>
           </Button>
           
-          <Button onClick={() => navigate('/businesses')} className="flex items-center space-x-2">
-            <Plus className="w-4 h-4" />
-            <span>Add Cards</span>
-          </Button>
+          <div className="flex items-center space-x-4">
+            <LanguageSwitcher />
+            <Button onClick={() => navigate('/businesses')} className="flex items-center space-x-2">
+              <Plus className="w-4 h-4" />
+              <span>{t('wallet.addCards')}</span>
+            </Button>
+          </div>
         </div>
+
+        {/* Subscription Banner */}
+        {(!hasActiveSubscription && userRole === 'business') && (
+          <div className="mb-6">
+            <SubscriptionBanner 
+              trialDaysLeft={trialDaysLeft}
+              onSubscribe={handleSubscribe}
+            />
+          </div>
+        )}
 
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2 flex items-center justify-center space-x-2">
             <Wallet className="w-8 h-8" />
-            <span>My Wallet</span>
+            <span>{t('wallet.title')}</span>
           </h1>
           <p className="text-gray-600">
-            Manage your loyalty cards in multiple formats - all free!
+            {t('wallet.description')}
           </p>
         </div>
 
@@ -130,22 +158,23 @@ const WalletPage: React.FC = () => {
           <Card>
             <CardContent className="text-center py-12">
               <Wallet className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">No Loyalty Cards Yet</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">{t('wallet.noCards')}</h3>
               <p className="text-gray-600 mb-4">
-                Join business loyalty programs to start earning points
+                {t('wallet.noCardsDescription')}
               </p>
               <Button onClick={() => navigate('/businesses')}>
-                Explore Businesses
+                {t('wallet.exploreBusinesses')}
               </Button>
             </CardContent>
           </Card>
         ) : (
           <Tabs defaultValue="web" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="web">Web Cards</TabsTrigger>
-              <TabsTrigger value="pwa">PWA Wallet</TabsTrigger>
-              <TabsTrigger value="google">Google Wallet</TabsTrigger>
-              <TabsTrigger value="download">Download</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-5">
+              <TabsTrigger value="web">{t('wallet.tabs.web')}</TabsTrigger>
+              <TabsTrigger value="pwa">{t('wallet.tabs.pwa')}</TabsTrigger>
+              <TabsTrigger value="google">{t('wallet.tabs.google')}</TabsTrigger>
+              <TabsTrigger value="apple">{t('wallet.tabs.apple')}</TabsTrigger>
+              <TabsTrigger value="download">{t('wallet.tabs.download')}</TabsTrigger>
             </TabsList>
 
             <TabsContent value="web" className="space-y-4">
@@ -175,6 +204,19 @@ const WalletPage: React.FC = () => {
                     key={card.id}
                     card={card}
                     customerId={user.id}
+                  />
+                ))}
+              </div>
+            </TabsContent>
+
+            <TabsContent value="apple" className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {walletCards.map(card => (
+                  <PassKitWalletCard 
+                    key={card.id}
+                    card={card}
+                    customerId={user.id}
+                    customerName={user.email || 'Customer'}
                   />
                 ))}
               </div>

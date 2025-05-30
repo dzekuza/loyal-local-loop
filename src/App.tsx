@@ -18,6 +18,7 @@ import ScanQRCodePage from "./pages/customer/ScanQRCodePage";
 import WalletPage from "./pages/customer/WalletPage";
 import NotFound from "./pages/NotFound";
 import { useEffect } from "react";
+import './i18n';
 
 const queryClient = new QueryClient();
 

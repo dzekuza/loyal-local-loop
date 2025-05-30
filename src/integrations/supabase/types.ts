@@ -181,41 +181,6 @@ export type Database = {
           },
         ]
       }
-      rewards: {
-        Row: {
-          id: string;
-          business_id: string;
-          title: string;
-          description: string | null;
-          points_required: number;
-          created_at: string;
-        };
-        Insert: {
-          id?: string;
-          business_id: string;
-          title: string;
-          description?: string | null;
-          points_required: number;
-          created_at?: string;
-        };
-        Update: {
-          id?: string;
-          business_id?: string;
-          title?: string;
-          description?: string | null;
-          points_required?: number;
-          created_at?: string;
-        };
-        Relationships: [
-          {
-            foreignKeyName: "rewards_business_id_fkey",
-            columns: ["business_id"],
-            isOneToOne: false,
-            referencedRelation: "businesses",
-            referencedColumns: ["id"]
-          }
-        ];
-      },
     }
     Views: {
       [_ in never]: never

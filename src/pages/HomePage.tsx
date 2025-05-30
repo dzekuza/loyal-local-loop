@@ -6,7 +6,8 @@ import { Button } from '../components/ui/button';
 import { Card, CardContent } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
 import { HeroGeometric } from '../components/ui/shape-landing-hero';
-import { Store, Smartphone, QrCode, Gift, Award, Star, CheckCircle, ArrowRight, Users, TrendingUp } from 'lucide-react';
+import { Testimonials } from '../components/ui/testimonials';
+import { Store, Smartphone, QrCode, Gift, Award, CheckCircle, ArrowRight, Users, TrendingUp } from 'lucide-react';
 
 const HomePage = () => {
   const navigate = useNavigate();
@@ -49,22 +50,46 @@ const HomePage = () => {
 
   const testimonials = [
     {
-      name: "Sarah Chen",
-      role: "Coffee Enthusiast",
-      content: "I love how I can track my loyalty points at all my favorite cafes in one place!",
-      rating: 5
+      image: 'https://images.unsplash.com/photo-1633332755192-727a05c4013d?q=80&w=1780&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+      text: "I love how I can track my loyalty points at all my favorite cafes in one place!",
+      name: 'Sarah Chen',
+      username: '@sarahchen',
+      social: 'https://twitter.com/sarahchen'
     },
     {
-      name: "Mike Rodriguez",
-      role: "Local Shopper",
-      content: "No more carrying around a dozen loyalty cards. Everything's in my phone now.",
-      rating: 5
+      image: 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?q=80&w=1780&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+      text: 'No more carrying around a dozen loyalty cards. Everything is in my phone now.',
+      name: 'Mike Rodriguez',
+      username: '@mikerodriguez',
+      social: 'https://twitter.com/mikerodriguez'
     },
     {
-      name: "Emma Davis",
-      role: "Restaurant Regular",
-      content: "The rewards I get are actually worth it. Great experience overall!",
-      rating: 5
+      image: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?q=80&w=1780&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+      text: 'The rewards I get are actually worth it. Great experience overall!',
+      name: 'Emma Davis',
+      username: '@emmadavis',
+      social: 'https://twitter.com/emmadavis'
+    },
+    {
+      image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=1780&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+      text: 'Using this loyalty platform has significantly improved my shopping experience. The digital cards are so convenient!',
+      name: 'James Wilson',
+      username: '@jameswilson',
+      social: 'https://twitter.com/jameswilson'
+    },
+    {
+      image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=1780&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+      text: 'The QR code scanning is instant and the rewards are great. Highly recommend!',
+      name: 'Sophia Lee',
+      username: '@sophialee',
+      social: 'https://twitter.com/sophialee'
+    },
+    {
+      image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=1780&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+      text: 'Finally, a loyalty program that actually works well. Love the Apple Wallet integration.',
+      name: 'Michael Davis',
+      username: '@michaeldavis',
+      social: 'https://twitter.com/michaeldavis'
     }
   ];
 
@@ -119,35 +144,12 @@ const HomePage = () => {
       {/* Testimonials Section */}
       <section className="testimonials-section py-24 bg-gray-50">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-              Loved by customers everywhere
-            </h2>
-            <p className="text-xl text-gray-600">
-              See what people are saying about their experience
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            {testimonials.map((testimonial, index) => (
-              <Card key={index} className="border-0 shadow-md hover:shadow-lg transition-all duration-300">
-                <CardContent className="p-8">
-                  <div className="flex items-center mb-4">
-                    {[...Array(testimonial.rating)].map((_, i) => (
-                      <Star key={i} className="w-4 h-4 text-yellow-400 fill-current" />
-                    ))}
-                  </div>
-                  <p className="text-gray-700 mb-6 leading-relaxed">
-                    "{testimonial.content}"
-                  </p>
-                  <div>
-                    <p className="font-semibold text-gray-900">{testimonial.name}</p>
-                    <p className="text-sm text-gray-500">{testimonial.role}</p>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+          <Testimonials 
+            testimonials={testimonials}
+            title="Loved by customers everywhere"
+            description="See what people are saying about their loyalty rewards experience"
+            maxDisplayed={3}
+          />
         </div>
       </section>
 

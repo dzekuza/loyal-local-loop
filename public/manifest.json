@@ -1,0 +1,33 @@
+
+{
+  "name": "Loyal Local Loop - Loyalty Wallet",
+  "short_name": "Loyalty Wallet",
+  "description": "Your digital loyalty cards in one place",
+  "start_url": "/wallet",
+  "display": "standalone",
+  "background_color": "#8B5CF6",
+  "theme_color": "#8B5CF6",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "16x16 32x32",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "/placeholder.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/placeholder.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["finance", "shopping"],
+  "lang": "en",
+  "dir": "ltr"
+}

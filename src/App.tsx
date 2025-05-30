@@ -15,36 +15,56 @@ import CustomerProfilePage from "./pages/customer/CustomerProfilePage";
 import BusinessDirectory from "./pages/customer/BusinessDirectory";
 import BusinessDetailPage from "./pages/customer/BusinessDetailPage";
 import ScanQRCodePage from "./pages/customer/ScanQRCodePage";
+import WalletPage from "./pages/customer/WalletPage";
 import NotFound from "./pages/NotFound";
+import { useEffect } from "react";
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <div className="min-h-screen bg-white">
-            <Header />
-            <Routes>
-              <Route path="/" element={<HomePage />} />
-              <Route path="/register" element={<RegisterPage />} />
-              <Route path="/login" element={<LoginPage />} />
-              <Route path="/dashboard" element={<BusinessDashboard />} />
-              <Route path="/business-profile" element={<BusinessProfilePage />} />
-              <Route path="/customer-profile" element={<CustomerProfilePage />} />
-              <Route path="/businesses" element={<BusinessDirectory />} />
-              <Route path="/business/:id" element={<BusinessDetailPage />} />
-              <Route path="/scan" element={<ScanQRCodePage />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </div>
-        </BrowserRouter>
-      </TooltipProvider>
-    </AuthProvider>
-  </QueryClientProvider>
-);
+const App = () => {
+  useEffect(() => {
+    // Register service worker for PWA functionality
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+          .then((registration) => {
+            console.log('SW registered: ', registration);
+          })
+          .catch((registrationError) => {
+            console.log('SW registration failed: ', registrationError);
+          });
+      });
+    }
+  }, []);
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <div className="min-h-screen bg-white">
+              <Header />
+              <Routes>
+                <Route path="/" element={<HomePage />} />
+                <Route path="/register" element={<RegisterPage />} />
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/dashboard" element={<BusinessDashboard />} />
+                <Route path="/business-profile" element={<BusinessProfilePage />} />
+                <Route path="/customer-profile" element={<CustomerProfilePage />} />
+                <Route path="/businesses" element={<BusinessDirectory />} />
+                <Route path="/business/:id" element={<BusinessDetailPage />} />
+                <Route path="/scan" element={<ScanQRCodePage />} />
+                <Route path="/wallet" element={<WalletPage />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </div>
+          </BrowserRouter>
+        </TooltipProvider>
+      </AuthProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;

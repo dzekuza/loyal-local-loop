@@ -2,8 +2,9 @@
 import React, { useState } from 'react';
 import { Button } from '../ui/button';
 import { useToast } from '../../hooks/use-toast';
-import { Wallet, Download } from 'lucide-react';
+import { Wallet, Download, ExternalLink } from 'lucide-react';
 import { Business } from '../../types';
+import { useNavigate } from 'react-router-dom';
 
 interface AppleWalletButtonProps {
   business: Business;
@@ -16,6 +17,15 @@ const AppleWalletButton: React.FC<AppleWalletButtonProps> = ({
 }) => {
   const [isGenerating, setIsGenerating] = useState(false);
   const { toast } = useToast();
+  const navigate = useNavigate();
+
+  const handleWalletOptions = () => {
+    toast({
+      title: "Multiple Wallet Options Available! 🎉",
+      description: "Visit your wallet to see all free alternatives to Apple Wallet.",
+    });
+    navigate('/wallet');
+  };
 
   const generateWalletPass = async () => {
     setIsGenerating(true);
@@ -110,8 +120,8 @@ const AppleWalletButton: React.FC<AppleWalletButtonProps> = ({
       URL.revokeObjectURL(url);
 
       toast({
-        title: "Wallet Pass Ready! 📱",
-        description: "Your loyalty card has been downloaded. On a real device, this would open in Apple Wallet.",
+        title: "Demo Pass Downloaded! 📱",
+        description: "This is a demo file. For working Apple Wallet passes, you need a paid Apple Developer account ($99/year).",
       });
     } catch (error) {
       console.error('Wallet pass generation error:', error);
@@ -126,24 +136,40 @@ const AppleWalletButton: React.FC<AppleWalletButtonProps> = ({
   };
 
   return (
-    <Button
-      onClick={generateWalletPass}
-      disabled={isGenerating}
-      className="w-full bg-black hover:bg-gray-800 text-white border-2 border-black"
-      size="lg"
-    >
-      {isGenerating ? (
-        <>
-          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-          Generating Pass...
-        </>
-      ) : (
-        <>
-          <Wallet className="w-5 h-5 mr-2" />
-          Add to Apple Wallet
-        </>
-      )}
-    </Button>
+    <div className="space-y-2">
+      <Button
+        onClick={handleWalletOptions}
+        className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white"
+        size="lg"
+      >
+        <Wallet className="w-5 h-5 mr-2" />
+        View Wallet Options (Free!)
+      </Button>
+      
+      <Button
+        onClick={generateWalletPass}
+        disabled={isGenerating}
+        variant="outline"
+        className="w-full"
+        size="sm"
+      >
+        {isGenerating ? (
+          <>
+            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-600 mr-2"></div>
+            Generating Demo...
+          </>
+        ) : (
+          <>
+            <Download className="w-4 h-4 mr-2" />
+            Apple Wallet (Demo)
+          </>
+        )}
+      </Button>
+      
+      <p className="text-xs text-gray-500 text-center">
+        💡 Free alternatives available in wallet page!
+      </p>
+    </div>
   );
 };
 

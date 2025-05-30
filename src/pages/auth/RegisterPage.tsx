@@ -72,6 +72,11 @@ const RegisterPage = () => {
     <div className="register-page min-h-screen bg-gray-50 py-12">
       <div className="container mx-auto px-4">
         <div className="max-w-md mx-auto">
+          {/* Add connection test component for debugging */}
+          <div className="mb-8">
+            <SupabaseConnectionTest />
+          </div>
+          
           <Card className="register-card">
             <CardHeader className="text-center">
               <CardTitle className="text-2xl font-bold">Create Account</CardTitle>

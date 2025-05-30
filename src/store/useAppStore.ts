@@ -37,18 +37,34 @@ export const useAppStore = create<AppState>()(
       loyaltyOffers: [],
 
       // Actions
-      setUser: (user, role) => set({ 
-        currentUser: user, 
-        userRole: role, 
-        isAuthenticated: true 
-      }),
+      setUser: (user, role) => {
+        console.log('Store: Setting user', { user, role });
+        set({ 
+          currentUser: user, 
+          userRole: role, 
+          isAuthenticated: true 
+        });
+        console.log('Auth state change:', {
+          isAuthenticated: true,
+          userRole: role,
+          user: user
+        });
+      },
       
-      logout: () => set({ 
-        currentUser: null, 
-        userRole: null, 
-        isAuthenticated: false,
-        currentBusiness: null 
-      }),
+      logout: () => {
+        console.log('Store: Logging out user');
+        set({ 
+          currentUser: null, 
+          userRole: null, 
+          isAuthenticated: false,
+          currentBusiness: null 
+        });
+        console.log('Auth state change:', {
+          isAuthenticated: false,
+          userRole: null,
+          user: null
+        });
+      },
       
       setCurrentBusiness: (business) => set({ currentBusiness: business }),
       

@@ -12,112 +12,124 @@ export type Database = {
       businesses: {
         Row: {
           business_type: string
-          created_at: string
+          created_at: string | null
           description: string | null
           email: string
           id: string
           logo: string | null
           name: string
-          qr_code: string
-          updated_at: string
-          user_id: string
+          qr_code: string | null
+          user_id: string | null
         }
         Insert: {
           business_type: string
-          created_at?: string
+          created_at?: string | null
           description?: string | null
           email: string
           id?: string
           logo?: string | null
           name: string
-          qr_code: string
-          updated_at?: string
-          user_id: string
+          qr_code?: string | null
+          user_id?: string | null
         }
         Update: {
           business_type?: string
-          created_at?: string
+          created_at?: string | null
           description?: string | null
           email?: string
           id?: string
           logo?: string | null
           name?: string
-          qr_code?: string
-          updated_at?: string
-          user_id?: string
+          qr_code?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }
       cards: {
         Row: {
-          barcode_type: string
-          barcode_value: string
+          barcode_type: string | null
+          barcode_value: string | null
           created_at: string | null
           id: string
           image_url: string | null
           shop_name: string
-          user_id: string
+          user_id: string | null
         }
         Insert: {
-          barcode_type: string
-          barcode_value: string
+          barcode_type?: string | null
+          barcode_value?: string | null
           created_at?: string | null
           id?: string
           image_url?: string | null
           shop_name: string
-          user_id: string
+          user_id?: string | null
         }
         Update: {
-          barcode_type?: string
-          barcode_value?: string
+          barcode_type?: string | null
+          barcode_value?: string | null
           created_at?: string | null
           id?: string
           image_url?: string | null
           shop_name?: string
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: []
       }
-      loyalty_offers: {
+      profiles: {
         Row: {
-          business_id: string
-          created_at: string
+          business_type: string | null
+          created_at: string | null
           id: string
-          is_active: boolean
-          points_earned: number
-          reward_description: string
-          reward_image: string | null
-          reward_threshold: number
-          spend_amount: number
-          updated_at: string
+          name: string | null
+          user_role: string
         }
         Insert: {
-          business_id: string
-          created_at?: string
-          id?: string
-          is_active?: boolean
-          points_earned: number
-          reward_description: string
-          reward_image?: string | null
-          reward_threshold: number
-          spend_amount: number
-          updated_at?: string
+          business_type?: string | null
+          created_at?: string | null
+          id: string
+          name?: string | null
+          user_role: string
         }
         Update: {
-          business_id?: string
-          created_at?: string
+          business_type?: string | null
+          created_at?: string | null
           id?: string
-          is_active?: boolean
-          points_earned?: number
-          reward_description?: string
-          reward_image?: string | null
-          reward_threshold?: number
-          spend_amount?: number
-          updated_at?: string
+          name?: string | null
+          user_role?: string
+        }
+        Relationships: []
+      }
+      rewards: {
+        Row: {
+          business_id: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          points_required: number
+          title: string
+        }
+        Insert: {
+          business_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          points_required: number
+          title: string
+        }
+        Update: {
+          business_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          points_required?: number
+          title?: string
         }
         Relationships: [
           {
-            foreignKeyName: "loyalty_offers_business_id_fkey"
+            foreignKeyName: "rewards_business_id_fkey"
             columns: ["business_id"]
             isOneToOne: false
             referencedRelation: "businesses"
@@ -125,51 +137,27 @@ export type Database = {
           },
         ]
       }
-      profiles: {
-        Row: {
-          created_at: string
-          id: string
-          name: string
-          updated_at: string
-          user_role: string
-        }
-        Insert: {
-          created_at?: string
-          id: string
-          name: string
-          updated_at?: string
-          user_role: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          name?: string
-          updated_at?: string
-          user_role?: string
-        }
-        Relationships: []
-      }
       user_points: {
         Row: {
-          business_id: string
-          customer_id: string
+          business_id: string | null
+          customer_id: string | null
           id: string
-          last_activity: string
           total_points: number
+          updated_at: string | null
         }
         Insert: {
-          business_id: string
-          customer_id: string
+          business_id?: string | null
+          customer_id?: string | null
           id?: string
-          last_activity?: string
           total_points?: number
+          updated_at?: string | null
         }
         Update: {
-          business_id?: string
-          customer_id?: string
+          business_id?: string | null
+          customer_id?: string | null
           id?: string
-          last_activity?: string
           total_points?: number
+          updated_at?: string | null
         }
         Relationships: [
           {

@@ -75,6 +75,50 @@ export type Database = {
         }
         Relationships: []
       }
+      loyalty_offers: {
+        Row: {
+          business_id: string | null
+          created_at: string
+          id: string
+          is_active: boolean
+          points_earned: number
+          reward_description: string
+          reward_threshold: number
+          spend_amount: number
+          updated_at: string
+        }
+        Insert: {
+          business_id?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          points_earned: number
+          reward_description: string
+          reward_threshold: number
+          spend_amount: number
+          updated_at?: string
+        }
+        Update: {
+          business_id?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          points_earned?: number
+          reward_description?: string
+          reward_threshold?: number
+          spend_amount?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "loyalty_offers_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           business_type: string | null

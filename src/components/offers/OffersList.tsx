@@ -1,20 +1,24 @@
+
 import React, { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { useAppStore } from '@/store/useAppStore';
+import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
-import { Gift, Edit, Trash2, Eye, EyeOff } from 'lucide-react';
+import { Switch } from '../ui/switch';
 import { useToast } from '@/hooks/use-toast';
+import { Gift, Edit, Trash2 } from 'lucide-react';
 
 interface LoyaltyOffer {
   id: string;
+  business_id: string;
+  reward_description: string;
   spend_amount: number;
   points_earned: number;
   reward_threshold: number;
-  reward_description: string;
   is_active: boolean;
   created_at: string;
+  updated_at: string;
 }
 
 const OffersList = () => {
@@ -34,19 +38,18 @@ const OffersList = () => {
 
     try {
       const { data, error } = await supabase
-        .from('rewards')
+        .from('loyalty_offers')
         .select('*')
         .eq('business_id', currentBusiness.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-
       setOffers(data || []);
     } catch (error) {
       console.error('Error fetching offers:', error);
       toast({
         title: "Error",
-        description: "Failed to fetch offers",
+        description: "Failed to load offers",
         variant: "destructive",
       });
     } finally {
@@ -54,19 +57,22 @@ const OffersList = () => {
     }
   };
 
-  const toggleOfferStatus = async (offerId: string, currentStatus: boolean) => {
+  const toggleOfferStatus = async (offerId: string, isActive: boolean) => {
     try {
       const { error } = await supabase
-        .from('rewards')
-        .update({ is_active: !currentStatus })
+        .from('loyalty_offers')
+        .update({ is_active: isActive })
         .eq('id', offerId);
 
       if (error) throw error;
 
-      await fetchOffers();
+      setOffers(offers.map(offer => 
+        offer.id === offerId ? { ...offer, is_active: isActive } : offer
+      ));
+
       toast({
         title: "Offer Updated",
-        description: `Offer ${!currentStatus ? 'activated' : 'deactivated'} successfully`,
+        description: `Offer ${isActive ? 'activated' : 'deactivated'} successfully!`,
       });
     } catch (error) {
       console.error('Error updating offer:', error);
@@ -81,16 +87,17 @@ const OffersList = () => {
   const deleteOffer = async (offerId: string) => {
     try {
       const { error } = await supabase
-        .from('rewards')
+        .from('loyalty_offers')
         .delete()
         .eq('id', offerId);
 
       if (error) throw error;
 
-      await fetchOffers();
+      setOffers(offers.filter(offer => offer.id !== offerId));
+
       toast({
         title: "Offer Deleted",
-        description: "Offer deleted successfully",
+        description: "Offer deleted successfully!",
       });
     } catch (error) {
       console.error('Error deleting offer:', error);
@@ -117,15 +124,14 @@ const OffersList = () => {
       <CardHeader>
         <CardTitle className="flex items-center space-x-2">
           <Gift className="w-5 h-5" />
-          <span>Your Loyalty Offers ({offers.length})</span>
+          <span>Your Loyalty Offers</span>
         </CardTitle>
       </CardHeader>
       <CardContent>
         {offers.length === 0 ? (
           <div className="text-center py-8 text-gray-500">
             <Gift className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-            <p>No offers created yet</p>
-            <p className="text-sm">Create your first loyalty offer to get started</p>
+            <p>No offers created yet. Create your first offer above!</p>
           </div>
         ) : (
           <div className="space-y-4">
@@ -134,34 +140,21 @@ const OffersList = () => {
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <div className="flex items-center space-x-2 mb-2">
+                      <h3 className="font-medium">{offer.reward_description}</h3>
                       <Badge variant={offer.is_active ? "default" : "secondary"}>
                         {offer.is_active ? "Active" : "Inactive"}
                       </Badge>
-                      <span className="text-sm text-gray-500">
-                        Created {new Date(offer.created_at).toLocaleDateString()}
-                      </span>
                     </div>
-                    <div className="space-y-1">
-                      <p className="font-medium">
-                        Spend €{offer.spend_amount} → Earn {offer.points_earned} points
-                      </p>
-                      <p className="text-sm text-gray-600">
-                        Reward at {offer.reward_threshold} points: {offer.reward_description}
-                      </p>
+                    <div className="text-sm text-gray-600 space-y-1">
+                      <p>Spend ${offer.spend_amount} → Earn {offer.points_earned} points</p>
+                      <p>Reward at {offer.reward_threshold} points</p>
                     </div>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => toggleOfferStatus(offer.id, offer.is_active)}
-                    >
-                      {offer.is_active ? (
-                        <EyeOff className="w-4 h-4" />
-                      ) : (
-                        <Eye className="w-4 h-4" />
-                      )}
-                    </Button>
+                    <Switch
+                      checked={offer.is_active}
+                      onCheckedChange={(checked) => toggleOfferStatus(offer.id, checked)}
+                    />
                     <Button
                       variant="ghost"
                       size="sm"

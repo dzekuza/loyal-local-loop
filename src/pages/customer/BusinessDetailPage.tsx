@@ -1,148 +1,144 @@
-import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
+
+import React, { useEffect, useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { useAppStore } from '@/store/useAppStore';
+import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { Store, Gift, MapPin, Star, Users } from 'lucide-react';
-
-interface Business {
-  id: string;
-  name: string;
-  email: string;
-  logo: string | null;
-  business_type: string;
-  description: string | null;
-  qr_code: string;
-  created_at: string;
-}
-
-interface LoyaltyOffer {
-  id: string;
-  spend_amount: number;
-  points_earned: number;
-  reward_threshold: number;
-  reward_description: string;
-  is_active: boolean;
-}
-
-interface UserPoints {
-  total_points: number;
-}
+import { Store, Gift, Star, ArrowLeft } from 'lucide-react';
+import { Business, LoyaltyOffer } from '@/types';
 
 const BusinessDetailPage = () => {
   const { businessId } = useParams<{ businessId: string }>();
+  const navigate = useNavigate();
   const { user } = useAuth();
+  const { isAuthenticated, userRole } = useAppStore();
   const { toast } = useToast();
   const [business, setBusiness] = useState<Business | null>(null);
   const [offers, setOffers] = useState<LoyaltyOffer[]>([]);
-  const [userPoints, setUserPoints] = useState<UserPoints | null>(null);
+  const [userPoints, setUserPoints] = useState<number>(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (businessId) {
-      fetchBusinessData();
+    if (!isAuthenticated || userRole !== 'customer') {
+      navigate('/login');
+      return;
     }
-  }, [businessId, user]);
 
-  const fetchBusinessData = async () => {
+    if (businessId) {
+      fetchBusinessDetails();
+      fetchOffers();
+      fetchUserPoints();
+    }
+  }, [businessId, isAuthenticated, userRole]);
+
+  const fetchBusinessDetails = async () => {
+    if (!businessId) return;
+
     try {
-      // Fetch business details
-      const { data: businessData, error: businessError } = await supabase
+      const { data, error } = await supabase
         .from('businesses')
         .select('*')
         .eq('id', businessId)
         .single();
 
-      if (businessError) throw businessError;
-      setBusiness(businessData);
+      if (error) throw error;
 
-      // Fetch active offers
-      const { data: offersData, error: offersError } = await supabase
-        .from('rewards')
-        .select('*')
-        .eq('business_id', businessId)
-        .eq('is_active', true)
-        .order('created_at', { ascending: false });
-
-      if (offersError) throw offersError;
-      setOffers(offersData || []);
-
-      // Fetch user points if logged in
-      if (user) {
-        const { data: pointsData, error: pointsError } = await supabase
-          .from('user_points')
-          .select('total_points')
-          .eq('business_id', businessId)
-          .eq('customer_id', user.id)
-          .single();
-
-        if (pointsError && pointsError.code !== 'PGRST116') {
-          throw pointsError;
-        }
-        
-        setUserPoints(pointsData);
-      }
+      setBusiness({
+        id: data.id,
+        name: data.name,
+        email: data.email,
+        logo: data.logo,
+        businessType: data.business_type,
+        description: data.description,
+        qrCode: data.qr_code,
+        createdAt: new Date(data.created_at),
+      });
     } catch (error) {
-      console.error('Error fetching business data:', error);
+      console.error('Error fetching business:', error);
       toast({
         title: "Error",
-        description: "Failed to load business information",
+        description: "Failed to load business details",
         variant: "destructive",
       });
+    }
+  };
+
+  const fetchOffers = async () => {
+    if (!businessId) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('loyalty_offers')
+        .select('*')
+        .eq('business_id', businessId)
+        .eq('is_active', true);
+
+      if (error) throw error;
+
+      setOffers(data?.map(offer => ({
+        id: offer.id,
+        businessId: offer.business_id,
+        spendAmount: offer.spend_amount,
+        pointsEarned: offer.points_earned,
+        rewardThreshold: offer.reward_threshold,
+        rewardDescription: offer.reward_description,
+        isActive: offer.is_active,
+        createdAt: new Date(offer.created_at),
+      })) || []);
+    } catch (error) {
+      console.error('Error fetching offers:', error);
+    }
+  };
+
+  const fetchUserPoints = async () => {
+    if (!businessId || !user) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('user_points')
+        .select('total_points')
+        .eq('business_id', businessId)
+        .eq('customer_id', user.id)
+        .single();
+
+      if (error && error.code !== 'PGRST116') throw error;
+
+      setUserPoints(data?.total_points || 0);
+    } catch (error) {
+      console.error('Error fetching user points:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const simulatePurchase = async (offer: LoyaltyOffer) => {
-    if (!user) {
-      toast({
-        title: "Login Required",
-        description: "Please log in to earn points",
-        variant: "destructive",
-      });
-      return;
-    }
+  const joinLoyaltyProgram = async () => {
+    if (!businessId || !user) return;
 
     try {
-      const currentPoints = userPoints?.total_points || 0;
-      const newPoints = currentPoints + offer.points_earned;
-
-      // Upsert user points
       const { error } = await supabase
         .from('user_points')
-        .upsert({
+        .insert({
+          business_id: businessId,
           customer_id: user.id,
-          business_id: businessId!,
-          total_points: newPoints,
-          last_activity: new Date().toISOString()
+          total_points: 0
         });
 
       if (error) throw error;
 
-      // Update local state
-      setUserPoints({ total_points: newPoints });
-
+      setUserPoints(0);
       toast({
-        title: "Points Earned! 🎉",
-        description: `You earned ${offer.points_earned} points! Total: ${newPoints}`,
+        title: "Welcome!",
+        description: "You've successfully joined the loyalty program!",
       });
-
-      // Check if user reached reward threshold
-      if (newPoints >= offer.reward_threshold && currentPoints < offer.reward_threshold) {
-        toast({
-          title: "Reward Unlocked! 🏆",
-          description: `You've unlocked: ${offer.reward_description}`,
-        });
-      }
     } catch (error) {
-      console.error('Error updating points:', error);
+      console.error('Error joining program:', error);
       toast({
         title: "Error",
-        description: "Failed to update points",
+        description: "Failed to join loyalty program",
         variant: "destructive",
       });
     }
@@ -165,121 +161,101 @@ const BusinessDetailPage = () => {
     return (
       <div className="min-h-screen bg-gray-50 py-8">
         <div className="container mx-auto px-4">
-          <Card>
-            <CardContent className="p-12 text-center">
-              <Store className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Business not found</h3>
-              <p className="text-gray-600">The business you're looking for doesn't exist.</p>
-            </CardContent>
-          </Card>
+          <div className="text-center">
+            <p className="text-gray-600">Business not found</p>
+            <Button onClick={() => navigate('/businesses')} className="mt-4">
+              Back to Businesses
+            </Button>
+          </div>
         </div>
       </div>
     );
   }
 
+  const hasJoinedProgram = userPoints !== null;
+
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="container mx-auto px-4">
-        {/* Business Header */}
-        <Card className="mb-8">
-          <CardContent className="p-8">
-            <div className="flex items-start space-x-6">
-              <div className="business-logo w-20 h-20 bg-gradient-to-br from-purple-100 to-blue-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                {business.logo ? (
-                  <img 
-                    src={business.logo} 
-                    alt={business.name}
-                    className="w-full h-full object-cover rounded-xl"
-                  />
-                ) : (
-                  <span className="text-purple-600 font-bold text-2xl">
-                    {business.name.charAt(0).toUpperCase()}
-                  </span>
-                )}
-              </div>
-              <div className="flex-1">
-                <div className="flex items-start justify-between mb-4">
-                  <div>
-                    <h1 className="text-3xl font-bold text-gray-900 mb-2">{business.name}</h1>
-                    <div className="flex items-center space-x-4 mb-3">
-                      <Badge variant="secondary">{business.business_type}</Badge>
-                      <div className="flex items-center space-x-1 text-sm text-gray-500">
-                        <MapPin className="w-4 h-4" />
-                        <span>Local Business</span>
+        <div className="max-w-4xl mx-auto">
+          {/* Header */}
+          <div className="flex items-center space-x-4 mb-6">
+            <Button 
+              variant="ghost" 
+              onClick={() => navigate('/businesses')}
+              className="flex items-center space-x-2"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span>Back</span>
+            </Button>
+          </div>
+
+          {/* Business Info */}
+          <Card className="mb-8">
+            <CardContent className="p-8">
+              <div className="flex items-start space-x-6">
+                <div className="w-16 h-16 bg-gradient-to-br from-purple-600 to-blue-600 rounded-lg flex items-center justify-center">
+                  <Store className="w-8 h-8 text-white" />
+                </div>
+                <div className="flex-1">
+                  <h1 className="text-3xl font-bold text-gray-900 mb-2">{business.name}</h1>
+                  <p className="text-gray-600 mb-4">{business.businessType}</p>
+                  <p className="text-gray-700">{business.description}</p>
+                  
+                  {hasJoinedProgram ? (
+                    <div className="mt-4 p-4 bg-green-50 rounded-lg">
+                      <div className="flex items-center space-x-2">
+                        <Star className="w-5 h-5 text-green-600" />
+                        <span className="font-medium text-green-800">
+                          You have {userPoints} loyalty points
+                        </span>
                       </div>
                     </div>
-                  </div>
-                  {user && userPoints && (
-                    <Card className="bg-gradient-to-r from-purple-50 to-blue-50">
-                      <CardContent className="p-4">
-                        <div className="text-center">
-                          <p className="text-sm text-gray-600">Your Points</p>
-                          <p className="text-2xl font-bold text-purple-600">{userPoints.total_points}</p>
-                        </div>
-                      </CardContent>
-                    </Card>
+                  ) : (
+                    <Button onClick={joinLoyaltyProgram} className="mt-4">
+                      Join Loyalty Program
+                    </Button>
                   )}
                 </div>
-                <p className="text-gray-600 mb-4">{business.description}</p>
-                <div className="flex items-center space-x-4 text-sm text-gray-500">
-                  <div className="flex items-center space-x-1">
-                    <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                    <span>Loyalty Program Available</span>
-                  </div>
-                  <div className="flex items-center space-x-1">
-                    <Users className="w-4 h-4" />
-                    <span>Verified Business</span>
-                  </div>
-                </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
 
-        {/* Loyalty Offers */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <Gift className="w-5 h-5" />
-              <span>Loyalty Offers ({offers.length})</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {offers.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
-                <Gift className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                <p>No active offers available</p>
-                <p className="text-sm">Check back soon for new rewards!</p>
-              </div>
-            ) : (
-              <div className="grid gap-6 md:grid-cols-2">
-                {offers.map((offer) => (
-                  <Card key={offer.id} className="border-purple-200">
-                    <CardContent className="p-6">
-                      <div className="space-y-4">
-                        <div className="bg-gradient-to-r from-purple-50 to-blue-50 p-4 rounded-lg">
-                          <p className="font-semibold text-gray-900 mb-1">
-                            Spend €{offer.spend_amount} → Earn {offer.points_earned} points
-                          </p>
-                          <p className="text-sm text-gray-600">
-                            Reward at {offer.reward_threshold} points: {offer.reward_description}
-                          </p>
+          {/* Offers */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <Gift className="w-5 h-5" />
+                <span>Loyalty Offers</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {offers.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  <Gift className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                  <p>No active offers available yet.</p>
+                </div>
+              ) : (
+                <div className="grid gap-4">
+                  {offers.map((offer) => (
+                    <div key={offer.id} className="border rounded-lg p-4">
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <h3 className="font-medium mb-2">{offer.rewardDescription}</h3>
+                          <div className="text-sm text-gray-600 space-y-1">
+                            <p>Spend ${offer.spendAmount} → Earn {offer.pointsEarned} points</p>
+                            <p>Reward available at {offer.rewardThreshold} points</p>
+                          </div>
                         </div>
-                        <Button 
-                          onClick={() => simulatePurchase(offer)}
-                          className="w-full"
-                          disabled={!user}
-                        >
-                          {user ? `Simulate Purchase (€${offer.spend_amount})` : 'Login to Earn Points'}
-                        </Button>
+                        <Badge variant="default">Active</Badge>
                       </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );

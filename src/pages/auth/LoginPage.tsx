@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -10,7 +11,7 @@ import { useAppStore } from '@/store/useAppStore';
 
 const LoginPage = () => {
   const navigate = useNavigate();
-  const { signIn } = useAuth();
+  const { signIn, user } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -23,34 +24,47 @@ const LoginPage = () => {
     e.preventDefault();
     setLoading(true);
 
-    const { data, error } = await signIn(formData.email, formData.password);
+    try {
+      const { data, error } = await signIn(formData.email, formData.password);
 
-    if (error) {
+      if (error) {
+        toast({
+          title: "Login failed",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else if (data.user) {
+        toast({
+          title: "Welcome back!",
+          description: "You have been successfully logged in.",
+        });
+        // Don't navigate here - let useEffect handle it after state updates
+      }
+    } catch (error) {
       toast({
         title: "Login failed",
-        description: error.message,
+        description: "An unexpected error occurred",
         variant: "destructive",
       });
-    } else if (data.user) {
-      toast({
-        title: "Welcome back!",
-        description: "You have been successfully logged in.",
-      });
-      // Navigation is now handled by useEffect below
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
+  // Handle navigation after authentication state changes
   useEffect(() => {
-    if (isAuthenticated) {
+    console.log('Auth state change:', { isAuthenticated, userRole, user });
+    
+    if (isAuthenticated && userRole && user) {
       if (userRole === 'business') {
+        console.log('Navigating to dashboard');
         navigate('/dashboard');
       } else if (userRole === 'customer') {
+        console.log('Navigating to businesses');
         navigate('/businesses');
       }
     }
-  }, [userRole, isAuthenticated, navigate]);
+  }, [userRole, isAuthenticated, user, navigate]);
 
   return (
     <div className="login-page min-h-screen bg-gray-50 py-12">

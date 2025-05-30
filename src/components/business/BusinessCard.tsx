@@ -5,16 +5,7 @@ import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
 import { Building2, Calendar, Eye } from 'lucide-react';
 import { Link } from 'react-router-dom';
-
-interface Business {
-  id: string;
-  name: string;
-  email: string;
-  business_type: string;
-  description?: string;
-  created_at: string;
-  logo?: string;
-}
+import { Business } from '@/types';
 
 interface BusinessCardProps {
   business: Business;
@@ -29,8 +20,8 @@ const BusinessCard: React.FC<BusinessCardProps> = ({
   onEdit, 
   onDelete 
 }) => {
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+  const formatDate = (date: Date) => {
+    return date.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric'
@@ -53,7 +44,7 @@ const BusinessCard: React.FC<BusinessCardProps> = ({
               {business.name}
             </CardTitle>
             <Badge variant="secondary" className="mt-1">
-              {business.business_type}
+              {business.businessType}
             </Badge>
           </div>
         </div>
@@ -67,7 +58,7 @@ const BusinessCard: React.FC<BusinessCardProps> = ({
         <div className="flex items-center justify-between text-xs text-gray-500 mb-4">
           <div className="flex items-center space-x-1">
             <Calendar className="w-3 h-3" />
-            <span>Created {formatDate(business.created_at)}</span>
+            <span>Created {formatDate(business.createdAt)}</span>
           </div>
           <span>{business.email}</span>
         </div>

@@ -23,12 +23,13 @@ interface Business {
 interface LoyaltyOffer {
   id: string;
   business_id: string;
-  title: string;
-  description: string;
-  points_required: number;
+  spend_amount: number;
+  points_earned: number;
+  reward_threshold: number;
   reward_description: string;
   is_active: boolean;
   created_at: string;
+  updated_at: string;
 }
 
 interface UserPoints {
@@ -79,7 +80,7 @@ const BusinessDetailPage = () => {
         .select('*')
         .eq('business_id', id)
         .eq('is_active', true)
-        .order('points_required', { ascending: true });
+        .order('reward_threshold', { ascending: true });
 
       if (offersError) {
         console.error('Error loading offers:', offersError);
@@ -214,16 +215,16 @@ const BusinessDetailPage = () => {
                       key={offer.id}
                       className="border rounded-lg p-4 hover:shadow-md transition-shadow"
                     >
-                      <h3 className="font-semibold mb-2">{offer.title}</h3>
-                      <p className="text-gray-600 text-sm mb-3">{offer.description}</p>
+                      <h3 className="font-semibold mb-2">Spend ${offer.spend_amount}</h3>
+                      <p className="text-gray-600 text-sm mb-3">Earn {offer.points_earned} points</p>
                       <div className="flex items-center justify-between">
                         <span className="text-lg font-bold text-purple-600">
-                          {offer.points_required} points
+                          {offer.reward_threshold} points needed
                         </span>
                         <Badge 
-                          variant={userPoints && userPoints.total_points >= offer.points_required ? "default" : "secondary"}
+                          variant={userPoints && userPoints.total_points >= offer.reward_threshold ? "default" : "secondary"}
                         >
-                          {userPoints && userPoints.total_points >= offer.points_required ? "Available" : "Locked"}
+                          {userPoints && userPoints.total_points >= offer.reward_threshold ? "Available" : "Locked"}
                         </Badge>
                       </div>
                       <p className="text-sm text-gray-500 mt-2">

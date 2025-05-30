@@ -12,14 +12,14 @@ export interface Business {
 
 export interface LoyaltyOffer {
   id: string;
-  businessId: string;
-  spendAmount: number;
-  pointsEarned: number;
-  rewardThreshold: number;
-  rewardDescription: string;
-  rewardImage?: string;
-  isActive: boolean;
-  createdAt: Date;
+  business_id: string;
+  spend_amount: number;
+  points_earned: number;
+  reward_threshold: number;
+  reward_description: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface Customer {

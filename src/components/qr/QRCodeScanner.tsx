@@ -1,9 +1,10 @@
-
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
-import { Camera, QrCode, X, AlertCircle, Shield, RefreshCw } from 'lucide-react';
+import { Camera, QrCode, X, AlertCircle, Shield, RefreshCw, Smartphone } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { detectDevice, getCameraConstraints } from '@/utils/deviceDetection';
+import MobileQRScanner from './MobileQRScanner';
 import jsQR from 'jsqr';
 
 interface QRCodeScannerProps {
@@ -21,7 +22,23 @@ const QRCodeScanner: React.FC<QRCodeScannerProps> = ({ onScan, onClose, title = 
   const [error, setError] = useState<string | null>(null);
   const [permissionDenied, setPermissionDenied] = useState(false);
   const [cameraLoading, setCameraLoading] = useState(false);
+  const [useMobileScanner, setUseMobileScanner] = useState(false);
   const { toast } = useToast();
+
+  const deviceInfo = detectDevice();
+
+  // Automatically use mobile scanner for Samsung devices and older Android
+  useEffect(() => {
+    if (deviceInfo.isSamsung || deviceInfo.isOldAndroid || deviceInfo.isMobile) {
+      console.log('📱 Using mobile scanner for device:', deviceInfo);
+      setUseMobileScanner(true);
+    }
+  }, [deviceInfo]);
+
+  // If using mobile scanner, render that instead
+  if (useMobileScanner) {
+    return <MobileQRScanner onScan={onScan} onClose={onClose} title={title} />;
+  }
 
   // Cleanup function
   const cleanup = useCallback(() => {
@@ -55,18 +72,16 @@ const QRCodeScanner: React.FC<QRCodeScannerProps> = ({ onScan, onClose, title = 
   }, [cleanup]);
 
   const startCamera = async () => {
-    console.log('🎥 Starting camera...');
+    console.log('🎥 Starting camera for desktop...');
     setError(null);
     setPermissionDenied(false);
     setCameraLoading(true);
     
     try {
-      // Check browser support
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
         throw new Error('Camera not supported in this browser');
       }
 
-      // Check for secure context (HTTPS or localhost)
       const isSecure = window.location.protocol === 'https:' || 
                       window.location.hostname === 'localhost' ||
                       window.location.hostname === '127.0.0.1';
@@ -77,15 +92,8 @@ const QRCodeScanner: React.FC<QRCodeScannerProps> = ({ onScan, onClose, title = 
 
       console.log('🔒 Requesting camera permissions...');
       
-      // Enhanced camera constraints for better mobile compatibility
-      const constraints = {
-        video: {
-          facingMode: { ideal: 'environment' }, // Prefer back camera
-          width: { ideal: 1280, min: 640, max: 1920 },
-          height: { ideal: 720, min: 480, max: 1080 },
-          frameRate: { ideal: 30, min: 15 }
-        }
-      };
+      const constraints = getCameraConstraints(deviceInfo);
+      console.log('📷 Using constraints:', constraints);
 
       const mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
       console.log('✅ Camera access granted');
@@ -94,7 +102,6 @@ const QRCodeScanner: React.FC<QRCodeScannerProps> = ({ onScan, onClose, title = 
         videoRef.current.srcObject = mediaStream;
         setStream(mediaStream);
         
-        // Wait for video to be ready
         videoRef.current.onloadedmetadata = () => {
           console.log('📹 Video metadata loaded');
           if (videoRef.current) {
@@ -130,9 +137,8 @@ const QRCodeScanner: React.FC<QRCodeScannerProps> = ({ onScan, onClose, title = 
         } else if (error.name === 'NotSupportedError') {
           setError('Camera not supported in this browser.');
         } else if (error.name === 'OverconstrainedError') {
-          setError('Camera constraints not supported. Trying fallback...');
-          // Try with basic constraints
-          setTimeout(() => tryBasicCamera(), 1000);
+          setError('Camera constraints not supported. Switching to mobile scanner...');
+          setTimeout(() => setUseMobileScanner(true), 1000);
           return;
         } else {
           setError(error.message);
@@ -143,32 +149,16 @@ const QRCodeScanner: React.FC<QRCodeScannerProps> = ({ onScan, onClose, title = 
 
       toast({
         title: "Camera Error",
-        description: "Unable to access camera. Please check permissions.",
+        description: "Unable to access camera. Switching to mobile scanner...",
         variant: "destructive",
       });
-    }
-  };
-
-  const tryBasicCamera = async () => {
-    try {
-      console.log('🔄 Trying basic camera constraints...');
-      const basicStream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'environment' }
-      });
       
-      if (videoRef.current) {
-        videoRef.current.srcObject = basicStream;
-        setStream(basicStream);
-        setError(null);
-        setIsScanning(true);
-        startScanning();
-      }
-    } catch (err) {
-      console.error('❌ Basic camera also failed:', err);
-      setError('Camera access failed completely');
+      // Fallback to mobile scanner on error
+      setTimeout(() => setUseMobileScanner(true), 2000);
     }
   };
 
+  // Start scanning loop
   const startScanning = () => {
     if (!videoRef.current || !canvasRef.current) return;
     
@@ -184,15 +174,11 @@ const QRCodeScanner: React.FC<QRCodeScannerProps> = ({ onScan, onClose, title = 
         return;
       }
 
-      // Set canvas size to match video
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
-
-      // Draw current video frame to canvas
       context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
       try {
-        // Get image data and scan for QR code
         const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
         const code = jsQR(imageData.data, imageData.width, imageData.height, {
           inversionAttempts: "dontInvert",
@@ -201,13 +187,11 @@ const QRCodeScanner: React.FC<QRCodeScannerProps> = ({ onScan, onClose, title = 
         if (code && code.data) {
           console.log('🎯 QR Code detected:', code.data);
           
-          // Success feedback
           toast({
             title: "QR Code Scanned! ✅",
             description: "Processing customer information...",
           });
           
-          // Trigger scan callback and cleanup
           onScan(code.data);
           cleanup();
           return;
@@ -216,13 +200,11 @@ const QRCodeScanner: React.FC<QRCodeScannerProps> = ({ onScan, onClose, title = 
         console.error('❌ QR scan error:', error);
       }
 
-      // Continue scanning
       if (isScanning) {
         animationRef.current = requestAnimationFrame(scan);
       }
     };
 
-    // Start the scanning loop
     animationRef.current = requestAnimationFrame(scan);
   };
 
@@ -253,6 +235,18 @@ const QRCodeScanner: React.FC<QRCodeScannerProps> = ({ onScan, onClose, title = 
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
+        {/* Option to switch to mobile scanner */}
+        <div className="text-center">
+          <Button 
+            variant="outline" 
+            onClick={() => setUseMobileScanner(true)}
+            className="w-full mb-4"
+          >
+            <Smartphone className="w-4 h-4 mr-2" />
+            Use Mobile Scanner
+          </Button>
+        </div>
+
         {error && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-4">
             <div className="flex items-center space-x-2 text-red-800">
@@ -268,15 +262,26 @@ const QRCodeScanner: React.FC<QRCodeScannerProps> = ({ onScan, onClose, title = 
                 • Or click the camera icon in your browser's address bar
               </div>
             )}
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={startCamera}
-              className="mt-2 w-full"
-            >
-              <RefreshCw className="w-4 h-4 mr-2" />
-              Try Again
-            </Button>
+            <div className="flex space-x-2 mt-2">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={startCamera}
+                className="flex-1"
+              >
+                <RefreshCw className="w-4 h-4 mr-2" />
+                Try Again
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setUseMobileScanner(true)}
+                className="flex-1"
+              >
+                <Smartphone className="w-4 h-4 mr-2" />
+                Mobile Scanner
+              </Button>
+            </div>
           </div>
         )}
 
@@ -284,10 +289,10 @@ const QRCodeScanner: React.FC<QRCodeScannerProps> = ({ onScan, onClose, title = 
           <div className="text-center space-y-4">
             <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
               <p className="text-sm text-blue-800 mb-2">
-                📱 <strong>Ready to scan customer QR codes</strong>
+                🖥️ <strong>Desktop QR Scanner</strong>
               </p>
               <p className="text-xs text-blue-600">
-                Point your camera at a customer's loyalty QR code to award points
+                High-quality camera scanning for desktop browsers
               </p>
             </div>
             <Button onClick={startCamera} className="w-full" size="lg">

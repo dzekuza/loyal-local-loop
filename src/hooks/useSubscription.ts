@@ -9,6 +9,7 @@ interface SubscriptionData {
   hasActiveSubscription: boolean;
   subscriptionStatus: string | null;
   subscriptionTier: string | null;
+  isFreeUser: boolean;
 }
 
 export const useSubscription = () => {
@@ -18,7 +19,8 @@ export const useSubscription = () => {
     trialDaysLeft: 0,
     hasActiveSubscription: false,
     subscriptionStatus: null,
-    subscriptionTier: null
+    subscriptionTier: null,
+    isFreeUser: true
   });
   const [loading, setLoading] = useState(true);
 
@@ -49,17 +51,28 @@ export const useSubscription = () => {
         
         const isTrialActive = trialEnd ? now < trialEnd : false;
         const trialDaysLeft = trialEnd ? Math.max(0, Math.ceil((trialEnd.getTime() - now.getTime()) / (24 * 60 * 60 * 1000))) : 0;
+        const hasActiveSubscription = subscriptionCheck?.subscribed || profile.subscription_status === 'active';
         
         setSubscriptionData({
           isTrialActive,
           trialDaysLeft,
-          hasActiveSubscription: subscriptionCheck?.subscribed || profile.subscription_status === 'active',
+          hasActiveSubscription,
           subscriptionStatus: profile.subscription_status,
-          subscriptionTier: subscriptionCheck?.subscription_tier || null
+          subscriptionTier: subscriptionCheck?.subscription_tier || null,
+          isFreeUser: !hasActiveSubscription && !isTrialActive
         });
       }
     } catch (error) {
       console.error('Error loading subscription data:', error);
+      // Default to free user on error
+      setSubscriptionData({
+        isTrialActive: false,
+        trialDaysLeft: 0,
+        hasActiveSubscription: false,
+        subscriptionStatus: null,
+        subscriptionTier: null,
+        isFreeUser: true
+      });
     } finally {
       setLoading(false);
     }

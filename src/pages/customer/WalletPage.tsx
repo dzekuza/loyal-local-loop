@@ -69,8 +69,7 @@ const WalletPage: React.FC = () => {
             logo
           )
         `)
-        .eq('customer_id', user.id)
-        .gt('total_points', 0);
+        .eq('customer_id', user.id);
 
       if (error) throw error;
 
@@ -131,15 +130,7 @@ const WalletPage: React.FC = () => {
           onAddCards={() => navigate('/businesses')}
         />
 
-        {(!hasActiveSubscription && !isTrialActive) && (
-          <div className="mb-6">
-            <SubscriptionBanner 
-              trialDaysLeft={trialDaysLeft}
-              onSubscribe={handleSubscribe}
-            />
-          </div>
-        )}
-
+        {/* Always show subscription manager, but make it welcoming for free users */}
         <div className="mb-6">
           <SubscriptionManager 
             isSubscribed={hasActiveSubscription}

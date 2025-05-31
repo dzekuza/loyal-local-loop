@@ -60,8 +60,7 @@ const MyCardsPage: React.FC = () => {
             address
           )
         `)
-        .eq('customer_id', user.id)
-        .gt('total_points', 0);
+        .eq('customer_id', user.id);
 
       if (error) throw error;
 
@@ -255,6 +254,14 @@ const MyCardsPage: React.FC = () => {
       </div>
     </div>
   );
+
+  function handleCardClick(businessId: string) {
+    navigate(`/business/${businessId}`);
+  }
+
+  function handleAddCards() {
+    navigate('/discover');
+  }
 };
 
 export default MyCardsPage;

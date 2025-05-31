@@ -1,6 +1,6 @@
 
 import * as React from "react"
-import { Textarea as Textarea21st } from "@21st-dev/components"
+
 import { cn } from "@/lib/utils"
 
 export interface TextareaProps
@@ -9,10 +9,9 @@ export interface TextareaProps
 const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
   ({ className, ...props }, ref) => {
     return (
-      <Textarea21st
+      <textarea
         className={cn(
-          "focus:ring-2 focus:ring-offset-1 transition-all duration-200",
-          "resize-none",
+          "flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 focus:ring-2 focus:ring-offset-1 transition-all duration-200 resize-none",
           className
         )}
         ref={ref}

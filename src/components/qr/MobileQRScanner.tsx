@@ -1,11 +1,10 @@
 
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { QrReader } from 'react-qr-reader';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Camera, QrCode, X, AlertCircle, RefreshCw, Shield, Smartphone } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { detectDevice, requestCameraPermission, getCameraConstraints, getVideoConstraintsOnly } from '@/utils/deviceDetection';
+import { detectDevice, requestCameraPermission, getCameraConstraints } from '@/utils/deviceDetection';
 import jsQR from 'jsqr';
 
 interface MobileQRScannerProps {
@@ -23,7 +22,6 @@ const MobileQRScanner: React.FC<MobileQRScannerProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [permissionGranted, setPermissionGranted] = useState(false);
   const [cameraLoading, setCameraLoading] = useState(false);
-  const [scanMethod, setScanMethod] = useState<'qr-reader' | 'manual'>('qr-reader');
   const [userGestureRequired, setUserGestureRequired] = useState(false);
   
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -34,13 +32,8 @@ const MobileQRScanner: React.FC<MobileQRScannerProps> = ({
   
   const deviceInfo = detectDevice();
 
-  // Auto-detect best scanning method
+  // Auto-detect requirements
   useEffect(() => {
-    if (deviceInfo.isProblematicDevice) {
-      console.log('🔧 Problematic device detected, using manual camera mode');
-      setScanMethod('manual');
-    }
-    
     if (deviceInfo.requiresUserGesture) {
       setUserGestureRequired(true);
     }
@@ -72,28 +65,6 @@ const MobileQRScanner: React.FC<MobileQRScannerProps> = ({
     return cleanup;
   }, [cleanup]);
 
-  // QR Reader success handler
-  const handleQrReaderScan = useCallback((result: any, error: any) => {
-    if (result) {
-      console.log('📱 QrReader scan successful:', result.text);
-      toast({
-        title: "QR Code Scanned! ✅",
-        description: "Processing customer information...",
-      });
-      onScan(result.text);
-      cleanup();
-    }
-    
-    if (error) {
-      console.error('📱 QrReader scan error:', error);
-      if (error.name === 'NotAllowedError') {
-        setError('Camera permission denied. Please allow camera access.');
-        setPermissionGranted(false);
-        cleanup();
-      }
-    }
-  }, [onScan, toast, cleanup]);
-
   // Manual video scanning with jsQR
   const startManualScanning = useCallback(() => {
     if (!videoRef.current || !canvasRef.current || !isScanning) return;
@@ -121,7 +92,7 @@ const MobileQRScanner: React.FC<MobileQRScannerProps> = ({
         });
         
         if (code && code.data) {
-          console.log('🎯 Manual QR scan successful:', code.data);
+          console.log('🎯 QR scan successful:', code.data);
           
           toast({
             title: "QR Code Scanned! ✅",
@@ -133,7 +104,7 @@ const MobileQRScanner: React.FC<MobileQRScannerProps> = ({
           return;
         }
       } catch (error) {
-        console.error('❌ Manual QR scan error:', error);
+        console.error('❌ QR scan error:', error);
       }
 
       if (isScanning) {
@@ -144,15 +115,15 @@ const MobileQRScanner: React.FC<MobileQRScannerProps> = ({
     animationRef.current = requestAnimationFrame(scan);
   }, [isScanning, onScan, toast, cleanup]);
 
-  // Start manual camera
-  const startManualCamera = async () => {
-    console.log('📱 Starting manual camera...');
+  // Start camera
+  const startCamera = async () => {
+    console.log('📱 Starting camera...');
     setCameraLoading(true);
     setError(null);
 
     try {
       const constraints = getCameraConstraints(deviceInfo);
-      console.log('📷 Using manual camera constraints:', constraints);
+      console.log('📷 Using camera constraints:', constraints);
 
       const stream = await navigator.mediaDevices.getUserMedia(constraints);
       streamRef.current = stream;
@@ -162,7 +133,7 @@ const MobileQRScanner: React.FC<MobileQRScannerProps> = ({
         videoRef.current.onloadedmetadata = () => {
           if (videoRef.current) {
             videoRef.current.play().then(() => {
-              console.log('✅ Manual camera started successfully');
+              console.log('✅ Camera started successfully');
               setIsScanning(true);
               setCameraLoading(false);
               startManualScanning();
@@ -175,7 +146,7 @@ const MobileQRScanner: React.FC<MobileQRScannerProps> = ({
         };
       }
     } catch (error) {
-      console.error('❌ Manual camera error:', error);
+      console.error('❌ Camera error:', error);
       setCameraLoading(false);
       handleCameraError(error);
     }
@@ -217,7 +188,7 @@ const MobileQRScanner: React.FC<MobileQRScannerProps> = ({
     }
   };
 
-  // Request permission and start appropriate scanner
+  // Request permission and start scanner
   const requestPermissionAndStart = async () => {
     console.log('📱 Requesting camera permission for mobile QR scanner...');
     setError(null);
@@ -228,13 +199,7 @@ const MobileQRScanner: React.FC<MobileQRScannerProps> = ({
       if (granted) {
         console.log('✅ Permission granted, starting scanner');
         setPermissionGranted(true);
-        
-        if (scanMethod === 'manual') {
-          await startManualCamera();
-        } else {
-          setIsScanning(true);
-          setCameraLoading(false);
-        }
+        await startCamera();
         
         toast({
           title: "Camera Access Granted ✅",
@@ -274,12 +239,6 @@ const MobileQRScanner: React.FC<MobileQRScannerProps> = ({
     onScan(customerData || demoData);
   };
 
-  const switchScanMethod = () => {
-    cleanup();
-    setScanMethod(scanMethod === 'qr-reader' ? 'manual' : 'qr-reader');
-    setError(null);
-  };
-
   return (
     <Card className="w-full max-w-md mx-auto shadow-lg">
       <CardHeader>
@@ -301,7 +260,7 @@ const MobileQRScanner: React.FC<MobileQRScannerProps> = ({
           <p className="text-xs text-blue-800">
             <strong>Device:</strong> {deviceInfo.isIOS ? 'iOS' : deviceInfo.isAndroid ? 'Android' : 'Desktop'} | 
             <strong> Browser:</strong> {deviceInfo.browserName} | 
-            <strong> Method:</strong> {scanMethod}
+            <strong> Method:</strong> jsQR scanning
             {deviceInfo.isProblematicDevice && <span className="text-yellow-600"> (Compatibility Mode)</span>}
           </p>
         </div>
@@ -338,15 +297,6 @@ const MobileQRScanner: React.FC<MobileQRScannerProps> = ({
                 <RefreshCw className="w-4 h-4 mr-2" />
                 Try Again
               </Button>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={switchScanMethod}
-                className="flex-1"
-              >
-                <Smartphone className="w-4 h-4 mr-2" />
-                Switch Method
-              </Button>
             </div>
           </div>
         )}
@@ -367,22 +317,16 @@ const MobileQRScanner: React.FC<MobileQRScannerProps> = ({
                 📱 <strong>Mobile QR Scanner Ready</strong>
               </p>
               <p className="text-xs text-green-600">
-                Method: {scanMethod === 'qr-reader' ? 'QrReader' : 'Manual Camera'} | 
-                Optimized for {deviceInfo.browserName} on {deviceInfo.isIOS ? 'iOS' : deviceInfo.isAndroid ? 'Android' : 'Desktop'}
+                Using jsQR library | Optimized for {deviceInfo.browserName} on {deviceInfo.isIOS ? 'iOS' : deviceInfo.isAndroid ? 'Android' : 'Desktop'}
               </p>
             </div>
             <Button onClick={requestPermissionAndStart} className="w-full" size="lg">
               <Camera className="w-5 h-5 mr-2" />
               Start Camera
             </Button>
-            <div className="flex space-x-2">
-              <Button variant="outline" onClick={switchScanMethod} className="flex-1" size="sm">
-                Switch to {scanMethod === 'qr-reader' ? 'Manual' : 'QrReader'}
-              </Button>
-              <Button variant="outline" onClick={handleManualInput} className="flex-1" size="sm">
-                Manual Input
-              </Button>
-            </div>
+            <Button variant="outline" onClick={handleManualInput} className="w-full" size="sm">
+              Manual Input (Demo)
+            </Button>
           </div>
         )}
 
@@ -390,42 +334,21 @@ const MobileQRScanner: React.FC<MobileQRScannerProps> = ({
           <div className="text-center py-8">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
             <p className="text-gray-600">Starting camera...</p>
-            <p className="text-sm text-gray-500 mt-2">
-              {scanMethod === 'qr-reader' ? 'Initializing QrReader...' : 'Setting up manual camera...'}
-            </p>
+            <p className="text-sm text-gray-500 mt-2">Initializing camera...</p>
           </div>
         )}
 
         {isScanning && (
           <div className="space-y-4">
             <div className="relative bg-black rounded-lg overflow-hidden">
-              {scanMethod === 'manual' ? (
-                <>
-                  <video
-                    ref={videoRef}
-                    className="w-full h-64 object-cover"
-                    autoPlay
-                    playsInline
-                    muted
-                  />
-                  <canvas ref={canvasRef} className="hidden" />
-                </>
-              ) : (
-                <QrReader
-                  onResult={handleQrReaderScan}
-                  videoContainerStyle={{
-                    paddingTop: 0,
-                    width: '100%',
-                    height: '256px'
-                  }}
-                  videoStyle={{
-                    width: '100%',
-                    height: '100%',
-                    objectFit: 'cover'
-                  }}
-                  constraints={getVideoConstraintsOnly(deviceInfo)}
-                />
-              )}
+              <video
+                ref={videoRef}
+                className="w-full h-64 object-cover"
+                autoPlay
+                playsInline
+                muted
+              />
+              <canvas ref={canvasRef} className="hidden" />
               
               {/* Scanning overlay */}
               <div className="absolute inset-0 pointer-events-none">
@@ -448,14 +371,14 @@ const MobileQRScanner: React.FC<MobileQRScannerProps> = ({
               <Button onClick={cleanup} variant="outline" className="flex-1">
                 Stop Scanning
               </Button>
-              <Button onClick={switchScanMethod} variant="outline" className="flex-1">
-                Switch Method
+              <Button onClick={handleManualInput} variant="outline" className="flex-1">
+                Manual Input
               </Button>
             </div>
             
             <div className="bg-green-50 p-3 rounded-lg border border-green-200">
               <p className="text-sm text-green-800 text-center">
-                🎯 <strong>Scanning with {scanMethod}...</strong><br />
+                🎯 <strong>Scanning active...</strong><br />
                 <span className="text-xs text-green-600">Point camera at the QR code</span>
               </p>
             </div>

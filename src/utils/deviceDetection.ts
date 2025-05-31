@@ -1,4 +1,3 @@
-
 export interface DeviceInfo {
   isMobile: boolean;
   isAndroid: boolean;
@@ -117,56 +116,40 @@ export const requestCameraPermission = async (): Promise<boolean> => {
   }
 };
 
-export const getCameraConstraints = (deviceInfo: DeviceInfo): MediaStreamConstraints => {
-  console.log('📱 Getting camera constraints for device:', deviceInfo);
-  
-  if (deviceInfo.isProblematicDevice) {
-    // Samsung Galaxy S6 and problematic devices - minimal constraints
-    return {
-      video: {
-        facingMode: 'environment'
-      }
-    };
+export const getBasicCameraConstraints = () => ({
+  video: {
+    width: { ideal: 1280 },
+    height: { ideal: 720 },
+    facingMode: 'environment'
   }
-  
-  if (deviceInfo.isIOS) {
-    // iOS Safari specific constraints
-    return {
-      video: {
-        facingMode: { ideal: 'environment' },
-        width: { ideal: 1280, min: 640, max: 1920 },
-        height: { ideal: 720, min: 480, max: 1080 }
-      }
-    };
-  }
-  
-  if (deviceInfo.isMobile) {
-    // Modern mobile devices
-    return {
-      video: {
-        facingMode: { ideal: 'environment' },
-        width: { ideal: 1280, min: 640, max: 1920 },
-        height: { ideal: 720, min: 480, max: 1080 }
-      }
-    };
-  }
-  
-  // Desktop - full constraints
-  return {
+});
+
+export const getCameraConstraints = (deviceInfo: DeviceInfo) => {
+  const constraints: MediaStreamConstraints = {
     video: {
-      facingMode: { ideal: 'environment' },
-      width: { ideal: 1920, min: 1280, max: 3840 },
-      height: { ideal: 1080, min: 720, max: 2160 },
-      frameRate: { ideal: 30, min: 15 }
+      facingMode: 'environment',
+      width: { ideal: 1280, max: 1920 },
+      height: { ideal: 720, max: 1080 }
     }
   };
-};
 
-export const getBasicCameraConstraints = (): MediaStreamConstraints => {
-  // Ultra-basic constraints for problematic devices
-  return {
-    video: true
-  };
+  if (deviceInfo.isIOS) {
+    // iOS Safari works better with specific constraints
+    constraints.video = {
+      facingMode: 'environment',
+      width: { ideal: 1280 },
+      height: { ideal: 720 }
+    };
+  } else if (deviceInfo.isAndroid) {
+    // Android Chrome works well with flexible constraints
+    constraints.video = {
+      facingMode: 'environment',
+      width: { min: 640, ideal: 1280, max: 1920 },
+      height: { min: 480, ideal: 720, max: 1080 }
+    };
+  }
+
+  return constraints;
 };
 
 export const getVideoConstraintsOnly = (deviceInfo: DeviceInfo): MediaTrackConstraints => {

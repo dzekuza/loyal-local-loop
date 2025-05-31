@@ -1,38 +1,12 @@
 
 import React from 'react';
-import { useAppStore } from '@/store/useAppStore';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import ProfileFixer from '@/components/ProfileFixer';
 import BusinessCard from '@/components/business/BusinessCard';
 import { useBusinesses } from '@/hooks/useBusinesses';
 
 const BusinessDirectory = () => {
-  const { isAuthenticated, userRole } = useAppStore();
   const { data: businesses, isLoading, error } = useBusinesses();
-
-  if (!isAuthenticated) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <Card className="max-w-md mx-auto">
-          <CardHeader>
-            <CardTitle>Access Restricted</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p>Please log in to view the business directory.</p>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  if (!userRole) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <ProfileFixer />
-      </div>
-    );
-  }
 
   if (error) {
     console.error('Error loading businesses:', error);

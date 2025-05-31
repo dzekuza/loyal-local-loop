@@ -55,7 +55,7 @@ const BusinessDetailPage = () => {
 
   const loadBusinessData = async () => {
     try {
-      // Load business details
+      // Load business details - no authentication required
       const { data: businessData, error: businessError } = await supabase
         .from('businesses')
         .select('*')
@@ -74,7 +74,7 @@ const BusinessDetailPage = () => {
 
       setBusiness(businessData);
 
-      // Load loyalty offers
+      // Load loyalty offers - no authentication required
       const { data: offersData, error: offersError } = await supabase
         .from('loyalty_offers')
         .select('*')
@@ -88,7 +88,7 @@ const BusinessDetailPage = () => {
         setOffers(offersData || []);
       }
 
-      // Load user points if authenticated
+      // Load user points only if authenticated
       if (user) {
         const { data: pointsData, error: pointsError } = await supabase
           .from('user_points')
@@ -165,7 +165,7 @@ const BusinessDetailPage = () => {
                 <p className="text-gray-600">{business.description}</p>
               </div>
               <div className="text-right">
-                {userPoints && (
+                {user && userPoints && (
                   <div className="text-center">
                     <div className="text-2xl font-bold text-purple-600">
                       {userPoints.total_points}
@@ -179,7 +179,7 @@ const BusinessDetailPage = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Loyalty Card */}
+          {/* Loyalty Card - now shows for everyone */}
           <div>
             <CustomerLoyaltyCard 
               business={business}
@@ -187,7 +187,7 @@ const BusinessDetailPage = () => {
             />
           </div>
 
-          {/* QR Code */}
+          {/* QR Code - only for authenticated users with points */}
           {user && userPoints && (
             <div>
               <CustomerQRCode 
@@ -198,7 +198,7 @@ const BusinessDetailPage = () => {
           )}
         </div>
 
-        {/* Loyalty Offers */}
+        {/* Loyalty Offers - visible to everyone */}
         {offers.length > 0 && (
           <div className="mt-8">
             <Card>

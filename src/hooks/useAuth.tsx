@@ -24,6 +24,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     console.log('AuthProvider: Setting up auth state listener');
     
+    // Configure Supabase client for better session persistence
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log('Initial session check:', { session: !!session, user: !!session?.user });
+      setUser(session?.user ?? null);
+      if (session?.user) {
+        handleUserProfile(session.user);
+      }
+      setLoading(false);
+    });
+
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
@@ -33,21 +43,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       
       if (session?.user) {
         console.log('User authenticated, fetching/creating profile');
+        // Use setTimeout to prevent potential deadlocks
         setTimeout(() => {
           handleUserProfile(session.user);
         }, 0);
       } else {
         console.log('User not authenticated, clearing store');
         logout();
-      }
-      setLoading(false);
-    });
-
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log('Initial session check:', { session: !!session, user: !!session?.user });
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        handleUserProfile(session.user);
       }
       setLoading(false);
     });
@@ -115,7 +117,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       const userData = user.user_metadata || {};
       const profileData = {
         id: user.id,
-        name: userData.name || user.email || 'Unknown User',
+        name: userData.name || userData.full_name || user.email || 'Unknown User',
         user_role: userData.user_role || 'customer',
       };
 
@@ -159,6 +161,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       password,
       options: {
         data: userData,
+        emailRedirectTo: `${window.location.origin}/`,
       },
     });
     

@@ -6,6 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { CreditCard, Star, CheckCircle, Loader2 } from 'lucide-react';
+import AuthModal from './AuthModal';
 
 interface CustomerLoyaltyCardProps {
   business: {
@@ -20,6 +21,7 @@ interface CustomerLoyaltyCardProps {
 const CustomerLoyaltyCard: React.FC<CustomerLoyaltyCardProps> = ({ business, onJoinSuccess }) => {
   const [joining, setJoining] = useState(false);
   const [hasJoined, setHasJoined] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -51,17 +53,12 @@ const CustomerLoyaltyCard: React.FC<CustomerLoyaltyCardProps> = ({ business, onJ
 
   const handleJoinProgram = async () => {
     if (!user) {
-      toast({
-        title: "Sign In Required",
-        description: "Please sign in to join the loyalty program",
-        variant: "destructive",
-      });
+      setShowAuthModal(true);
       return;
     }
 
     setJoining(true);
     try {
-      // Create user_points record
       const { error: pointsError } = await supabase
         .from('user_points')
         .insert({
@@ -70,7 +67,7 @@ const CustomerLoyaltyCard: React.FC<CustomerLoyaltyCardProps> = ({ business, onJ
           total_points: 0
         });
 
-      if (pointsError && pointsError.code !== '23505') { // 23505 is duplicate key error
+      if (pointsError && pointsError.code !== '23505') {
         console.error('Error creating user_points:', pointsError);
         throw new Error(`Failed to join loyalty program: ${pointsError.message}`);
       }
@@ -94,8 +91,16 @@ const CustomerLoyaltyCard: React.FC<CustomerLoyaltyCardProps> = ({ business, onJ
     }
   };
 
-  if (!user) {
-    return (
+  const handleAuthSuccess = () => {
+    setShowAuthModal(false);
+    // After successful auth, the useEffect will trigger and check membership
+    setTimeout(() => {
+      checkMembership();
+    }, 1000);
+  };
+
+  return (
+    <>
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
@@ -104,68 +109,57 @@ const CustomerLoyaltyCard: React.FC<CustomerLoyaltyCardProps> = ({ business, onJ
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-gray-600 mb-4">
-            Sign in to join {business.name}'s loyalty program and start earning rewards!
-          </p>
-          <Button disabled className="w-full">
-            Sign In to Join
-          </Button>
+          {user && hasJoined ? (
+            <div className="text-center">
+              <div className="flex items-center justify-center space-x-2 mb-4">
+                <CheckCircle className="w-6 h-6 text-green-600" />
+                <span className="text-green-600 font-medium">You're a member!</span>
+              </div>
+              <p className="text-gray-600 mb-4">
+                You're part of {business.name}'s loyalty program. Start earning points with every purchase!
+              </p>
+              <div className="flex items-center justify-center space-x-1 text-yellow-500">
+                <Star className="w-4 h-4 fill-current" />
+                <Star className="w-4 h-4 fill-current" />
+                <Star className="w-4 h-4 fill-current" />
+                <span className="text-gray-600 ml-2">Member since today</span>
+              </div>
+            </div>
+          ) : (
+            <div>
+              <p className="text-gray-600 mb-4">
+                Join {business.name}'s loyalty program to earn points and unlock exclusive rewards!
+              </p>
+              <Button
+                onClick={handleJoinProgram}
+                disabled={joining}
+                className="w-full"
+              >
+                {joining ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Joining...
+                  </>
+                ) : (
+                  <>
+                    <CreditCard className="w-4 h-4 mr-2" />
+                    Join Loyalty Program
+                  </>
+                )}
+              </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
-    );
-  }
 
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center space-x-2">
-          <CreditCard className="w-5 h-5" />
-          <span>Loyalty Program</span>
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        {hasJoined ? (
-          <div className="text-center">
-            <div className="flex items-center justify-center space-x-2 mb-4">
-              <CheckCircle className="w-6 h-6 text-green-600" />
-              <span className="text-green-600 font-medium">You're a member!</span>
-            </div>
-            <p className="text-gray-600 mb-4">
-              You're part of {business.name}'s loyalty program. Start earning points with every purchase!
-            </p>
-            <div className="flex items-center justify-center space-x-1 text-yellow-500">
-              <Star className="w-4 h-4 fill-current" />
-              <Star className="w-4 h-4 fill-current" />
-              <Star className="w-4 h-4 fill-current" />
-              <span className="text-gray-600 ml-2">Member since today</span>
-            </div>
-          </div>
-        ) : (
-          <div>
-            <p className="text-gray-600 mb-4">
-              Join {business.name}'s loyalty program to earn points and unlock exclusive rewards!
-            </p>
-            <Button
-              onClick={handleJoinProgram}
-              disabled={joining}
-              className="w-full"
-            >
-              {joining ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Joining...
-                </>
-              ) : (
-                <>
-                  <CreditCard className="w-4 h-4 mr-2" />
-                  Join Loyalty Program
-                </>
-              )}
-            </Button>
-          </div>
-        )}
-      </CardContent>
-    </Card>
+      <AuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        onSuccess={handleAuthSuccess}
+        title="Join Loyalty Program"
+        description={`Sign in to join ${business.name}'s loyalty program and start earning rewards!`}
+      />
+    </>
   );
 };
 

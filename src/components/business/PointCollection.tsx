@@ -7,6 +7,7 @@ import { Label } from '../ui/label';
 import { useToast } from '../../hooks/use-toast';
 import { supabase } from '../../integrations/supabase/client';
 import { Scan, DollarSign, Gift, CheckCircle, X } from 'lucide-react';
+import QRCodeScanner from '../qr/QRCodeScanner';
 
 interface PointCollectionProps {
   businessId: string;
@@ -30,28 +31,39 @@ const PointCollection: React.FC<PointCollectionProps> = ({
   const [showScanner, setShowScanner] = useState(false);
   const { toast } = useToast();
 
-  const handleQRScan = (data: any) => {
+  const handleQRScan = (data: string) => {
     try {
-      if (data && data.text) {
-        const qrData = JSON.parse(data.text);
-        
-        if (qrData.type === 'customer' && qrData.customerId) {
-          setScannedCustomer({
-            customerId: qrData.customerId,
-            customerName: qrData.customerName || 'Unknown Customer'
-          });
-          setShowScanner(false);
-          toast({
-            title: "Customer Scanned",
-            description: `Ready to award points to ${qrData.customerName}`,
-          });
-        } else {
-          toast({
-            title: "Invalid QR Code",
-            description: "This is not a valid customer QR code",
-            variant: "destructive",
-          });
-        }
+      console.log('Raw QR data received:', data);
+      
+      // Try to parse as JSON first
+      let qrData;
+      try {
+        qrData = JSON.parse(data);
+      } catch {
+        // If not JSON, treat as plain text customer ID
+        qrData = {
+          type: 'customer',
+          customerId: data,
+          customerName: 'Customer'
+        };
+      }
+      
+      if (qrData.type === 'customer' && qrData.customerId) {
+        setScannedCustomer({
+          customerId: qrData.customerId,
+          customerName: qrData.customerName || 'Unknown Customer'
+        });
+        setShowScanner(false);
+        toast({
+          title: "Customer Scanned",
+          description: `Ready to award points to ${qrData.customerName || 'customer'}`,
+        });
+      } else {
+        toast({
+          title: "Invalid QR Code",
+          description: "This is not a valid customer QR code",
+          variant: "destructive",
+        });
       }
     } catch (error) {
       console.error('QR scan error:', error);
@@ -281,53 +293,11 @@ const PointCollection: React.FC<PointCollectionProps> = ({
       {showScanner && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999] p-4">
           <div className="bg-white rounded-lg max-w-md w-full mx-4 relative">
-            <div className="flex items-center justify-between p-6 border-b">
-              <h3 className="text-lg font-semibold">Scan Customer QR Code</h3>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowScanner(false)}
-                className="h-8 w-8 p-0"
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-            
-            <div className="p-6">
-              <div className="mb-4">
-                <div className="bg-gray-100 aspect-square rounded-lg flex items-center justify-center">
-                  <p className="text-gray-600 text-center">
-                    Camera view would appear here<br />
-                    <span className="text-sm">Point camera at customer's QR code</span>
-                  </p>
-                </div>
-              </div>
-              
-              <div className="flex space-x-2">
-                <Button
-                  variant="outline"
-                  onClick={() => setShowScanner(false)}
-                  className="flex-1"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  onClick={() => {
-                    // Simulate QR scan for demo
-                    handleQRScan({
-                      text: JSON.stringify({
-                        type: 'customer',
-                        customerId: 'demo-customer-123',
-                        customerName: 'Demo Customer'
-                      })
-                    });
-                  }}
-                  className="flex-1"
-                >
-                  Demo Scan
-                </Button>
-              </div>
-            </div>
+            <QRCodeScanner 
+              onScan={handleQRScan}
+              onClose={() => setShowScanner(false)}
+              title="Scan Customer QR Code"
+            />
           </div>
         </div>
       )}

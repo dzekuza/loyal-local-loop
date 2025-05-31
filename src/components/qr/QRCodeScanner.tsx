@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Camera, QrCode, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import jsQR from 'jsqr';
 
 interface QRCodeScannerProps {
   onScan: (result: string) => void;
@@ -16,6 +17,7 @@ const QRCodeScanner: React.FC<QRCodeScannerProps> = ({ onScan, onClose, title = 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isScanning, setIsScanning] = useState(false);
   const [stream, setStream] = useState<MediaStream | null>(null);
+  const [scanningActive, setScanningActive] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -39,6 +41,7 @@ const QRCodeScanner: React.FC<QRCodeScannerProps> = ({ onScan, onClose, title = 
         videoRef.current.play();
         setStream(mediaStream);
         setIsScanning(true);
+        setScanningActive(true);
         
         // Start scanning for QR codes
         scanForQRCode();
@@ -59,16 +62,20 @@ const QRCodeScanner: React.FC<QRCodeScannerProps> = ({ onScan, onClose, title = 
       setStream(null);
     }
     setIsScanning(false);
+    setScanningActive(false);
   };
 
   const scanForQRCode = async () => {
-    if (!videoRef.current || !canvasRef.current || !isScanning) return;
+    if (!videoRef.current || !canvasRef.current || !scanningActive) return;
 
     const video = videoRef.current;
     const canvas = canvasRef.current;
     const context = canvas.getContext('2d');
 
-    if (!context) return;
+    if (!context || video.readyState !== video.HAVE_ENOUGH_DATA) {
+      requestAnimationFrame(scanForQRCode);
+      return;
+    }
 
     // Set canvas size to match video
     canvas.width = video.videoWidth;
@@ -78,15 +85,15 @@ const QRCodeScanner: React.FC<QRCodeScannerProps> = ({ onScan, onClose, title = 
     context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
     try {
-      // Try to decode QR code from canvas
+      // Get image data from canvas
       const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
       
-      // For now, we'll use a simple pattern detection
-      // In a real implementation, you'd use a library like jsQR
-      const result = await detectQRCode(imageData);
+      // Use jsQR to detect QR code
+      const code = jsQR(imageData.data, imageData.width, imageData.height);
       
-      if (result) {
-        onScan(result);
+      if (code) {
+        console.log('QR Code detected:', code.data);
+        onScan(code.data);
         stopCamera();
         return;
       }
@@ -95,23 +102,13 @@ const QRCodeScanner: React.FC<QRCodeScannerProps> = ({ onScan, onClose, title = 
     }
 
     // Continue scanning
-    if (isScanning) {
+    if (scanningActive) {
       requestAnimationFrame(scanForQRCode);
     }
   };
 
-  // Simplified QR code detection - in production, use jsQR library
-  const detectQRCode = async (imageData: ImageData): Promise<string | null> => {
-    // This is a mock implementation
-    // In a real app, you'd use jsQR or similar library
-    
-    // For demo purposes, we'll simulate finding QR codes with customer IDs
-    // You can manually enter a customer ID in the format: customer_12345
-    return null;
-  };
-
   const handleManualInput = () => {
-    const customerData = prompt('Enter customer data (format: customer_id):');
+    const customerData = prompt('Enter customer data (format: {"type":"customer","customerId":"123","customerName":"John Doe"}):');
     if (customerData) {
       onScan(customerData);
     }
@@ -166,6 +163,11 @@ const QRCodeScanner: React.FC<QRCodeScannerProps> = ({ onScan, onClose, title = 
                 <div className="absolute top-4 right-4 w-8 h-8 border-r-4 border-t-4 border-purple-500"></div>
                 <div className="absolute bottom-4 left-4 w-8 h-8 border-l-4 border-b-4 border-purple-500"></div>
                 <div className="absolute bottom-4 right-4 w-8 h-8 border-r-4 border-b-4 border-purple-500"></div>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="bg-black bg-opacity-50 text-white px-3 py-1 rounded text-sm">
+                    Point camera at QR code
+                  </div>
+                </div>
               </div>
             </div>
             <div className="flex space-x-2">

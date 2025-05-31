@@ -34,16 +34,75 @@ const ScanQRCodePage: React.FC = () => {
   };
 
   const processBusinessScan = async (customerData: string) => {
-    if (!currentBusiness) return;
+    if (!currentBusiness || !user) return;
 
     setIsProcessing(true);
     try {
-      // Parse customer data - expecting format like "customer_id"
-      const customerId = customerData.replace('customer_', '');
+      // Parse customer data
+      let parsedData;
+      try {
+        parsedData = JSON.parse(customerData);
+      } catch {
+        // If not JSON, treat as plain customer ID
+        parsedData = {
+          type: 'customer',
+          customerId: customerData,
+          customerName: 'Customer'
+        };
+      }
+
+      if (parsedData.type !== 'customer' || !parsedData.customerId) {
+        throw new Error('Invalid customer QR code format');
+      }
+      
+      const customerId = parsedData.customerId;
+      const customerName = parsedData.customerName || 'Unknown Customer';
       
       // For demo, let's award 10 points for a $10 purchase
       const pointsToAward = 10;
       const amountSpent = 10.00;
+
+      // Get active loyalty offer for calculation
+      const { data: offers, error: offersError } = await supabase
+        .from('loyalty_offers')
+        .select('*')
+        .eq('business_id', currentBusiness.id)
+        .eq('is_active', true)
+        .limit(1);
+
+      if (offersError) {
+        throw new Error('Failed to fetch loyalty offers');
+      }
+
+      if (!offers || offers.length === 0) {
+        throw new Error('No active loyalty offers found. Please create an offer first.');
+      }
+
+      const offer = offers[0];
+      const calculatedPoints = Math.floor((amountSpent / offer.spend_amount) * offer.points_earned);
+
+      // Ensure user_points record exists
+      const { data: existingPoints, error: pointsCheckError } = await supabase
+        .from('user_points')
+        .select('*')
+        .eq('customer_id', customerId)
+        .eq('business_id', currentBusiness.id)
+        .single();
+
+      if (pointsCheckError && pointsCheckError.code === 'PGRST116') {
+        // Create user_points record if it doesn't exist
+        const { error: createPointsError } = await supabase
+          .from('user_points')
+          .insert({
+            customer_id: customerId,
+            business_id: currentBusiness.id,
+            total_points: 0
+          });
+
+        if (createPointsError) {
+          throw new Error('Failed to initialize customer points record');
+        }
+      }
 
       // Create point transaction
       const { data: transaction, error: transactionError } = await supabase
@@ -52,8 +111,8 @@ const ScanQRCodePage: React.FC = () => {
           customer_id: customerId,
           business_id: currentBusiness.id,
           amount_spent: amountSpent,
-          points_earned: pointsToAward,
-          processed_by: user?.id,
+          points_earned: calculatedPoints,
+          processed_by: user.id,
         })
         .select()
         .single();
@@ -63,8 +122,8 @@ const ScanQRCodePage: React.FC = () => {
       }
 
       toast({
-        title: "Points Awarded!",
-        description: `Successfully awarded ${pointsToAward} points to customer`,
+        title: "Points Awarded! 🎉",
+        description: `Successfully awarded ${calculatedPoints} points to ${customerName}`,
       });
 
       setScanResult(null);
@@ -72,7 +131,7 @@ const ScanQRCodePage: React.FC = () => {
       console.error('Error processing scan:', error);
       toast({
         title: "Error",
-        description: "Failed to award points. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to award points. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -163,7 +222,7 @@ const ScanQRCodePage: React.FC = () => {
                   <CardContent className="pt-6">
                     <div className="text-center">
                       <p className="text-sm text-gray-600 mb-2">Scanned:</p>
-                      <p className="font-mono text-sm bg-gray-100 p-2 rounded">{scanResult}</p>
+                      <p className="font-mono text-sm bg-gray-100 p-2 rounded break-all">{scanResult}</p>
                       {isProcessing && (
                         <p className="text-sm text-purple-600 mt-2">Processing transaction...</p>
                       )}

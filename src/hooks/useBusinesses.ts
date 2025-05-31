@@ -11,7 +11,7 @@ export const useBusinesses = () => {
       
       const { data, error } = await supabase
         .from('businesses')
-        .select('*')
+        .select('id, name, email, logo, cover_image, address, phone, business_type, description, qr_code, created_at')
         .order('created_at', { ascending: false });
 
       if (error) {

@@ -72,8 +72,8 @@ const Header = () => {
 
           {/* Right side */}
           <div className="flex items-center space-x-4">
-            {/* Language switcher for non-authenticated users */}
-            {!isAuthenticated && <LanguageSwitcher />}
+            {/* Language switcher for non-authenticated users on desktop only */}
+            {!isAuthenticated && <div className="hidden md:block"><LanguageSwitcher /></div>}
             
             {isAuthenticated ? (
               <DropdownMenu>

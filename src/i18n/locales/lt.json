@@ -83,6 +83,13 @@
   "business": {
     "viewProfile": "Peržiūrėti Profilį",
     "activeOffers": "aktyvūs pasiūlymai",
+    "subtitle": "Atraskite vietinius verslus ir jų lojalumo programas",
+    "errorTitle": "Klaida Kraunant Verslus",
+    "errorMessage": "Kilo klaida krauti verslų katalogą. Bandykite vėliau.",
+    "withSpecialDeals": "Su Specialiais Pasiūlymais",
+    "noMatchingBusinesses": "Nėra verslų, atitinkančių jūsų filtrus. Pabandykite keisti paieškos kriterijus.",
+    "noBusinessesYet": "Kataloge dar nėra verslų. Užsukite vėliau!",
+    "discoverLocal": "Atraskite vietinius verslus",
     "categories": {
       "all": "Visos Kategorijos",
       "restaurant": "Restoranai ir Maistas",
@@ -149,7 +156,8 @@
     "back": "Atgal",
     "continue": "Tęsti",
     "next": "Kitas",
-    "previous": "Ankstesnis"
+    "previous": "Ankstesnis",
+    "errorLoadingBusinesses": "Kilo klaida krauti verslus. Bandykite vėliau."
   },
   "subscription": {
     "monthly": "Mėnesinis",

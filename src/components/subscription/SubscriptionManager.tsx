@@ -111,7 +111,7 @@ const SubscriptionManager: React.FC<SubscriptionManagerProps> = ({
             </div>
             <div className="flex items-center space-x-2 text-sm text-blue-700">
               <CheckCircle className="w-4 h-4" />
-              <span>Discover local businesses</span>
+              <span>{t('business.discoverLocal')}</span>
             </div>
           </div>
           <p className="text-xs text-blue-600">

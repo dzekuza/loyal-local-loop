@@ -44,10 +44,10 @@ const BusinessDirectory = () => {
       <div className="container mx-auto px-4 py-8">
         <Card className="max-w-md mx-auto">
           <CardHeader>
-            <CardTitle>Error Loading Businesses</CardTitle>
+            <CardTitle>{t('business.errorTitle')}</CardTitle>
           </CardHeader>
           <CardContent>
-            <p>There was an error loading the business directory. Please try again later.</p>
+            <p>{t('business.errorMessage')}</p>
           </CardContent>
         </Card>
       </div>
@@ -58,7 +58,7 @@ const BusinessDirectory = () => {
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
         <h1 className="text-2xl md:text-3xl font-bold mb-2">{t('nav.businesses')}</h1>
-        <p className="text-gray-600 break-words">Discover local businesses and their loyalty programs</p>
+        <p className="text-gray-600 break-words">{t('business.subtitle')}</p>
       </div>
 
       <div className="mb-6">
@@ -115,7 +115,7 @@ const BusinessDirectory = () => {
             </p>
             {showSpecialDeals && (
               <Badge variant="secondary" className="self-start sm:self-auto">
-                With Special Deals
+                {t('business.withSpecialDeals')}
               </Badge>
             )}
           </div>
@@ -137,8 +137,8 @@ const BusinessDirectory = () => {
           <CardContent>
             <p className="break-words">
               {searchTerm || selectedCategory !== 'All' || showSpecialDeals
-                ? 'No businesses match your current filters. Try adjusting your search criteria.'
-                : 'There are no businesses in the directory yet. Check back later!'}
+                ? t('business.noMatchingBusinesses')
+                : t('business.noBusinessesYet')}
             </p>
           </CardContent>
         </Card>

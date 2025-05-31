@@ -83,6 +83,13 @@
   "business": {
     "viewProfile": "View Profile",
     "activeOffers": "active offers",
+    "subtitle": "Discover local businesses and their loyalty programs",
+    "errorTitle": "Error Loading Businesses",
+    "errorMessage": "There was an error loading the business directory. Please try again later.",
+    "withSpecialDeals": "With Special Deals",
+    "noMatchingBusinesses": "No businesses match your current filters. Try adjusting your search criteria.",
+    "noBusinessesYet": "There are no businesses in the directory yet. Check back later!",
+    "discoverLocal": "Discover local businesses",
     "categories": {
       "all": "All Categories",
       "restaurant": "Restaurants & Food",
@@ -149,7 +156,8 @@
     "back": "Back",
     "continue": "Continue",
     "next": "Next",
-    "previous": "Previous"
+    "previous": "Previous",
+    "errorLoadingBusinesses": "There was an error loading businesses. Please try again later."
   },
   "subscription": {
     "monthly": "Monthly",

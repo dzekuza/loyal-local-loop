@@ -12,6 +12,7 @@ import HomePage from "./pages/HomePage";
 import RegisterPage from "./pages/auth/RegisterPage";
 import LoginPage from "./pages/auth/LoginPage";
 import BusinessDashboard from "./pages/business/BusinessDashboard";
+import BusinessScanPage from "./pages/business/BusinessScanPage";
 import BusinessProfilePage from "./pages/business/BusinessProfilePage";
 import CustomerProfilePage from "./pages/customer/CustomerProfilePage";
 import BusinessDirectory from "./pages/customer/BusinessDirectory";

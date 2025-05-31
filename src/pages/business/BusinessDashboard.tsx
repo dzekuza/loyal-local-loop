@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -10,7 +11,7 @@ import QRGenerator from '../../components/business/QRGenerator';
 import OfferForm from '../../components/offers/OfferForm';
 import OffersList from '../../components/offers/OffersList';
 import PointCollection from '../../components/business/PointCollection';
-import { Store, Users, Gift, TrendingUp } from 'lucide-react';
+import { Store, Users, Gift, TrendingUp, Scan } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 const BusinessDashboard = () => {

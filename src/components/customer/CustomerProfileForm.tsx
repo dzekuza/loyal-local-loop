@@ -63,23 +63,33 @@ const CustomerProfileForm: React.FC<CustomerProfileFormProps> = ({ profile, onUp
   });
 
   const handleAvatarUpload = async (file: File) => {
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${user?.id}/avatar.${fileExt}`;
+    try {
+      if (!user?.id) throw new Error('User not authenticated');
 
-    // Create bucket if it doesn't exist
-    await supabase.storage.createBucket('customer-avatars', { public: true });
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}/avatar-${Date.now()}.${fileExt}`;
 
-    const { error: uploadError } = await supabase.storage
-      .from('customer-avatars')
-      .upload(fileName, file, { upsert: true });
+      console.log('Uploading avatar file:', fileName);
 
-    if (uploadError) throw uploadError;
+      const { error: uploadError } = await supabase.storage
+        .from('customer-avatars')
+        .upload(fileName, file, { upsert: true });
 
-    const { data: { publicUrl } } = supabase.storage
-      .from('customer-avatars')
-      .getPublicUrl(fileName);
+      if (uploadError) {
+        console.error('Avatar upload error:', uploadError);
+        throw uploadError;
+      }
 
-    return publicUrl;
+      const { data: { publicUrl } } = supabase.storage
+        .from('customer-avatars')
+        .getPublicUrl(fileName);
+
+      console.log('Avatar uploaded successfully:', publicUrl);
+      return publicUrl;
+    } catch (error) {
+      console.error('Error uploading avatar:', error);
+      throw error;
+    }
   };
 
   const onSubmit = async (values: z.infer<typeof customerFormSchema>) => {
@@ -89,32 +99,47 @@ const CustomerProfileForm: React.FC<CustomerProfileFormProps> = ({ profile, onUp
     try {
       let avatarUrl = profile?.avatar;
 
+      // Upload avatar if selected
       if (avatarFile) {
+        console.log('Uploading avatar...');
         avatarUrl = await handleAvatarUpload(avatarFile);
       }
 
-      // Update profile
+      // Update profile in database
       const fullName = `${values.name} ${values.surname}`;
+      const updateData = {
+        name: fullName,
+        phone: values.phone || null,
+        avatar: avatarUrl,
+      };
+
+      console.log('Updating profile with data:', updateData);
+
       const { data, error } = await supabase
         .from('profiles')
-        .update({
-          name: fullName,
-          phone: values.phone,
-          avatar: avatarUrl,
-        })
+        .update(updateData)
         .eq('id', user.id)
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Profile update error:', error);
+        throw error;
+      }
+
+      console.log('Profile updated successfully:', data);
 
       // Update email if changed
       if (values.email !== user.email) {
+        console.log('Updating email...');
         const { error: emailError } = await supabase.auth.updateUser({
           email: values.email,
         });
 
-        if (emailError) throw emailError;
+        if (emailError) {
+          console.error('Email update error:', emailError);
+          throw emailError;
+        }
 
         toast({
           title: t('profile.emailUpdate'),
@@ -128,11 +153,14 @@ const CustomerProfileForm: React.FC<CustomerProfileFormProps> = ({ profile, onUp
         title: t('common.success'),
         description: t('profile.profileUpdateSuccess'),
       });
+
+      // Clear file input
+      setAvatarFile(null);
     } catch (error) {
       console.error('Error updating profile:', error);
       toast({
         title: t('common.error'),
-        description: t('profile.profileUpdateError'),
+        description: error instanceof Error ? error.message : t('profile.profileUpdateError'),
         variant: "destructive",
       });
     } finally {
@@ -160,7 +188,7 @@ const CustomerProfileForm: React.FC<CustomerProfileFormProps> = ({ profile, onUp
       console.error('Error updating password:', error);
       toast({
         title: t('common.error'),
-        description: t('profile.passwordUpdateError'),
+        description: error instanceof Error ? error.message : t('profile.passwordUpdateError'),
         variant: "destructive",
       });
     } finally {

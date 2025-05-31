@@ -13,6 +13,7 @@ export type Database = {
         Row: {
           address: string | null
           business_type: string
+          cover_image: string | null
           created_at: string | null
           description: string | null
           email: string
@@ -26,6 +27,7 @@ export type Database = {
         Insert: {
           address?: string | null
           business_type: string
+          cover_image?: string | null
           created_at?: string | null
           description?: string | null
           email: string
@@ -39,6 +41,7 @@ export type Database = {
         Update: {
           address?: string | null
           business_type?: string
+          cover_image?: string | null
           created_at?: string | null
           description?: string | null
           email?: string
@@ -160,30 +163,36 @@ export type Database = {
       }
       profiles: {
         Row: {
+          avatar: string | null
           business_type: string | null
           created_at: string | null
           id: string
           name: string | null
+          phone: string | null
           subscription_end_date: string | null
           subscription_status: string | null
           trial_start_date: string | null
           user_role: string
         }
         Insert: {
+          avatar?: string | null
           business_type?: string | null
           created_at?: string | null
           id: string
           name?: string | null
+          phone?: string | null
           subscription_end_date?: string | null
           subscription_status?: string | null
           trial_start_date?: string | null
           user_role: string
         }
         Update: {
+          avatar?: string | null
           business_type?: string | null
           created_at?: string | null
           id?: string
           name?: string | null
+          phone?: string | null
           subscription_end_date?: string | null
           subscription_status?: string | null
           trial_start_date?: string | null

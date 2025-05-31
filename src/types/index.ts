@@ -6,11 +6,11 @@ export interface Business {
   logo?: string;
   coverImage?: string;
   address?: string;
+  phone?: string;
   businessType: string;
   description: string;
   qrCode: string;
   createdAt: Date;
-  phone?: string;
   loyaltyOffers?: LoyaltyOffer[];
 }
 

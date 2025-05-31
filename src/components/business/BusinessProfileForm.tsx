@@ -12,7 +12,7 @@ import { Label } from '../ui/label';
 import { Textarea } from '../ui/textarea';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '../ui/form';
 import { Business } from '@/types';
-import { Upload, Camera, Building2 } from 'lucide-react';
+import { Building2 } from 'lucide-react';
 
 const businessFormSchema = z.object({
   name: z.string().min(1, 'Business name is required'),
@@ -42,8 +42,8 @@ const BusinessProfileForm: React.FC<BusinessProfileFormProps> = ({ business, onU
       description: business.description,
       business_type: business.businessType,
       contact_email: business.email,
-      contact_phone: '',
-      contact_address: '',
+      contact_phone: business.phone || '',
+      contact_address: business.address || '',
     },
   });
 
@@ -70,57 +70,87 @@ const BusinessProfileForm: React.FC<BusinessProfileFormProps> = ({ business, onU
   };
 
   const handleFileUpload = async (file: File, type: 'logo' | 'cover') => {
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${business.id}/${type}.${fileExt}`;
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${business.id}/${type}-${Date.now()}.${fileExt}`;
 
-    const { error: uploadError } = await supabase.storage
-      .from('business-assets')
-      .upload(fileName, file, { upsert: true });
+      console.log(`Uploading ${type} file:`, fileName);
 
-    if (uploadError) throw uploadError;
+      const { error: uploadError } = await supabase.storage
+        .from('business-assets')
+        .upload(fileName, file, { upsert: true });
 
-    const { data: { publicUrl } } = supabase.storage
-      .from('business-assets')
-      .getPublicUrl(fileName);
+      if (uploadError) {
+        console.error('Upload error:', uploadError);
+        throw uploadError;
+      }
 
-    return publicUrl;
+      const { data: { publicUrl } } = supabase.storage
+        .from('business-assets')
+        .getPublicUrl(fileName);
+
+      console.log(`${type} uploaded successfully:`, publicUrl);
+      return publicUrl;
+    } catch (error) {
+      console.error(`Error uploading ${type}:`, error);
+      throw error;
+    }
   };
 
   const onSubmit = async (values: z.infer<typeof businessFormSchema>) => {
     setIsLoading(true);
     try {
       let logoUrl = business.logo;
-      let coverUrl = '';
+      let coverUrl = business.coverImage;
 
+      // Upload logo if selected
       if (logoFile) {
+        console.log('Uploading logo file...');
         logoUrl = await handleFileUpload(logoFile, 'logo');
       }
 
+      // Upload cover image if selected
       if (coverFile) {
+        console.log('Uploading cover file...');
         coverUrl = await handleFileUpload(coverFile, 'cover');
       }
 
+      // Update business in database
+      const updateData = {
+        name: values.name,
+        description: values.description,
+        business_type: values.business_type,
+        email: values.contact_email,
+        phone: values.contact_phone || null,
+        address: values.contact_address || null,
+        logo: logoUrl,
+        cover_image: coverUrl,
+      };
+
+      console.log('Updating business with data:', updateData);
+
       const { data, error } = await supabase
         .from('businesses')
-        .update({
-          name: values.name,
-          description: values.description,
-          business_type: values.business_type,
-          email: values.contact_email,
-          logo: logoUrl,
-          // Add cover_image field if it exists in your schema
-        })
+        .update(updateData)
         .eq('id', business.id)
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Database update error:', error);
+        throw error;
+      }
+
+      console.log('Business updated successfully:', data);
 
       const updatedBusiness: Business = {
         id: data.id,
         name: data.name,
         email: data.email,
         logo: data.logo,
+        coverImage: data.cover_image,
+        address: data.address,
+        phone: data.phone,
         businessType: data.business_type,
         description: data.description,
         qrCode: data.qr_code,
@@ -133,11 +163,15 @@ const BusinessProfileForm: React.FC<BusinessProfileFormProps> = ({ business, onU
         title: "Success",
         description: "Business profile updated successfully",
       });
+
+      // Clear file inputs
+      setLogoFile(null);
+      setCoverFile(null);
     } catch (error) {
       console.error('Error updating business:', error);
       toast({
         title: "Error",
-        description: "Failed to update business profile",
+        description: error instanceof Error ? error.message : "Failed to update business profile",
         variant: "destructive",
       });
     } finally {
@@ -178,14 +212,19 @@ const BusinessProfileForm: React.FC<BusinessProfileFormProps> = ({ business, onU
             {/* Cover Image Upload */}
             <div className="space-y-2">
               <Label>Cover Image</Label>
-              <div>
-                <Input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => setCoverFile(e.target.files?.[0] || null)}
-                  className="w-auto"
-                />
-                <p className="text-sm text-gray-500 mt-1">Upload a cover image (optional)</p>
+              <div className="flex items-center space-x-4">
+                {business.coverImage && (
+                  <img src={business.coverImage} alt="Current cover" className="w-24 h-16 object-cover rounded-lg" />
+                )}
+                <div>
+                  <Input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => setCoverFile(e.target.files?.[0] || null)}
+                    className="w-auto"
+                  />
+                  <p className="text-sm text-gray-500 mt-1">Upload a cover image (optional)</p>
+                </div>
               </div>
             </div>
 

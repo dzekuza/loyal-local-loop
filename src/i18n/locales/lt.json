@@ -1,6 +1,9 @@
 
 {
   "nav": {
+    "home": "Pagrindinis",
+    "discover": "Atrasti",
+    "myCards": "Mano Kortelės",
     "businesses": "Verslas",
     "wallet": "Mano Piniginė",
     "dashboard": "Valdymo Skydelis",

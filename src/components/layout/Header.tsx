@@ -58,12 +58,12 @@ const Header = () => {
             {/* Show Discover only for non-business users */}
             {(!isAuthenticated || userRole !== 'business') && (
               <Link to="/discover" className="text-gray-600 hover:text-gray-900 transition-colors">
-                Discover
+                {t('nav.discover')}
               </Link>
             )}
             {isAuthenticated && userRole === 'customer' && (
               <Link to="/my-cards" className="text-gray-600 hover:text-gray-900 transition-colors">
-                My Cards
+                {t('nav.myCards')}
               </Link>
             )}
             {isAuthenticated && userRole === 'business' && (
@@ -122,7 +122,7 @@ const Header = () => {
                     <DropdownMenuItem asChild>
                       <Link to="/my-cards" className="cursor-pointer">
                         <Wallet className="mr-2 h-4 w-4" />
-                        <span>My Cards</span>
+                        <span>{t('nav.myCards')}</span>
                       </Link>
                     </DropdownMenuItem>
                   )}

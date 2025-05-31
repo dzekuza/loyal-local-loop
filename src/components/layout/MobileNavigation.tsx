@@ -25,7 +25,7 @@ const MobileNavigation = () => {
         {
           href: '/discover',
           icon: Compass,
-          label: 'Discover',
+          label: t('nav.discover'),
           active: location.pathname === '/discover' || location.pathname === '/businesses',
         },
       ];
@@ -66,13 +66,13 @@ const MobileNavigation = () => {
       {
         href: '/discover',
         icon: Compass,
-        label: 'Discover',
+        label: t('nav.discover'),
         active: location.pathname === '/discover' || location.pathname === '/businesses',
       },
       {
         href: '/my-cards',
         icon: CreditCard,
-        label: 'My Cards',
+        label: t('nav.myCards'),
         active: location.pathname === '/my-cards' || location.pathname === '/wallet',
       },
       {

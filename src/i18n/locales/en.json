@@ -1,6 +1,9 @@
 
 {
   "nav": {
+    "home": "Home",
+    "discover": "Discover",
+    "myCards": "My Cards",
     "businesses": "Businesses",
     "wallet": "My Wallet",
     "dashboard": "Dashboard",

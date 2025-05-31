@@ -28,10 +28,10 @@ const QRCodeScanner: React.FC<QRCodeScannerProps> = ({ onScan, onClose, title = 
 
   const deviceInfo = detectDevice();
 
-  // Automatically use mobile scanner for Samsung devices and older Android
+  // Auto-route to mobile scanner for problematic devices
   useEffect(() => {
-    if (deviceInfo.isSamsung || deviceInfo.isOldAndroid || deviceInfo.isMobile) {
-      console.log('📱 Using mobile scanner for device:', deviceInfo);
+    if (deviceInfo.isProblematicDevice || deviceInfo.isMobile) {
+      console.log('📱 Auto-routing to mobile scanner for device:', deviceInfo);
       setUseMobileScanner(true);
     }
   }, [deviceInfo]);
@@ -169,12 +169,9 @@ const QRCodeScanner: React.FC<QRCodeScannerProps> = ({ onScan, onClose, title = 
 
     toast({
       title: "Camera Error",
-      description: "Unable to access camera. Switching to mobile scanner...",
+      description: "Unable to access camera. You can try the mobile scanner instead.",
       variant: "destructive",
     });
-    
-    // Fallback to mobile scanner on error
-    setTimeout(() => setUseMobileScanner(true), 2000);
   };
 
   // Start scanning loop
@@ -254,6 +251,14 @@ const QRCodeScanner: React.FC<QRCodeScannerProps> = ({ onScan, onClose, title = 
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
+        {/* Device info */}
+        <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
+          <p className="text-xs text-blue-800">
+            <strong>Desktop Scanner</strong> | Browser: {deviceInfo.browserName} | 
+            Device: {deviceInfo.isIOS ? 'iOS' : deviceInfo.isAndroid ? 'Android' : 'Desktop'}
+          </p>
+        </div>
+
         {/* Option to switch to mobile scanner */}
         <div className="text-center">
           <Button 
@@ -262,7 +267,7 @@ const QRCodeScanner: React.FC<QRCodeScannerProps> = ({ onScan, onClose, title = 
             className="w-full mb-4"
           >
             <Smartphone className="w-4 h-4 mr-2" />
-            Use Mobile Scanner
+            Switch to Mobile Scanner
           </Button>
         </div>
 
@@ -306,12 +311,12 @@ const QRCodeScanner: React.FC<QRCodeScannerProps> = ({ onScan, onClose, title = 
 
         {!isScanning && !cameraLoading && !error && (
           <div className="text-center space-y-4">
-            <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-              <p className="text-sm text-blue-800 mb-2">
+            <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+              <p className="text-sm text-green-800 mb-2">
                 🖥️ <strong>Desktop QR Scanner</strong>
               </p>
-              <p className="text-xs text-blue-600">
-                High-quality camera scanning for desktop browsers
+              <p className="text-xs text-green-600">
+                High-quality camera scanning optimized for {deviceInfo.browserName}
               </p>
             </div>
             <Button onClick={startCamera} className="w-full" size="lg">
@@ -328,7 +333,7 @@ const QRCodeScanner: React.FC<QRCodeScannerProps> = ({ onScan, onClose, title = 
           <div className="text-center py-8">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
             <p className="text-gray-600">Starting camera...</p>
-            <p className="text-sm text-gray-500 mt-2">Camera is initializing, please wait</p>
+            <p className="text-sm text-gray-500 mt-2">Initializing desktop camera, please wait</p>
           </div>
         )}
 
@@ -374,7 +379,7 @@ const QRCodeScanner: React.FC<QRCodeScannerProps> = ({ onScan, onClose, title = 
             
             <div className="bg-green-50 p-3 rounded-lg border border-green-200">
               <p className="text-sm text-green-800 text-center">
-                🎯 <strong>Scanning for QR codes...</strong><br />
+                🎯 <strong>Desktop scanning active...</strong><br />
                 <span className="text-xs text-green-600">Move the QR code into the green box</span>
               </p>
             </div>

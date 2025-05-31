@@ -7,6 +7,8 @@ export interface DeviceInfo {
   isOldAndroid: boolean;
   browserName: string;
   osVersion: string;
+  isProblematicDevice: boolean;
+  requiresUserGesture: boolean;
 }
 
 export const detectDevice = (): DeviceInfo => {
@@ -29,12 +31,19 @@ export const detectDevice = (): DeviceInfo => {
   let browserName = 'unknown';
   if (userAgent.includes('chrome')) browserName = 'chrome';
   else if (userAgent.includes('firefox')) browserName = 'firefox';
-  else if (userAgent.includes('safari')) browserName = 'safari';
+  else if (userAgent.includes('safari') && !userAgent.includes('chrome')) browserName = 'safari';
   else if (userAgent.includes('samsung')) browserName = 'samsung';
+  else if (userAgent.includes('edge')) browserName = 'edge';
   
   const osVersion = androidVersionMatch ? androidVersionMatch[1] : '';
   
-  console.log('🔍 Device detected:', {
+  // Determine if device has known QR scanning issues
+  const isProblematicDevice = isSamsung || isOldAndroid || (isAndroid && browserName === 'samsung');
+  
+  // iOS Safari requires user gesture for camera access
+  const requiresUserGesture = isIOS && browserName === 'safari';
+  
+  console.log('🔍 Enhanced device detection:', {
     isMobile,
     isAndroid,
     isIOS,
@@ -42,6 +51,8 @@ export const detectDevice = (): DeviceInfo => {
     isOldAndroid,
     browserName,
     osVersion,
+    isProblematicDevice,
+    requiresUserGesture,
     userAgent: userAgent.substring(0, 100)
   });
   
@@ -52,7 +63,9 @@ export const detectDevice = (): DeviceInfo => {
     isSamsung,
     isOldAndroid,
     browserName,
-    osVersion
+    osVersion,
+    isProblematicDevice,
+    requiresUserGesture
   };
 };
 
@@ -107,13 +120,22 @@ export const requestCameraPermission = async (): Promise<boolean> => {
 export const getCameraConstraints = (deviceInfo: DeviceInfo): MediaStreamConstraints => {
   console.log('📱 Getting camera constraints for device:', deviceInfo);
   
-  if (deviceInfo.isSamsung || deviceInfo.isOldAndroid) {
-    // Samsung Galaxy S6 and older Android devices - use minimal constraints
+  if (deviceInfo.isProblematicDevice) {
+    // Samsung Galaxy S6 and problematic devices - minimal constraints
     return {
       video: {
-        facingMode: 'environment',
-        width: { ideal: 640, max: 1280 },
-        height: { ideal: 480, max: 720 }
+        facingMode: 'environment'
+      }
+    };
+  }
+  
+  if (deviceInfo.isIOS) {
+    // iOS Safari specific constraints
+    return {
+      video: {
+        facingMode: { ideal: 'environment' },
+        width: { ideal: 1280, min: 640, max: 1920 },
+        height: { ideal: 720, min: 480, max: 1080 }
       }
     };
   }
@@ -145,4 +167,9 @@ export const getBasicCameraConstraints = (): MediaStreamConstraints => {
   return {
     video: true
   };
+};
+
+export const getVideoConstraintsOnly = (deviceInfo: DeviceInfo): MediaTrackConstraints => {
+  const fullConstraints = getCameraConstraints(deviceInfo);
+  return fullConstraints.video as MediaTrackConstraints;
 };

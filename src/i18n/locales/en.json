@@ -1,4 +1,3 @@
-
 {
   "nav": {
     "home": "Home",
@@ -100,6 +99,25 @@
       "services": "Services"
     }
   },
+  "loyalty": {
+    "points": "points",
+    "availableBalance": "Available Balance",
+    "nextReward": "Next reward:",
+    "pointsAway": "points away",
+    "availableRewards": "Available Rewards",
+    "pointsRequired": "points required",
+    "redeem": "Redeem",
+    "redeeming": "Redeeming...",
+    "insufficientPoints": "Insufficient Points",
+    "insufficientPointsMessage": "You need {required} points but only have {current}",
+    "rewardRedeemed": "Reward Redeemed! 🎉",
+    "rewardRedeemedMessage": "Your reward has been successfully redeemed",
+    "redemptionFailed": "Redemption Failed",
+    "redemptionFailedMessage": "Failed to redeem reward. Please try again.",
+    "keepEarning": "Keep earning points to unlock rewards!",
+    "noRewardsYet": "No rewards available yet",
+    "loadingOffers": "Loading offers..."
+  },
   "wallet": {
     "title": "My Loyalty Wallet",
     "description": "Manage all your loyalty cards in one place",
@@ -107,7 +125,14 @@
     "noCardsDescription": "Start exploring businesses to join their loyalty programs",
     "exploreBusinesses": "Explore Businesses",
     "backToBusinesses": "Back to Businesses",
-    "addCards": "Add Cards"
+    "addCards": "Add Cards",
+    "tabs": {
+      "web": "Web",
+      "pwa": "PWA",
+      "google": "Google",
+      "apple": "Apple",
+      "download": "Download"
+    }
   },
   "profile": {
     "title": "Profile Settings",

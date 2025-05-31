@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -5,11 +6,10 @@ import { useAppStore } from '@/store/useAppStore';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
-import { CreditCard, Gift, ArrowRight, Building2, Plus, MapPin } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
+import { CreditCard, Plus } from 'lucide-react';
+import EnhancedLoyaltyCard from '@/components/loyalty/EnhancedLoyaltyCard';
 
 interface WalletCard {
   id: string;
@@ -83,10 +83,6 @@ const MyCardsPage: React.FC = () => {
     }
   };
 
-  const handleCardClick = (businessId: string) => {
-    navigate(`/business/${businessId}`);
-  };
-
   const handleAddCards = () => {
     navigate('/discover');
   };
@@ -130,7 +126,7 @@ const MyCardsPage: React.FC = () => {
         <div className="container mx-auto px-4 py-6">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h1 className="text-2xl md:text-3xl font-bold mb-2">My Cards</h1>
+              <h1 className="text-2xl md:text-3xl font-bold mb-2">My Loyalty Cards</h1>
               <p className="text-gray-600">
                 {walletCards.length > 0 
                   ? `You have ${walletCards.length} loyalty card${walletCards.length === 1 ? '' : 's'}`
@@ -168,85 +164,12 @@ const MyCardsPage: React.FC = () => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {walletCards.map((card) => (
-              <Card 
-                key={card.id} 
-                className="cursor-pointer hover:shadow-lg transition-all duration-300 overflow-hidden"
-                onClick={() => handleCardClick(card.id)}
-              >
-                {/* Card Header with Business Info */}
-                <CardHeader className="pb-3 bg-gradient-to-r from-purple-500 to-blue-600 text-white">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center shadow-lg">
-                      {card.business.logo ? (
-                        <img 
-                          src={card.business.logo} 
-                          alt={card.business.name} 
-                          className="w-10 h-10 object-cover rounded-md" 
-                        />
-                      ) : (
-                        <Building2 className="w-6 h-6 text-gray-600" />
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-lg truncate">
-                        {card.business.name}
-                      </h3>
-                      <Badge variant="secondary" className="bg-white/20 text-white border-white/30">
-                        {card.business.business_type}
-                      </Badge>
-                    </div>
-                  </div>
-                </CardHeader>
-
-                {/* Card Content */}
-                <CardContent className="p-4">
-                  <div className="space-y-4">
-                    {/* Points Display */}
-                    <div className="text-center bg-gray-50 rounded-lg p-4">
-                      <div className="text-3xl font-bold text-purple-600 mb-1">
-                        {card.points}
-                      </div>
-                      <div className="text-sm text-gray-600">Points Available</div>
-                    </div>
-
-                    {/* Business Description */}
-                    {card.business.description && (
-                      <p className="text-gray-600 text-sm line-clamp-2 break-words">
-                        {card.business.description}
-                      </p>
-                    )}
-
-                    {/* Address */}
-                    {card.business.address && (
-                      <div className="flex items-center text-xs text-gray-500">
-                        <MapPin className="w-3 h-3 mr-1 flex-shrink-0" />
-                        <span className="truncate">{card.business.address}</span>
-                      </div>
-                    )}
-
-                    {/* Last Activity */}
-                    <div className="flex items-center justify-between text-xs text-gray-500">
-                      <span>Last activity:</span>
-                      <span>{formatDistanceToNow(new Date(card.lastActivity), { addSuffix: true })}</span>
-                    </div>
-
-                    {/* Action Button */}
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="w-full flex items-center justify-center space-x-2"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleCardClick(card.id);
-                      }}
-                    >
-                      <Gift className="w-4 h-4" />
-                      <span>View Rewards</span>
-                      <ArrowRight className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
+              <EnhancedLoyaltyCard
+                key={card.id}
+                card={card}
+                customerId={user.id}
+                onRedemption={loadWalletCards}
+              />
             ))}
           </div>
         )}

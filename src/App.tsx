@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./hooks/useAuth";
 import Header from "./components/layout/Header";
 import MobileNavigation from "./components/layout/MobileNavigation";
+import RoleBasedRoute from "./components/auth/RoleBasedRoute";
 import HomePage from "./pages/HomePage";
 import RegisterPage from "./pages/auth/RegisterPage";
 import LoginPage from "./pages/auth/LoginPage";
@@ -55,15 +56,46 @@ const App = () => {
                   <Route path="/" element={<HomePage />} />
                   <Route path="/register" element={<RegisterPage />} />
                   <Route path="/login" element={<LoginPage />} />
-                  <Route path="/dashboard" element={<BusinessDashboard />} />
-                  <Route path="/business-profile" element={<BusinessProfilePage />} />
-                  <Route path="/customer-profile" element={<CustomerProfilePage />} />
+                  
+                  {/* Business-only routes */}
+                  <Route path="/dashboard" element={
+                    <RoleBasedRoute allowedRoles={['business']} redirectTo="/discover">
+                      <BusinessDashboard />
+                    </RoleBasedRoute>
+                  } />
+                  <Route path="/business-profile" element={
+                    <RoleBasedRoute allowedRoles={['business']} redirectTo="/customer-profile">
+                      <BusinessProfilePage />
+                    </RoleBasedRoute>
+                  } />
+                  
+                  {/* Customer-only routes */}
+                  <Route path="/customer-profile" element={
+                    <RoleBasedRoute allowedRoles={['customer']} redirectTo="/business-profile">
+                      <CustomerProfilePage />
+                    </RoleBasedRoute>
+                  } />
+                  <Route path="/my-cards" element={
+                    <RoleBasedRoute allowedRoles={['customer']} redirectTo="/dashboard">
+                      <MyCardsPage />
+                    </RoleBasedRoute>
+                  } />
+                  <Route path="/wallet" element={
+                    <RoleBasedRoute allowedRoles={['customer']} redirectTo="/dashboard">
+                      <WalletPage />
+                    </RoleBasedRoute>
+                  } />
+                  <Route path="/scan" element={
+                    <RoleBasedRoute allowedRoles={['customer']} redirectTo="/dashboard">
+                      <ScanQRCodePage />
+                    </RoleBasedRoute>
+                  } />
+                  
+                  {/* Public routes accessible to both roles */}
                   <Route path="/businesses" element={<BusinessDirectory />} />
                   <Route path="/discover" element={<DiscoverPage />} />
-                  <Route path="/my-cards" element={<MyCardsPage />} />
                   <Route path="/business/:id" element={<BusinessDetailPage />} />
-                  <Route path="/scan" element={<ScanQRCodePage />} />
-                  <Route path="/wallet" element={<WalletPage />} />
+                  
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </div>

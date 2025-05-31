@@ -1,93 +1,110 @@
 
-import React, { useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
+import { useAppStore } from '@/store/useAppStore';
+import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowLeft, MapPin, Phone, Mail, Star, Gift, Users } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { Business, LoyaltyOffer } from '@/types';
+import { useToast } from '@/hooks/use-toast';
 import CustomerLoyaltyCard from '@/components/customer/CustomerLoyaltyCard';
-import { useTranslation } from 'react-i18next';
+import { ArrowLeft, Building2, MapPin, Phone, Mail, Info } from 'lucide-react';
 
-const BusinessDetailPage = () => {
+interface Business {
+  id: string;
+  name: string;
+  description: string;
+  business_type: string;
+  email: string;
+  phone?: string;
+  address?: string;
+  logo?: string;
+  cover_image?: string;
+}
+
+interface UserPoints {
+  total_points: number;
+}
+
+const BusinessDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const { t } = useTranslation();
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const { userRole } = useAppStore();
+  const { toast } = useToast();
+  const [business, setBusiness] = useState<Business | null>(null);
+  const [userPoints, setUserPoints] = useState<UserPoints | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const { data: business, isLoading: businessLoading } = useQuery({
-    queryKey: ['business', id],
-    queryFn: async () => {
-      const { data, error } = await supabase
+  useEffect(() => {
+    if (!id) {
+      navigate('/discover');
+      return;
+    }
+    loadBusinessDetails();
+  }, [id, user]);
+
+  const loadBusinessDetails = async () => {
+    try {
+      // Load business details
+      const { data: businessData, error: businessError } = await supabase
         .from('businesses')
-        .select('id, name, email, logo, cover_image, address, business_type, description, qr_code, created_at, phone')
+        .select('*')
         .eq('id', id)
         .single();
 
-      if (error) throw error;
-      
-      // Transform database fields to match Business interface
-      return {
-        id: data.id,
-        name: data.name,
-        email: data.email,
-        logo: data.logo,
-        coverImage: data.cover_image,
-        address: data.address,
-        businessType: data.business_type,
-        description: data.description,
-        qrCode: data.qr_code,
-        createdAt: new Date(data.created_at),
-        phone: data.phone || undefined,
-      } as Business;
-    },
-    enabled: !!id,
-  });
+      if (businessError) throw businessError;
+      setBusiness(businessData);
 
-  const { data: offers, isLoading: offersLoading } = useQuery({
-    queryKey: ['business-offers', id],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('loyalty_offers')
-        .select('*')
-        .eq('business_id', id)
-        .eq('is_active', true);
+      // Load user points only for authenticated customers
+      if (user && userRole === 'customer') {
+        const { data: pointsData, error: pointsError } = await supabase
+          .from('user_points')
+          .select('total_points')
+          .eq('customer_id', user.id)
+          .eq('business_id', id)
+          .maybeSingle();
 
-      if (error) throw error;
-      return data as LoyaltyOffer[];
-    },
-    enabled: !!id,
-  });
+        if (pointsError && pointsError.code !== 'PGRST116') {
+          console.error('Error loading user points:', pointsError);
+        } else {
+          setUserPoints(pointsData);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading business details:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load business details",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  if (businessLoading) {
+  if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 overflow-x-hidden">
-        {/* Header Skeleton */}
-        <div className="h-48 bg-gradient-to-br from-purple-500 to-blue-600 relative">
-          <div className="absolute top-4 left-4">
-            <Skeleton className="w-8 h-8 rounded-full" />
-          </div>
-          <div className="absolute -bottom-8 left-4">
-            <Skeleton className="w-16 h-16 rounded-xl" />
-          </div>
-        </div>
-        
-        <div className="container mx-auto px-4 pt-12 pb-8 max-w-full">
-          <div className="space-y-6">
-            <div className="space-y-2">
-              <Skeleton className="h-8 w-64 max-w-full" />
-              <Skeleton className="h-5 w-32" />
-              <Skeleton className="h-4 w-full max-w-96" />
+      <div className="min-h-screen bg-gray-50">
+        <div className="container mx-auto px-4 py-8">
+          <Skeleton className="h-8 w-24 mb-6" />
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2">
+              <Card>
+                <CardHeader>
+                  <Skeleton className="h-8 w-48" />
+                  <Skeleton className="h-4 w-24" />
+                </CardHeader>
+                <CardContent>
+                  <Skeleton className="h-4 w-full mb-2" />
+                  <Skeleton className="h-4 w-3/4" />
+                </CardContent>
+              </Card>
             </div>
-            
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-2 space-y-6">
-                <Skeleton className="h-48 w-full rounded-lg" />
-              </div>
-              <div className="space-y-6">
-                <Skeleton className="h-32 w-full rounded-lg" />
-              </div>
+            <div>
+              <Skeleton className="h-48 w-full" />
             </div>
           </div>
         </div>
@@ -97,197 +114,122 @@ const BusinessDetailPage = () => {
 
   if (!business) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <Card className="max-w-md mx-auto w-full">
-          <CardHeader>
-            <CardTitle className="text-lg sm:text-xl">Business Not Found</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-gray-600 mb-4 text-sm sm:text-base">
-              The business you're looking for doesn't exist or has been removed.
-            </p>
-            <Button asChild className="w-full sm:w-auto">
-              <Link to="/businesses">
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to Businesses
-              </Link>
-            </Button>
-          </CardContent>
-        </Card>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold mb-4">Business not found</h1>
+          <Button onClick={() => navigate('/discover')}>
+            Back to Discover
+          </Button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 overflow-x-hidden">
-      {/* Hero Section */}
-      <div className="relative h-48 md:h-64 overflow-hidden">
-        {business.coverImage ? (
-          <img 
-            src={business.coverImage} 
-            alt={`${business.name} cover`}
-            className="w-full h-full object-cover"
-          />
-        ) : (
-          <div className="w-full h-full bg-gradient-to-br from-purple-500 to-blue-600" />
-        )}
-        
+    <div className="min-h-screen bg-gray-50">
+      {/* Cover Image */}
+      {business.cover_image && (
+        <div 
+          className="h-64 bg-cover bg-center relative"
+          style={{ backgroundImage: `url(${business.cover_image})` }}
+        >
+          <div className="absolute inset-0 bg-black bg-opacity-50" />
+        </div>
+      )}
+
+      <div className="container mx-auto px-4 py-8">
         {/* Back Button */}
-        <div className="absolute top-4 left-4 z-20">
-          <Button asChild variant="secondary" size="icon" className="bg-white/90 backdrop-blur-sm">
-            <Link to="/businesses">
-              <ArrowLeft className="w-4 h-4" />
-            </Link>
-          </Button>
-        </div>
-        
-        {/* Logo */}
-        <div className="absolute -bottom-8 left-4 md:left-8 z-20">
-          <div className="w-16 h-16 md:w-20 md:h-20 bg-white rounded-xl shadow-lg flex items-center justify-center border-4 border-white">
-            {business.logo ? (
-              <img 
-                src={business.logo} 
-                alt={business.name} 
-                className="w-full h-full object-cover rounded-lg" 
-              />
-            ) : (
-              <Users className="w-8 h-8 text-gray-600" />
-            )}
-          </div>
-        </div>
-      </div>
+        <Button
+          variant="ghost"
+          onClick={() => navigate('/discover')}
+          className="mb-6 flex items-center space-x-2"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          <span>Back to Discover</span>
+        </Button>
 
-      {/* Content */}
-      <div className="container mx-auto px-4 pt-12 pb-8 max-w-full overflow-x-hidden">
-        <div className="space-y-6">
-          {/* Business Header Info */}
-          <div className="space-y-3">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-              <div className="space-y-2 min-w-0 flex-1">
-                <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 break-words leading-tight">
-                  {business.name}
-                </h1>
-                <div className="flex flex-wrap items-center gap-2">
-                  <Badge variant="secondary" className="text-xs sm:text-sm">
-                    {business.businessType}
-                  </Badge>
-                  {offers && offers.length > 0 && (
-                    <Badge variant="default" className="text-xs sm:text-sm bg-green-600">
-                      <Gift className="w-3 h-3 mr-1" />
-                      {offers.length} {t('business.activeOffers')}
-                    </Badge>
-                  )}
-                </div>
-              </div>
-            </div>
-            
-            {business.description && (
-              <p className="text-sm sm:text-base text-gray-600 leading-relaxed break-words">
-                {business.description}
-              </p>
-            )}
-          </div>
-
-          {/* Main Content Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Left Column - Offers */}
-            <div className="lg:col-span-2 space-y-6 min-w-0">
-              {/* Active Offers Section */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center space-x-2 text-lg sm:text-xl">
-                    <Gift className="w-5 h-5 text-green-600" />
-                    <span>Active Offers</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {offersLoading ? (
-                    <div className="space-y-4">
-                      {[1, 2].map((i) => (
-                        <div key={i} className="p-4 border rounded-lg">
-                          <Skeleton className="h-5 w-48 mb-2 max-w-full" />
-                          <Skeleton className="h-4 w-full mb-2" />
-                          <Skeleton className="h-4 w-24" />
-                        </div>
-                      ))}
-                    </div>
-                  ) : offers && offers.length > 0 ? (
-                    <div className="space-y-4">
-                      {offers.map((offer) => (
-                        <div key={offer.id} className="p-4 border rounded-lg hover:bg-gray-50 transition-colors">
-                          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                            <div className="flex-1 min-w-0">
-                              <h3 className="font-semibold text-base sm:text-lg mb-1 break-words">
-                                {offer.reward_description}
-                              </h3>
-                              <div className="flex items-center space-x-1 text-purple-600">
-                                <Star className="w-4 h-4" />
-                                <span className="text-xs sm:text-sm font-medium">
-                                  {offer.reward_threshold} points needed
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Main Content */}
+          <div className="lg:col-span-2">
+            <Card>
+              <CardHeader>
+                <div className="flex items-center space-x-4">
+                  {business.logo ? (
+                    <img 
+                      src={business.logo} 
+                      alt={business.name} 
+                      className="w-16 h-16 object-cover rounded-lg"
+                    />
                   ) : (
-                    <div className="text-center py-8">
-                      <Gift className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-                      <p className="text-gray-500 text-sm sm:text-base">No active offers at the moment</p>
-                      <p className="text-xs sm:text-sm text-gray-400">Check back later for new deals!</p>
+                    <div className="w-16 h-16 bg-purple-100 rounded-lg flex items-center justify-center">
+                      <Building2 className="w-8 h-8 text-purple-600" />
                     </div>
                   )}
-                </CardContent>
-              </Card>
-            </div>
+                  <div>
+                    <CardTitle className="text-2xl">{business.name}</CardTitle>
+                    <Badge variant="secondary" className="mt-1">
+                      {business.business_type}
+                    </Badge>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div>
+                  <h3 className="text-lg font-semibold mb-2">About</h3>
+                  <p className="text-gray-600">{business.description}</p>
+                </div>
 
-            {/* Right Column - Business Info & Actions */}
-            <div className="space-y-6 min-w-0">
-              {/* Loyalty Program Card */}
-              <CustomerLoyaltyCard business={business} />
+                {/* Contact Information */}
+                <div>
+                  <h3 className="text-lg font-semibold mb-3">Contact Information</h3>
+                  <div className="space-y-2">
+                    <div className="flex items-center space-x-2">
+                      <Mail className="w-4 h-4 text-gray-500" />
+                      <span className="text-gray-600">{business.email}</span>
+                    </div>
+                    {business.phone && (
+                      <div className="flex items-center space-x-2">
+                        <Phone className="w-4 h-4 text-gray-500" />
+                        <span className="text-gray-600">{business.phone}</span>
+                      </div>
+                    )}
+                    {business.address && (
+                      <div className="flex items-center space-x-2">
+                        <MapPin className="w-4 h-4 text-gray-500" />
+                        <span className="text-gray-600">{business.address}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
 
-              {/* Contact Information */}
+          {/* Sidebar */}
+          <div>
+            {userRole === 'business' ? (
               <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Contact Information</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  {business.email && (
-                    <div className="flex items-center space-x-3">
-                      <Mail className="w-4 h-4 text-gray-500 flex-shrink-0" />
-                      <a 
-                        href={`mailto:${business.email}`}
-                        className="text-blue-600 hover:underline break-all text-sm sm:text-base"
-                      >
-                        {business.email}
-                      </a>
-                    </div>
-                  )}
-                  
-                  {business.phone && (
-                    <div className="flex items-center space-x-3">
-                      <Phone className="w-4 h-4 text-gray-500 flex-shrink-0" />
-                      <a 
-                        href={`tel:${business.phone}`}
-                        className="text-blue-600 hover:underline break-all text-sm sm:text-base"
-                      >
-                        {business.phone}
-                      </a>
-                    </div>
-                  )}
-                  
-                  {business.address && (
-                    <div className="flex items-start space-x-3">
-                      <MapPin className="w-4 h-4 text-gray-500 flex-shrink-0 mt-0.5" />
-                      <span className="text-gray-600 break-words text-sm sm:text-base">
-                        {business.address}
-                      </span>
-                    </div>
-                  )}
+                <CardContent className="p-6 text-center">
+                  <Info className="w-12 h-12 text-blue-500 mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold mb-2">Business Account</h3>
+                  <p className="text-gray-600 mb-4">
+                    You're viewing this as a business owner. Customers can join your loyalty program and earn points here.
+                  </p>
+                  <Button 
+                    onClick={() => navigate('/dashboard')}
+                    className="w-full"
+                  >
+                    Go to Dashboard
+                  </Button>
                 </CardContent>
               </Card>
-            </div>
+            ) : (
+              <CustomerLoyaltyCard 
+                business={business}
+                currentPoints={userPoints?.total_points || 0}
+                onPointsUpdate={loadBusinessDetails}
+              />
+            )}
           </div>
         </div>
       </div>

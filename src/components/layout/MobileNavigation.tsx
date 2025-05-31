@@ -1,13 +1,15 @@
 
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Compass, CreditCard, User, Globe } from 'lucide-react';
+import { Home, Compass, CreditCard, User, Globe, Building2 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { useAppStore } from '@/store/useAppStore';
 import { useTranslation } from 'react-i18next';
 
 const MobileNavigation = () => {
   const location = useLocation();
   const { user } = useAuth();
+  const { userRole } = useAppStore();
   const { t, i18n } = useTranslation();
 
   const toggleLanguage = () => {
@@ -16,20 +18,69 @@ const MobileNavigation = () => {
   };
 
   // Show mobile navigation for all users, not just authenticated ones
-  const navItems = [
-    {
-      href: '/',
-      icon: Home,
-      label: t('nav.home'),
-      active: location.pathname === '/',
-    },
-    {
-      href: '/discover',
-      icon: Compass,
-      label: 'Discover',
-      active: location.pathname === '/discover' || location.pathname === '/businesses',
-    },
-    ...(user ? [
+  const getNavItems = () => {
+    if (!user) {
+      return [
+        {
+          href: '/',
+          icon: Home,
+          label: t('nav.home'),
+          active: location.pathname === '/',
+        },
+        {
+          href: '/discover',
+          icon: Compass,
+          label: 'Discover',
+          active: location.pathname === '/discover' || location.pathname === '/businesses',
+        },
+        {
+          href: '#',
+          icon: Globe,
+          label: i18n.language.toUpperCase(),
+          active: false,
+          onClick: toggleLanguage,
+        }
+      ];
+    }
+
+    // Business user navigation
+    if (userRole === 'business') {
+      return [
+        {
+          href: '/',
+          icon: Home,
+          label: t('nav.home'),
+          active: location.pathname === '/',
+        },
+        {
+          href: '/dashboard',
+          icon: Building2,
+          label: t('nav.dashboard'),
+          active: location.pathname === '/dashboard',
+        },
+        {
+          href: '/business-profile',
+          icon: User,
+          label: t('nav.profile'),
+          active: location.pathname === '/business-profile',
+        },
+      ];
+    }
+
+    // Customer user navigation
+    return [
+      {
+        href: '/',
+        icon: Home,
+        label: t('nav.home'),
+        active: location.pathname === '/',
+      },
+      {
+        href: '/discover',
+        icon: Compass,
+        label: 'Discover',
+        active: location.pathname === '/discover' || location.pathname === '/businesses',
+      },
       {
         href: '/my-cards',
         icon: CreditCard,
@@ -40,22 +91,16 @@ const MobileNavigation = () => {
         href: '/customer-profile',
         icon: User,
         label: t('nav.profile'),
-        active: location.pathname === '/customer-profile' || location.pathname === '/business-profile',
+        active: location.pathname === '/customer-profile',
       },
-    ] : [
-      {
-        href: '#',
-        icon: Globe,
-        label: i18n.language.toUpperCase(),
-        active: false,
-        onClick: toggleLanguage,
-      }
-    ])
-  ];
+    ];
+  };
+
+  const navItems = getNavItems();
 
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50 md:hidden">
-      <div className={`grid ${user ? 'grid-cols-4' : 'grid-cols-3'}`}>
+      <div className={`grid grid-cols-${navItems.length}`}>
         {navItems.map((item) => (
           item.onClick ? (
             <button

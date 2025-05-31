@@ -55,9 +55,12 @@ const Header = () => {
 
           {/* Navigation */}
           <nav className="hidden md:flex items-center space-x-6">
-            <Link to="/discover" className="text-gray-600 hover:text-gray-900 transition-colors">
-              Discover
-            </Link>
+            {/* Show Discover only for non-business users */}
+            {(!isAuthenticated || userRole !== 'business') && (
+              <Link to="/discover" className="text-gray-600 hover:text-gray-900 transition-colors">
+                Discover
+              </Link>
+            )}
             {isAuthenticated && userRole === 'customer' && (
               <Link to="/my-cards" className="text-gray-600 hover:text-gray-900 transition-colors">
                 My Cards

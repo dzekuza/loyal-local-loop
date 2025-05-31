@@ -10,6 +10,47 @@
     "register": "Register",
     "logout": "Logout"
   },
+  "home": {
+    "hero": {
+      "badge": "Loyalty Rewards Platform",
+      "title1": "Your loyalty cards,",
+      "title2": "simplified."
+    },
+    "explore": {
+      "title": "Explore offers around you",
+      "subtitle": "Discover amazing deals and loyalty programs from local businesses"
+    },
+    "features": {
+      "title": "Everything you need to earn more",
+      "subtitle": "Simple, powerful tools to help you get the most out of your local shopping experience."
+    },
+    "testimonials": {
+      "title": "Loved by customers everywhere",
+      "subtitle": "See what people are saying about their loyalty rewards experience"
+    },
+    "business": {
+      "badge": "For Business Owners",
+      "title": "Own a business?",
+      "titleHighlight": "Join now.",
+      "subtitle": "Create a modern loyalty program that your customers will love. Increase retention, boost sales, and build lasting relationships.",
+      "features": [
+        "Increase customer retention by 25%",
+        "Easy QR code setup in minutes", 
+        "Real-time analytics dashboard",
+        "Apple Wallet integration included"
+      ],
+      "startProgram": "Start Your Program",
+      "learnMore": "Learn More"
+    },
+    "cta": {
+      "title": "Ready to start earning rewards?",
+      "subtitle": "Join thousands of customers who are already earning points and unlocking rewards.",
+      "button": "Get Started Today"
+    },
+    "brands": {
+      "title": "Trusted by these companies"
+    }
+  },
   "wallet": {
     "title": "My Wallet",
     "description": "Manage your loyalty cards in multiple formats - all free!",
@@ -29,6 +70,34 @@
       "apple": "Apple Wallet",
       "download": "Download"
     }
+  },
+  "profile": {
+    "title": "Edit Profile",
+    "avatar": "Avatar",
+    "avatarUpload": "Upload a new avatar (optional)",
+    "firstName": "First Name",
+    "lastName": "Last Name",
+    "email": "Email",
+    "phone": "Phone Number",
+    "phoneOptional": "Optional",
+    "updateProfile": "Update Profile",
+    "updating": "Updating...",
+    "changePassword": "Change Password",
+    "currentPassword": "Current Password",
+    "newPassword": "New Password",
+    "confirmPassword": "Confirm New Password",
+    "updatePassword": "Update Password",
+    "cancel": "Cancel",
+    "emailUpdate": "Email Update",
+    "emailUpdateDescription": "Please check your new email to confirm the change",
+    "profileUpdateSuccess": "Profile updated successfully",
+    "passwordUpdateSuccess": "Password updated successfully",
+    "profileUpdateError": "Failed to update profile",
+    "passwordUpdateError": "Failed to update password"
+  },
+  "business": {
+    "activeOffers": "active offers",
+    "viewProfile": "View Profile"
   },
   "appleWallet": {
     "addToWallet": "Add to Apple Wallet",

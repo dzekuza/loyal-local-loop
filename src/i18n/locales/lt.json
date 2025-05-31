@@ -10,6 +10,47 @@
     "register": "Registruotis",
     "logout": "Atsijungti"
   },
+  "home": {
+    "hero": {
+      "badge": "Lojalumo Atlyginimų Platforma",
+      "title1": "Jūsų lojalumo kortelės,",
+      "title2": "supaprastintos."
+    },
+    "explore": {
+      "title": "Naršykite pasiūlymus aplinkui",
+      "subtitle": "Atraskite nuostabius sandorius ir lojalumo programas iš vietinių verslų"
+    },
+    "features": {
+      "title": "Viskas, ko reikia daugiau uždirbti",
+      "subtitle": "Paprasti, galingi įrankiai, padedantys gauti maksimalų naudą iš vietinių apsipirkimų."
+    },
+    "testimonials": {
+      "title": "Mylimi klientų visur",
+      "subtitle": "Pažiūrėkite, ką žmonės sako apie savo lojalumo atlyginimų patirtį"
+    },
+    "business": {
+      "badge": "Verslo Savininkams",
+      "title": "Turite verslą?",
+      "titleHighlight": "Prisijunkite dabar.",
+      "subtitle": "Sukurkite modernią lojalumo programą, kurią pamils jūsų klientai. Padidinkite išlaikymą, padidinkite pardavimus ir kurkite ilgalaikius santykius.",
+      "features": [
+        "Padidinkite klientų išlaikymą 25%",
+        "Lengvas QR kodo nustatymas per minutes", 
+        "Realaus laiko analitikos skydelis",
+        "Apple Wallet integracija įtraukta"
+      ],
+      "startProgram": "Pradėti Programą",
+      "learnMore": "Sužinoti Daugiau"
+    },
+    "cta": {
+      "title": "Pasiruošę pradėti uždirbti atlygius?",
+      "subtitle": "Prisijunkite prie tūkstančių klientų, kurie jau kaupia taškus ir atrakina atlygius.",
+      "button": "Pradėti Šiandien"
+    },
+    "brands": {
+      "title": "Pasitiki šie įmonės"
+    }
+  },
   "wallet": {
     "title": "Mano Piniginė",
     "description": "Tvarkykite savo lojalumo korteles įvairiais formatais - viskas nemokamai!",
@@ -29,6 +70,34 @@
       "apple": "Apple Piniginė",
       "download": "Atsisiųsti"
     }
+  },
+  "profile": {
+    "title": "Redaguoti Profilį",
+    "avatar": "Avataras",
+    "avatarUpload": "Įkelti naują avatarą (neprivaloma)",
+    "firstName": "Vardas",
+    "lastName": "Pavardė",
+    "email": "El. paštas",
+    "phone": "Telefono numeris",
+    "phoneOptional": "Neprivaloma",
+    "updateProfile": "Atnaujinti Profilį",
+    "updating": "Atnaujinama...",
+    "changePassword": "Keisti Slaptažodį",
+    "currentPassword": "Dabartinis Slaptažodis",
+    "newPassword": "Naujas Slaptažodis",
+    "confirmPassword": "Patvirtinti Naują Slaptažodį",
+    "updatePassword": "Atnaujinti Slaptažodį",
+    "cancel": "Atšaukti",
+    "emailUpdate": "El. pašto Atnaujinimas",
+    "emailUpdateDescription": "Patikrinkite savo naują el. paštą, kad patvirtintumėte pakeitimą",
+    "profileUpdateSuccess": "Profilis sėkmingai atnaujintas",
+    "passwordUpdateSuccess": "Slaptažodis sėkmingai atnaujintas",
+    "profileUpdateError": "Nepavyko atnaujinti profilio",
+    "passwordUpdateError": "Nepavyko atnaujinti slaptažodžio"
+  },
+  "business": {
+    "activeOffers": "aktyvūs pasiūlymai",
+    "viewProfile": "Peržiūrėti Profilį"
   },
   "appleWallet": {
     "addToWallet": "Pridėti į Apple Piniginę",

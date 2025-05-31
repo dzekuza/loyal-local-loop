@@ -6,6 +6,7 @@ import { Button } from '../ui/button';
 import { Building2, Calendar, Eye } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Business } from '@/types';
+import { useTranslation } from 'react-i18next';
 
 interface BusinessCardProps {
   business: Business;
@@ -20,6 +21,8 @@ const BusinessCard: React.FC<BusinessCardProps> = ({
   onEdit, 
   onDelete 
 }) => {
+  const { t } = useTranslation();
+  
   const formatDate = (date: Date) => {
     return date.toLocaleDateString('en-US', {
       year: 'numeric',
@@ -67,13 +70,13 @@ const BusinessCard: React.FC<BusinessCardProps> = ({
           <Button asChild variant="outline" size="sm" className="flex-1">
             <Link to={`/business/${business.id}`}>
               <Eye className="w-4 h-4 mr-1" />
-              View Details
+              {t('business.viewProfile')}
             </Link>
           </Button>
           
           {showActions && onEdit && (
             <Button variant="ghost" size="sm" onClick={() => onEdit(business)}>
-              Edit
+              {t('common.edit')}
             </Button>
           )}
           
@@ -84,7 +87,7 @@ const BusinessCard: React.FC<BusinessCardProps> = ({
               onClick={() => onDelete(business.id)}
               className="text-red-600 hover:text-red-700"
             >
-              Delete
+              {t('common.delete')}
             </Button>
           )}
         </div>

@@ -2,17 +2,23 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppStore } from '../store/useAppStore';
+import { useBusinesses } from '../hooks/useBusinesses';
 import { Button } from '../components/ui/button';
 import { Card, CardContent } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
 import { HeroGeometric } from '../components/ui/shape-landing-hero';
 import { Testimonials } from '../components/ui/testimonials';
 import { FeaturesSectionWithHoverEffects } from '../components/ui/feature-section-with-hover-effects';
-import { Store, Smartphone, QrCode, Gift, Award, CheckCircle, ArrowRight, Users, TrendingUp } from 'lucide-react';
+import { Logos3 } from '../components/ui/logos3';
+import BusinessPreviewCard from '../components/business/BusinessPreviewCard';
+import { CheckCircle, ArrowRight, Users, TrendingUp } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 const HomePage = () => {
   const navigate = useNavigate();
   const { isAuthenticated, userRole } = useAppStore();
+  const { data: businesses, isLoading } = useBusinesses();
+  const { t } = useTranslation();
 
   const handleGetStarted = () => {
     if (isAuthenticated) {
@@ -71,31 +77,81 @@ const HomePage = () => {
     }
   ];
 
-  const businessFeatures = [
-    "Increase customer retention by 25%",
-    "Easy QR code setup in minutes", 
-    "Real-time analytics dashboard",
-    "Apple Wallet integration included"
-  ];
-
   return (
     <div className="homepage-container min-h-screen">
       {/* Hero Section */}
       <HeroGeometric 
-        badge="Loyalty Rewards Platform"
-        title1="Your loyalty cards,"
-        title2="simplified."
+        badge={t('home.hero.badge')}
+        title1={t('home.hero.title1')}
+        title2={t('home.hero.title2')}
       />
+
+      {/* Business Cards Section */}
+      <section className="businesses-section py-24 bg-gray-50">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+              {t('home.explore.title')}
+            </h2>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+              {t('home.explore.subtitle')}
+            </p>
+          </div>
+
+          {isLoading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {[1, 2, 3, 4].map((i) => (
+                <Card key={i} className="animate-pulse">
+                  <div className="h-32 bg-gray-200" />
+                  <CardContent className="p-6">
+                    <div className="h-4 bg-gray-200 rounded mb-2" />
+                    <div className="h-3 bg-gray-200 rounded w-2/3" />
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : businesses && businesses.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {businesses.slice(0, 8).map((business) => (
+                <BusinessPreviewCard 
+                  key={business.id} 
+                  business={business} 
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <p className="text-gray-600 mb-4">No businesses found yet.</p>
+              <Button onClick={() => navigate('/businesses')}>
+                Explore All Businesses
+              </Button>
+            </div>
+          )}
+
+          {businesses && businesses.length > 8 && (
+            <div className="text-center mt-12">
+              <Button 
+                onClick={() => navigate('/businesses')}
+                variant="outline"
+                size="lg"
+              >
+                View All Businesses
+                <ArrowRight className="w-4 h-4 ml-2" />
+              </Button>
+            </div>
+          )}
+        </div>
+      </section>
 
       {/* Features Section */}
       <section className="features-section py-24 bg-white">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-              Everything you need to earn more
+              {t('home.features.title')}
             </h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Simple, powerful tools to help you get the most out of your local shopping experience.
+              {t('home.features.subtitle')}
             </p>
           </div>
 
@@ -108,12 +164,15 @@ const HomePage = () => {
         <div className="container mx-auto px-4">
           <Testimonials 
             testimonials={testimonials}
-            title="Loved by customers everywhere"
-            description="See what people are saying about their loyalty rewards experience"
+            title={t('home.testimonials.title')}
+            description={t('home.testimonials.subtitle')}
             maxDisplayed={3}
           />
         </div>
       </section>
+
+      {/* Brands Logos Section */}
+      <Logos3 heading={t('home.brands.title')} />
 
       {/* Business CTA Section */}
       <section className="business-cta-section py-24 bg-gradient-to-br from-gray-900 via-purple-900 to-indigo-900 text-white">
@@ -122,21 +181,21 @@ const HomePage = () => {
             <div className="flex items-center justify-center mb-6">
               <Users className="w-8 h-8 mr-3" />
               <Badge variant="outline" className="border-white/20 text-white bg-white/10">
-                For Business Owners
+                {t('home.business.badge')}
               </Badge>
             </div>
             
             <h2 className="text-4xl md:text-5xl font-bold mb-8">
-              Own a business?
-              <span className="text-yellow-300 block">Join now.</span>
+              {t('home.business.title')}
+              <span className="text-yellow-300 block">{t('home.business.titleHighlight')}</span>
             </h2>
             
             <p className="text-xl text-gray-300 mb-12 max-w-2xl mx-auto">
-              Create a modern loyalty program that your customers will love. Increase retention, boost sales, and build lasting relationships.
+              {t('home.business.subtitle')}
             </p>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
-              {businessFeatures.map((feature, index) => (
+              {t('home.business.features', { returnObjects: true }).map((feature: string, index: number) => (
                 <div key={index} className="flex items-center justify-center md:justify-start">
                   <CheckCircle className="w-5 h-5 text-green-400 mr-3" />
                   <span className="text-gray-200">{feature}</span>
@@ -150,7 +209,7 @@ const HomePage = () => {
                 onClick={handleBusinessSignup}
                 className="bg-white text-gray-900 hover:bg-gray-100 px-8 py-4 text-lg font-semibold"
               >
-                Start Your Program
+                {t('home.business.startProgram')}
                 <TrendingUp className="w-5 h-5 ml-2" />
               </Button>
               <Button 
@@ -158,7 +217,7 @@ const HomePage = () => {
                 variant="outline"
                 className="border-white/20 text-white hover:bg-white/10 px-8 py-4 text-lg"
               >
-                Learn More
+                {t('home.business.learnMore')}
               </Button>
             </div>
           </div>
@@ -169,17 +228,17 @@ const HomePage = () => {
       <section className="final-cta-section py-16 bg-white">
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-3xl font-bold text-gray-900 mb-4">
-            Ready to start earning rewards?
+            {t('home.cta.title')}
           </h2>
           <p className="text-gray-600 mb-8">
-            Join thousands of customers who are already earning points and unlocking rewards.
+            {t('home.cta.subtitle')}
           </p>
           <Button 
             size="lg"
             onClick={handleGetStarted}
             className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white px-8 py-3 text-lg font-semibold"
           >
-            Get Started Today
+            {t('home.cta.button')}
           </Button>
         </div>
       </section>

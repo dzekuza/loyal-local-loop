@@ -9,9 +9,9 @@ import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
-import { Label } from '../ui/label';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '../ui/form';
-import { User, Upload } from 'lucide-react';
+import { User } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 const customerFormSchema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -37,6 +37,7 @@ interface CustomerProfileFormProps {
 const CustomerProfileForm: React.FC<CustomerProfileFormProps> = ({ profile, onUpdate }) => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { t } = useTranslation();
   const [isLoading, setIsLoading] = useState(false);
   const [isPasswordLoading, setIsPasswordLoading] = useState(false);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
@@ -64,6 +65,9 @@ const CustomerProfileForm: React.FC<CustomerProfileFormProps> = ({ profile, onUp
   const handleAvatarUpload = async (file: File) => {
     const fileExt = file.name.split('.').pop();
     const fileName = `${user?.id}/avatar.${fileExt}`;
+
+    // Create bucket if it doesn't exist
+    await supabase.storage.createBucket('customer-avatars', { public: true });
 
     const { error: uploadError } = await supabase.storage
       .from('customer-avatars')
@@ -113,22 +117,22 @@ const CustomerProfileForm: React.FC<CustomerProfileFormProps> = ({ profile, onUp
         if (emailError) throw emailError;
 
         toast({
-          title: "Email Update",
-          description: "Please check your new email to confirm the change",
+          title: t('profile.emailUpdate'),
+          description: t('profile.emailUpdateDescription'),
         });
       }
 
       onUpdate(data);
 
       toast({
-        title: "Success",
-        description: "Profile updated successfully",
+        title: t('common.success'),
+        description: t('profile.profileUpdateSuccess'),
       });
     } catch (error) {
       console.error('Error updating profile:', error);
       toast({
-        title: "Error",
-        description: "Failed to update profile",
+        title: t('common.error'),
+        description: t('profile.profileUpdateError'),
         variant: "destructive",
       });
     } finally {
@@ -146,8 +150,8 @@ const CustomerProfileForm: React.FC<CustomerProfileFormProps> = ({ profile, onUp
       if (error) throw error;
 
       toast({
-        title: "Success",
-        description: "Password updated successfully",
+        title: t('common.success'),
+        description: t('profile.passwordUpdateSuccess'),
       });
 
       passwordForm.reset();
@@ -155,8 +159,8 @@ const CustomerProfileForm: React.FC<CustomerProfileFormProps> = ({ profile, onUp
     } catch (error) {
       console.error('Error updating password:', error);
       toast({
-        title: "Error",
-        description: "Failed to update password",
+        title: t('common.error'),
+        description: t('profile.passwordUpdateError'),
         variant: "destructive",
       });
     } finally {
@@ -170,7 +174,7 @@ const CustomerProfileForm: React.FC<CustomerProfileFormProps> = ({ profile, onUp
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
             <User className="w-5 h-5" />
-            <span>Edit Profile</span>
+            <span>{t('profile.title')}</span>
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -178,7 +182,7 @@ const CustomerProfileForm: React.FC<CustomerProfileFormProps> = ({ profile, onUp
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               {/* Avatar Upload */}
               <div className="space-y-2">
-                <Label>Avatar</Label>
+                <label className="text-sm font-medium">{t('profile.avatar')}</label>
                 <div className="flex items-center space-x-4">
                   {profile?.avatar && (
                     <img src={profile.avatar} alt="Current avatar" className="w-16 h-16 object-cover rounded-full" />
@@ -190,7 +194,7 @@ const CustomerProfileForm: React.FC<CustomerProfileFormProps> = ({ profile, onUp
                       onChange={(e) => setAvatarFile(e.target.files?.[0] || null)}
                       className="w-auto"
                     />
-                    <p className="text-sm text-gray-500 mt-1">Upload a new avatar (optional)</p>
+                    <p className="text-sm text-gray-500 mt-1">{t('profile.avatarUpload')}</p>
                   </div>
                 </div>
               </div>
@@ -201,7 +205,7 @@ const CustomerProfileForm: React.FC<CustomerProfileFormProps> = ({ profile, onUp
                   name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>First Name</FormLabel>
+                      <FormLabel>{t('profile.firstName')}</FormLabel>
                       <FormControl>
                         <Input {...field} />
                       </FormControl>
@@ -215,7 +219,7 @@ const CustomerProfileForm: React.FC<CustomerProfileFormProps> = ({ profile, onUp
                   name="surname"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Last Name</FormLabel>
+                      <FormLabel>{t('profile.lastName')}</FormLabel>
                       <FormControl>
                         <Input {...field} />
                       </FormControl>
@@ -230,7 +234,7 @@ const CustomerProfileForm: React.FC<CustomerProfileFormProps> = ({ profile, onUp
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email</FormLabel>
+                    <FormLabel>{t('profile.email')}</FormLabel>
                     <FormControl>
                       <Input {...field} type="email" />
                     </FormControl>
@@ -244,9 +248,9 @@ const CustomerProfileForm: React.FC<CustomerProfileFormProps> = ({ profile, onUp
                 name="phone"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Phone Number</FormLabel>
+                    <FormLabel>{t('profile.phone')}</FormLabel>
                     <FormControl>
-                      <Input {...field} placeholder="Optional" />
+                      <Input {...field} placeholder={t('profile.phoneOptional')} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -254,7 +258,7 @@ const CustomerProfileForm: React.FC<CustomerProfileFormProps> = ({ profile, onUp
               />
 
               <Button type="submit" disabled={isLoading} className="w-full">
-                {isLoading ? 'Updating...' : 'Update Profile'}
+                {isLoading ? t('profile.updating') : t('profile.updateProfile')}
               </Button>
             </form>
           </Form>
@@ -264,12 +268,12 @@ const CustomerProfileForm: React.FC<CustomerProfileFormProps> = ({ profile, onUp
       {/* Password Change Section */}
       <Card>
         <CardHeader>
-          <CardTitle>Change Password</CardTitle>
+          <CardTitle>{t('profile.changePassword')}</CardTitle>
         </CardHeader>
         <CardContent>
           {!showPasswordForm ? (
             <Button onClick={() => setShowPasswordForm(true)} variant="outline">
-              Change Password
+              {t('profile.changePassword')}
             </Button>
           ) : (
             <Form {...passwordForm}>
@@ -279,7 +283,7 @@ const CustomerProfileForm: React.FC<CustomerProfileFormProps> = ({ profile, onUp
                   name="currentPassword"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Current Password</FormLabel>
+                      <FormLabel>{t('profile.currentPassword')}</FormLabel>
                       <FormControl>
                         <Input {...field} type="password" />
                       </FormControl>
@@ -293,7 +297,7 @@ const CustomerProfileForm: React.FC<CustomerProfileFormProps> = ({ profile, onUp
                   name="newPassword"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>New Password</FormLabel>
+                      <FormLabel>{t('profile.newPassword')}</FormLabel>
                       <FormControl>
                         <Input {...field} type="password" />
                       </FormControl>
@@ -307,7 +311,7 @@ const CustomerProfileForm: React.FC<CustomerProfileFormProps> = ({ profile, onUp
                   name="confirmPassword"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Confirm New Password</FormLabel>
+                      <FormLabel>{t('profile.confirmPassword')}</FormLabel>
                       <FormControl>
                         <Input {...field} type="password" />
                       </FormControl>
@@ -318,10 +322,10 @@ const CustomerProfileForm: React.FC<CustomerProfileFormProps> = ({ profile, onUp
 
                 <div className="flex space-x-2">
                   <Button type="submit" disabled={isPasswordLoading}>
-                    {isPasswordLoading ? 'Updating...' : 'Update Password'}
+                    {isPasswordLoading ? t('profile.updating') : t('profile.updatePassword')}
                   </Button>
                   <Button type="button" variant="outline" onClick={() => setShowPasswordForm(false)}>
-                    Cancel
+                    {t('profile.cancel')}
                   </Button>
                 </div>
               </form>

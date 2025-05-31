@@ -12,7 +12,7 @@ import {
 } from '../ui/dropdown-menu';
 import { useAuth } from '@/hooks/useAuth';
 import { useAppStore } from '@/store/useAppStore';
-import { LogOut, User, Settings, Building2, Wallet, CreditCard, Globe } from 'lucide-react';
+import { LogOut, User, Building2, Wallet, CreditCard, Globe } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import LanguageSwitcher from '../ui/language-switcher';
 

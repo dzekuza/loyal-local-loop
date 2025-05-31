@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Compass, CreditCard, User, Globe, Building2 } from 'lucide-react';
+import { Home, Compass, CreditCard, User, Building2 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useAppStore } from '@/store/useAppStore';
 import { useTranslation } from 'react-i18next';
@@ -10,12 +10,7 @@ const MobileNavigation = () => {
   const location = useLocation();
   const { user } = useAuth();
   const { userRole } = useAppStore();
-  const { t, i18n } = useTranslation();
-
-  const toggleLanguage = () => {
-    const newLang = i18n.language === 'en' ? 'lt' : 'en';
-    i18n.changeLanguage(newLang);
-  };
+  const { t } = useTranslation();
 
   // Show mobile navigation for all users, not just authenticated ones
   const getNavItems = () => {
@@ -33,13 +28,6 @@ const MobileNavigation = () => {
           label: 'Discover',
           active: location.pathname === '/discover' || location.pathname === '/businesses',
         },
-        {
-          href: '#',
-          icon: Globe,
-          label: i18n.language.toUpperCase(),
-          active: false,
-          onClick: toggleLanguage,
-        }
       ];
     }
 
@@ -100,35 +88,30 @@ const MobileNavigation = () => {
 
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50 md:hidden">
-      <div className={`grid grid-cols-${navItems.length}`}>
+      {/* Safe area padding for devices with home indicators */}
+      <div 
+        className="flex w-full"
+        style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+      >
         {navItems.map((item) => (
-          item.onClick ? (
-            <button
-              key={item.label}
-              onClick={item.onClick}
-              className={`flex flex-col items-center justify-center py-3 px-1 text-xs transition-colors ${
-                item.active
-                  ? 'text-purple-600 bg-purple-50'
-                  : 'text-gray-600 hover:text-purple-600'
-              }`}
-            >
-              <item.icon className="w-5 h-5 mb-1" />
-              <span className="truncate max-w-full font-medium">{item.label}</span>
-            </button>
-          ) : (
-            <Link
-              key={item.href}
-              to={item.href}
-              className={`flex flex-col items-center justify-center py-3 px-1 text-xs transition-colors ${
-                item.active
-                  ? 'text-purple-600 bg-purple-50'
-                  : 'text-gray-600 hover:text-purple-600'
-              }`}
-            >
-              <item.icon className="w-5 h-5 mb-1" />
-              <span className="truncate max-w-full font-medium">{item.label}</span>
-            </Link>
-          )
+          <Link
+            key={item.href}
+            to={item.href}
+            className={`flex-1 flex flex-col items-center justify-center py-3 px-2 text-xs transition-all duration-200 min-h-[60px] ${
+              item.active
+                ? 'text-purple-600 bg-purple-50'
+                : 'text-gray-600 hover:text-purple-600 hover:bg-gray-50'
+            }`}
+          >
+            <item.icon className={`mb-1 transition-all duration-200 ${
+              item.active ? 'w-6 h-6' : 'w-5 h-5'
+            }`} />
+            <span className={`font-medium text-center leading-tight max-w-full px-1 ${
+              item.active ? 'text-xs' : 'text-xs'
+            }`}>
+              {item.label}
+            </span>
+          </Link>
         ))}
       </div>
     </div>

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -254,14 +253,6 @@ const MyCardsPage: React.FC = () => {
       </div>
     </div>
   );
-
-  function handleCardClick(businessId: string) {
-    navigate(`/business/${businessId}`);
-  }
-
-  function handleAddCards() {
-    navigate('/discover');
-  }
 };
 
 export default MyCardsPage;

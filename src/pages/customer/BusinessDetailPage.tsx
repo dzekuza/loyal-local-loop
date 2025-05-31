@@ -26,7 +26,20 @@ const BusinessDetailPage = () => {
         .single();
 
       if (error) throw error;
-      return data as Business;
+      
+      // Transform database fields to match Business interface
+      return {
+        id: data.id,
+        name: data.name,
+        email: data.email,
+        logo: data.logo,
+        address: data.address,
+        businessType: data.business_type,
+        description: data.description,
+        qrCode: data.qr_code,
+        createdAt: new Date(data.created_at),
+        phone: data.phone || undefined,
+      } as Business;
     },
     enabled: !!id,
   });
@@ -204,13 +217,8 @@ const BusinessDetailPage = () => {
                           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                             <div className="flex-1 min-w-0">
                               <h3 className="font-semibold text-lg mb-1 break-words">
-                                {offer.reward_name}
+                                {offer.reward_description}
                               </h3>
-                              {offer.short_description && (
-                                <p className="text-gray-600 text-sm mb-2 break-words">
-                                  {offer.short_description}
-                                </p>
-                              )}
                               <div className="flex items-center space-x-1 text-purple-600">
                                 <Star className="w-4 h-4" />
                                 <span className="text-sm font-medium">

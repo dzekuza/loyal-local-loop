@@ -48,9 +48,10 @@ const EnhancedOfferForm: React.FC<EnhancedOfferFormProps> = ({
         .from('loyalty_offers')
         .insert({
           business_id: businessId,
-          reward_name: formData.offerName.trim(),
-          short_description: formData.shortDescription.trim() || null,
+          reward_description: formData.offerName.trim(),
           reward_threshold: parseInt(formData.pointsNeeded),
+          spend_amount: 0,
+          points_earned: 0,
           is_active: true
         });
 

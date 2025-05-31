@@ -1,3 +1,4 @@
+
 export interface Business {
   id: string;
   name: string;
@@ -9,6 +10,7 @@ export interface Business {
   description: string;
   qrCode: string;
   createdAt: Date;
+  phone?: string;
   loyaltyOffers?: LoyaltyOffer[];
 }
 
@@ -19,6 +21,8 @@ export interface LoyaltyOffer {
   points_earned: number;
   reward_threshold: number;
   reward_description: string;
+  reward_name?: string;
+  short_description?: string;
   is_active: boolean;
   created_at: string;
   updated_at: string;

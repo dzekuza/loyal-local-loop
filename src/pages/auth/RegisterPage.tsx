@@ -1,186 +1,56 @@
+
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '@/hooks/useAuth';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useToast } from '@/hooks/use-toast';
-import { Store, Users } from 'lucide-react';
-import SupabaseConnectionTest from '@/components/SupabaseConnectionTest';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Users, Store, ArrowLeft } from 'lucide-react';
+import BusinessRegistrationWizard from '@/components/auth/BusinessRegistrationWizard';
+import CustomerRegistrationForm from '@/components/auth/CustomerRegistrationForm';
 
 const RegisterPage = () => {
-  const navigate = useNavigate();
-  const { signUp } = useAuth();
-  const { toast } = useToast();
-  const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
-    userRole: 'customer',
-    businessType: '',
-  });
+  const [accountType, setAccountType] = useState<'customer' | 'business' | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (formData.password !== formData.confirmPassword) {
-      toast({
-        title: "Error",
-        description: "Passwords don't match",
-        variant: "destructive",
-      });
-      return;
-    }
+  if (accountType === 'business') {
+    return <BusinessRegistrationWizard />;
+  }
 
-    setLoading(true);
-
-    const userData = {
-      name: formData.name,
-      user_role: formData.userRole,
-      business_type: formData.businessType,
-    };
-
-    const { error } = await signUp(formData.email, formData.password, userData);
-
-    if (error) {
-      toast({
-        title: "Registration failed",
-        description: error.message,
-        variant: "destructive",
-      });
-    } else {
-      toast({
-        title: "Registration successful!",
-        description: "Please check your email to verify your account.",
-      });
-      navigate('/login');
-    }
-
-    setLoading(false);
-  };
-
-  const businessTypes = [
-    'Restaurant', 'Cafe', 'Retail Store', 'Beauty Salon', 
-    'Fitness Center', 'Bookstore', 'Pharmacy', 'Other'
-  ];
+  if (accountType === 'customer') {
+    return <CustomerRegistrationForm />;
+  }
 
   return (
-    <div className="register-page min-h-screen bg-gray-50 py-12">
+    <div className="min-h-screen bg-gray-50 py-12">
       <div className="container mx-auto px-4">
         <div className="max-w-md mx-auto">
-          {/* Add connection test component for debugging */}
-          <div className="mb-8">
-            <SupabaseConnectionTest />
-          </div>
-          
-          <Card className="register-card">
+          <Card>
             <CardHeader className="text-center">
-              <CardTitle className="text-2xl font-bold">Create Account</CardTitle>
-              <p className="text-gray-600">Join our loyalty program network</p>
+              <CardTitle className="text-2xl font-bold">Choose Account Type</CardTitle>
+              <p className="text-gray-600">Select how you want to use LoyaltyWallet</p>
             </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="form-group">
-                  <Label htmlFor="name">Full Name</Label>
-                  <Input
-                    id="name"
-                    type="text"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    required
-                    className="input-name"
-                  />
+            <CardContent className="space-y-4">
+              <Button
+                onClick={() => setAccountType('customer')}
+                variant="outline"
+                className="w-full h-20 flex flex-col items-center justify-center space-y-2 hover:bg-purple-50 hover:border-purple-300"
+              >
+                <Users className="w-8 h-8 text-purple-600" />
+                <div>
+                  <div className="font-semibold">I'm a Customer</div>
+                  <div className="text-sm text-gray-500">Collect loyalty points and rewards</div>
                 </div>
+              </Button>
 
-                <div className="form-group">
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    required
-                    className="input-email"
-                  />
+              <Button
+                onClick={() => setAccountType('business')}
+                variant="outline"
+                className="w-full h-20 flex flex-col items-center justify-center space-y-2 hover:bg-blue-50 hover:border-blue-300"
+              >
+                <Store className="w-8 h-8 text-blue-600" />
+                <div>
+                  <div className="font-semibold">I'm a Business</div>
+                  <div className="text-sm text-gray-500">Create loyalty programs for customers</div>
                 </div>
-
-                <div className="form-group">
-                  <Label htmlFor="userRole">Account Type</Label>
-                  <Select value={formData.userRole} onValueChange={(value) => setFormData({ ...formData, userRole: value })}>
-                    <SelectTrigger className="select-user-role">
-                      <SelectValue placeholder="Select account type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="customer">
-                        <div className="flex items-center space-x-2">
-                          <Users size={16} />
-                          <span>Customer</span>
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="business">
-                        <div className="flex items-center space-x-2">
-                          <Store size={16} />
-                          <span>Business Owner</span>
-                        </div>
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {formData.userRole === 'business' && (
-                  <div className="form-group">
-                    <Label htmlFor="businessType">Business Type</Label>
-                    <Select value={formData.businessType} onValueChange={(value) => setFormData({ ...formData, businessType: value })}>
-                      <SelectTrigger className="select-business-type">
-                        <SelectValue placeholder="Select business type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {businessTypes.map((type) => (
-                          <SelectItem key={type} value={type}>
-                            {type}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
-
-                <div className="form-group">
-                  <Label htmlFor="password">Password</Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    value={formData.password}
-                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                    required
-                    className="input-password"
-                  />
-                </div>
-
-                <div className="form-group">
-                  <Label htmlFor="confirmPassword">Confirm Password</Label>
-                  <Input
-                    id="confirmPassword"
-                    type="password"
-                    value={formData.confirmPassword}
-                    onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                    required
-                    className="input-confirm-password"
-                  />
-                </div>
-
-                <Button 
-                  type="submit" 
-                  className="btn-register w-full" 
-                  disabled={loading}
-                >
-                  {loading ? 'Creating Account...' : 'Create Account'}
-                </Button>
-              </form>
+              </Button>
 
               <div className="text-center mt-6">
                 <p className="text-sm text-gray-600">

@@ -44,7 +44,16 @@
   },
   "business": {
     "viewProfile": "View Profile",
-    "activeOffers": "active offers"
+    "activeOffers": "active offers",
+    "categories": {
+      "all": "All Categories",
+      "restaurant": "Restaurants & Food",
+      "beauty": "Beauty & Wellness", 
+      "retail": "Retail & Shopping",
+      "fitness": "Fitness & Health",
+      "entertainment": "Entertainment",
+      "services": "Services"
+    }
   },
   "wallet": {
     "title": "My Loyalty Wallet",
@@ -76,6 +85,19 @@
     "passwordSuccess": "Password updated successfully!",
     "passwordError": "Failed to update password"
   },
+  "offers": {
+    "create": "Create New Offer",
+    "name": "Offer Name",
+    "shortDescription": "Short Description",
+    "pointsNeeded": "Points Needed",
+    "specialDeals": "Special Deals"
+  },
+  "search": {
+    "placeholder": "Search businesses...",
+    "noResults": "No businesses found",
+    "filters": "Filters",
+    "showingResults": "Showing {count} of {total} businesses"
+  },
   "common": {
     "loading": "Loading...",
     "error": "Error",
@@ -85,7 +107,11 @@
     "edit": "Edit",
     "delete": "Delete",
     "yes": "Yes",
-    "no": "No"
+    "no": "No",
+    "back": "Back",
+    "continue": "Continue",
+    "next": "Next",
+    "previous": "Previous"
   },
   "subscription": {
     "monthly": "Monthly",

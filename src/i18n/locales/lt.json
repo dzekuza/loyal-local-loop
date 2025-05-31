@@ -44,7 +44,16 @@
   },
   "business": {
     "viewProfile": "Peržiūrėti Profilį",
-    "activeOffers": "aktyvūs pasiūlymai"
+    "activeOffers": "aktyvūs pasiūlymai",
+    "categories": {
+      "all": "Visos Kategorijos",
+      "restaurant": "Restoranai ir Maistas",
+      "beauty": "Grožis ir Sveikata",
+      "retail": "Prekybos Centrai",
+      "fitness": "Sportas ir Sveikata",
+      "entertainment": "Pramogos",
+      "services": "Paslaugos"
+    }
   },
   "wallet": {
     "title": "Mano Lojalumo Piniginė",
@@ -76,6 +85,19 @@
     "passwordSuccess": "Slaptažodis sėkmingai atnaujintas!",
     "passwordError": "Nepavyko atnaujinti slaptažodžio"
   },
+  "offers": {
+    "create": "Sukurti Naują Pasiūlymą",
+    "name": "Pasiūlymo Pavadinimas", 
+    "shortDescription": "Trumpas Aprašymas",
+    "pointsNeeded": "Reikalingi Taškai",
+    "specialDeals": "Specialūs Pasiūlymai"
+  },
+  "search": {
+    "placeholder": "Ieškoti verslų...",
+    "noResults": "Verslų nerasta",
+    "filters": "Filtrai",
+    "showingResults": "Rodomi {count} iš {total} verslų"
+  },
   "common": {
     "loading": "Kraunama...",
     "error": "Klaida",
@@ -85,7 +107,11 @@
     "edit": "Redaguoti",
     "delete": "Ištrinti",
     "yes": "Taip",
-    "no": "Ne"
+    "no": "Ne",
+    "back": "Atgal",
+    "continue": "Tęsti",
+    "next": "Kitas",
+    "previous": "Ankstesnis"
   },
   "subscription": {
     "monthly": "Mėnesinis",

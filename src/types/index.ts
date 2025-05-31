@@ -26,6 +26,15 @@ export interface LoyaltyOffer {
   is_active: boolean;
   created_at: string;
   updated_at: string;
+  // New enhanced offer fields
+  offer_type?: 'points_deal' | 'special_offer';
+  offer_name?: string;
+  offer_rule?: string;
+  points_per_euro?: number;
+  valid_from?: string;
+  valid_to?: string;
+  time_from?: string;
+  time_to?: string;
 }
 
 export interface Customer {

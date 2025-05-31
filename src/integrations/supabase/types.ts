@@ -90,33 +90,57 @@ export type Database = {
           created_at: string
           id: string
           is_active: boolean
+          offer_name: string | null
+          offer_rule: string | null
+          offer_type: string | null
           points_earned: number
+          points_per_euro: number | null
           reward_description: string
           reward_threshold: number
           spend_amount: number
+          time_from: string | null
+          time_to: string | null
           updated_at: string
+          valid_from: string | null
+          valid_to: string | null
         }
         Insert: {
           business_id?: string | null
           created_at?: string
           id?: string
           is_active?: boolean
+          offer_name?: string | null
+          offer_rule?: string | null
+          offer_type?: string | null
           points_earned: number
+          points_per_euro?: number | null
           reward_description: string
           reward_threshold: number
           spend_amount: number
+          time_from?: string | null
+          time_to?: string | null
           updated_at?: string
+          valid_from?: string | null
+          valid_to?: string | null
         }
         Update: {
           business_id?: string | null
           created_at?: string
           id?: string
           is_active?: boolean
+          offer_name?: string | null
+          offer_rule?: string | null
+          offer_type?: string | null
           points_earned?: number
+          points_per_euro?: number | null
           reward_description?: string
           reward_threshold?: number
           spend_amount?: number
+          time_from?: string | null
+          time_to?: string | null
           updated_at?: string
+          valid_from?: string | null
+          valid_to?: string | null
         }
         Relationships: [
           {

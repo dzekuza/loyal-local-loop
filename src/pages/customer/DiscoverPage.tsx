@@ -5,7 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Search, MapPin, Gift, Building2 } from 'lucide-react';
+import { ArrowRight, Search, MapPin, Gift, Building2, Compass } from 'lucide-react';
 import { useBusinesses } from '@/hooks/useBusinesses';
 import { useAuth } from '@/hooks/useAuth';
 import { useTranslation } from 'react-i18next';

@@ -7,7 +7,7 @@ import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import { Switch } from '../ui/switch';
 import { useToast } from '@/hooks/use-toast';
-import { Gift, Trash2, AlertCircle } from 'lucide-react';
+import { Gift, Trash2, AlertCircle, Clock, Calendar } from 'lucide-react';
 
 interface LoyaltyOffer {
   id: string;
@@ -19,6 +19,14 @@ interface LoyaltyOffer {
   is_active: boolean;
   created_at: string;
   updated_at: string;
+  offer_type?: 'points_deal' | 'special_offer';
+  offer_name?: string;
+  offer_rule?: string;
+  points_per_euro?: number;
+  valid_from?: string;
+  valid_to?: string;
+  time_from?: string;
+  time_to?: string;
 }
 
 const OffersList = () => {
@@ -42,7 +50,6 @@ const OffersList = () => {
     setError(null);
 
     try {
-      // Fetch all offers for this business (RLS policies will handle authorization)
       const { data, error } = await supabase
         .from('loyalty_offers')
         .select('*')
@@ -140,6 +147,14 @@ const OffersList = () => {
     }
   };
 
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString();
+  };
+
+  const formatTime = (timeString: string) => {
+    return timeString.slice(0, 5); // HH:MM format
+  };
+
   if (loading) {
     return (
       <Card>
@@ -194,14 +209,53 @@ const OffersList = () => {
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <div className="flex items-center space-x-2 mb-2">
-                      <h3 className="font-medium">{offer.reward_description}</h3>
+                      <h3 className="font-medium">
+                        {offer.offer_type === 'special_offer' && offer.offer_name 
+                          ? offer.offer_name 
+                          : offer.reward_description}
+                      </h3>
                       <Badge variant={offer.is_active ? "default" : "secondary"}>
                         {offer.is_active ? "Active" : "Inactive"}
                       </Badge>
+                      <Badge variant="outline">
+                        {offer.offer_type === 'special_offer' ? 'Special Offer' : 'Points Deal'}
+                      </Badge>
                     </div>
+
                     <div className="text-sm text-gray-600 space-y-1">
-                      <p>Spend ${offer.spend_amount} → Earn {offer.points_earned} points</p>
-                      <p>Reward at {offer.reward_threshold} points</p>
+                      {offer.offer_type === 'special_offer' ? (
+                        <>
+                          {offer.offer_rule && (
+                            <p><strong>Rule:</strong> {offer.offer_rule}</p>
+                          )}
+                          {(offer.valid_from || offer.valid_to) && (
+                            <p className="flex items-center">
+                              <Calendar className="w-3 h-3 mr-1" />
+                              {offer.valid_from && `From ${formatDate(offer.valid_from)}`}
+                              {offer.valid_from && offer.valid_to && ' '}
+                              {offer.valid_to && `Until ${formatDate(offer.valid_to)}`}
+                            </p>
+                          )}
+                          {(offer.time_from || offer.time_to) && (
+                            <p className="flex items-center">
+                              <Clock className="w-3 h-3 mr-1" />
+                              {offer.time_from && `From ${formatTime(offer.time_from)}`}
+                              {offer.time_from && offer.time_to && ' '}
+                              {offer.time_to && `Until ${formatTime(offer.time_to)}`}
+                            </p>
+                          )}
+                        </>
+                      ) : (
+                        <>
+                          <p>
+                            {offer.points_per_euro 
+                              ? `${offer.points_per_euro} points per EUR spent`
+                              : `Spend $${offer.spend_amount} → Earn ${offer.points_earned} points`
+                            }
+                          </p>
+                          <p>Reward at {offer.reward_threshold} points</p>
+                        </>
+                      )}
                     </div>
                   </div>
                   <div className="flex items-center space-x-2">

@@ -10,12 +10,22 @@
     "signOut": "Atsijungti"
   },
   "home": {
+    "hero": {
+      "badge": "Skaitmeninė Lojalumo Platforma",
+      "title1": "Skaitmeninė Lojalumo",
+      "title2": "Piniginės Revoliucija"
+    },
     "title": "Skaitmeninė Lojalumo Piniginė",
     "subtitle": "Rinkite lojalumo taškus iš savo mėgstamų verslų ir niekada nebepraraskite kortelės",
     "exploreOffers": "Ištyrinėkite pasiūlymus aplink jus",
     "getStarted": "Pradėti",
+    "explore": {
+      "title": "Atraskite Vietinius Verslus",
+      "subtitle": "Raskite ir prisijunkite prie lojalumo programų iš jums patinkančių verslų"
+    },
     "features": {
       "title": "Kodėl Pasirinkti LoyaltyWallet?",
+      "subtitle": "Pajuskite klientų lojalumo programų ateitį",
       "digital": {
         "title": "Skaitmeninis Patogumas",
         "description": "Nereikia nešiotis fizinių kortelių"
@@ -31,6 +41,7 @@
     },
     "testimonials": {
       "title": "Ką Sako Mūsų Vartotojai",
+      "subtitle": "Prisijunkite prie tūkstančių patenkinų klientų ir verslų",
       "customer": {
         "text": "LoyaltyWallet labai palengvino mano lojalumo kortelių valdymą!",
         "author": "Sarah M., Klientė"
@@ -39,6 +50,30 @@
         "text": "Mūsų klientų įsitraukimas žymiai išaugo naudojant LoyaltyWallet.",
         "author": "John D., Verslo Savininkas"
       }
+    },
+    "brands": {
+      "title": "Patikimas verslų visur"
+    },
+    "business": {
+      "badge": "Verslo Savininkams",
+      "title": "Auginkite Savo Verslą su",
+      "titleHighlight": "Skaitmeninėmis Lojalumo Programomis",
+      "subtitle": "Padidinkite klientų išlaikymą ir įsitraukimą su mūsų galinga lojalumo platforma, sukurta moderniems verslams.",
+      "features": [
+        "Lengvas įdiegimas ir valdymas",
+        "Realaus laiko analitika ir įžvalgos",
+        "Individualizuoti apdovanojimai ir pasiūlymai",
+        "QR kodo integracija",
+        "Klientų įtraukimo įrankiai",
+        "Mobiliesiems pritaikytas dizainas"
+      ],
+      "startProgram": "Pradėti Programą",
+      "learnMore": "Sužinoti Daugiau"
+    },
+    "cta": {
+      "title": "Pasiruošę Prisijungti prie Lojalumo Revoliucijos?",
+      "subtitle": "Pradėkite rinkti taškus ir apdovanojimus iš savo mėgstamų verslų šiandien",
+      "button": "Pradėti Dabar"
     },
     "trustedBy": "Patikimas verslų"
   },

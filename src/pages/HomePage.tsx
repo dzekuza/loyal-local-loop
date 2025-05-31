@@ -84,7 +84,7 @@ const HomePage = () => {
   };
 
   return (
-    <div className="homepage-container min-h-screen">
+    <div className="homepage-container min-h-screen overflow-x-hidden">
       {/* Hero Section */}
       <HeroGeometric 
         badge={t('home.hero.badge')}
@@ -93,19 +93,19 @@ const HomePage = () => {
       />
 
       {/* Business Cards Section */}
-      <section className="businesses-section py-24 bg-gray-50">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+      <section className="businesses-section py-12 sm:py-16 md:py-24 bg-gray-50 overflow-x-hidden">
+        <div className="container mx-auto px-4 max-w-7xl">
+          <div className="text-center mb-8 sm:mb-12 md:mb-16">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4 sm:mb-6 leading-tight">
               {t('home.explore.title')}
             </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+            <p className="text-base sm:text-lg md:text-xl text-gray-600 max-w-2xl mx-auto px-4">
               {t('home.explore.subtitle')}
             </p>
           </div>
 
           {isLoading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
               {[1, 2, 3, 4].map((i) => (
                 <Card key={i} className="animate-pulse">
                   <div className="h-32 bg-gray-200" />
@@ -117,7 +117,7 @@ const HomePage = () => {
               ))}
             </div>
           ) : businesses && businesses.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
               {businesses.slice(0, 8).map((business) => (
                 <BusinessPreviewCard 
                   key={business.id} 
@@ -135,7 +135,7 @@ const HomePage = () => {
           )}
 
           {businesses && businesses.length > 8 && (
-            <div className="text-center mt-12">
+            <div className="text-center mt-8 sm:mt-12">
               <Button 
                 onClick={() => navigate('/businesses')}
                 variant="outline"
@@ -150,13 +150,13 @@ const HomePage = () => {
       </section>
 
       {/* Features Section */}
-      <section className="features-section py-24 bg-white">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+      <section className="features-section py-12 sm:py-16 md:py-24 bg-white overflow-x-hidden">
+        <div className="container mx-auto px-4 max-w-7xl">
+          <div className="text-center mb-8 sm:mb-12 md:mb-16">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4 sm:mb-6 leading-tight">
               {t('home.features.title')}
             </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+            <p className="text-base sm:text-lg md:text-xl text-gray-600 max-w-2xl mx-auto px-4">
               {t('home.features.subtitle')}
             </p>
           </div>
@@ -166,8 +166,8 @@ const HomePage = () => {
       </section>
 
       {/* Testimonials Section */}
-      <section className="testimonials-section py-24 bg-gray-50">
-        <div className="container mx-auto px-4">
+      <section className="testimonials-section py-12 sm:py-16 md:py-24 bg-gray-50 overflow-x-hidden">
+        <div className="container mx-auto px-4 max-w-7xl">
           <Testimonials 
             testimonials={testimonials}
             title={t('home.testimonials.title')}
@@ -178,50 +178,52 @@ const HomePage = () => {
       </section>
 
       {/* Brands Logos Section */}
-      <Logos3 heading={t('home.brands.title')} />
+      <div className="overflow-x-hidden">
+        <Logos3 heading={t('home.brands.title')} />
+      </div>
 
       {/* Business CTA Section */}
-      <section className="business-cta-section py-24 bg-gradient-to-br from-gray-900 via-purple-900 to-indigo-900 text-white">
-        <div className="container mx-auto px-4">
+      <section className="business-cta-section py-12 sm:py-16 md:py-24 bg-gradient-to-br from-gray-900 via-purple-900 to-indigo-900 text-white overflow-x-hidden">
+        <div className="container mx-auto px-4 max-w-7xl">
           <div className="max-w-4xl mx-auto text-center">
-            <div className="flex items-center justify-center mb-6">
-              <Users className="w-8 h-8 mr-3" />
-              <Badge variant="outline" className="border-white/20 text-white bg-white/10">
+            <div className="flex items-center justify-center mb-4 sm:mb-6">
+              <Users className="w-6 h-6 sm:w-8 sm:h-8 mr-3" />
+              <Badge variant="outline" className="border-white/20 text-white bg-white/10 text-xs sm:text-sm">
                 {t('home.business.badge')}
               </Badge>
             </div>
             
-            <h2 className="text-4xl md:text-5xl font-bold mb-8">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-6 sm:mb-8 leading-tight">
               {t('home.business.title')}
               <span className="text-yellow-300 block">{t('home.business.titleHighlight')}</span>
             </h2>
             
-            <p className="text-xl text-gray-300 mb-12 max-w-2xl mx-auto">
+            <p className="text-base sm:text-lg md:text-xl text-gray-300 mb-8 sm:mb-12 max-w-2xl mx-auto px-4">
               {t('home.business.subtitle')}
             </p>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mb-8 sm:mb-12 max-w-2xl mx-auto">
               {getBusinessFeatures().map((feature: string, index: number) => (
-                <div key={index} className="flex items-center justify-center md:justify-start">
-                  <CheckCircle className="w-5 h-5 text-green-400 mr-3" />
-                  <span className="text-gray-200">{feature}</span>
+                <div key={index} className="flex items-center justify-center sm:justify-start px-4">
+                  <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green-400 mr-3 flex-shrink-0" />
+                  <span className="text-gray-200 text-sm sm:text-base">{feature}</span>
                 </div>
               ))}
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center px-4">
               <Button 
                 size="lg"
                 onClick={handleBusinessSignup}
-                className="bg-white text-gray-900 hover:bg-gray-100 px-8 py-4 text-lg font-semibold"
+                className="bg-white text-gray-900 hover:bg-gray-100 px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg font-semibold w-full sm:w-auto"
               >
                 {t('home.business.startProgram')}
-                <TrendingUp className="w-5 h-5 ml-2" />
+                <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 ml-2" />
               </Button>
               <Button 
                 size="lg"
                 variant="outline"
-                className="border-white/20 text-white hover:bg-white/10 px-8 py-4 text-lg"
+                className="border-white/20 text-white hover:bg-white/10 px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg w-full sm:w-auto"
               >
                 {t('home.business.learnMore')}
               </Button>
@@ -231,18 +233,18 @@ const HomePage = () => {
       </section>
 
       {/* Final CTA */}
-      <section className="final-cta-section py-16 bg-white">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">
+      <section className="final-cta-section py-12 sm:py-16 bg-white overflow-x-hidden">
+        <div className="container mx-auto px-4 text-center max-w-4xl">
+          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4 leading-tight">
             {t('home.cta.title')}
           </h2>
-          <p className="text-gray-600 mb-8">
+          <p className="text-gray-600 mb-6 sm:mb-8 text-sm sm:text-base px-4">
             {t('home.cta.subtitle')}
           </p>
           <Button 
             size="lg"
             onClick={handleGetStarted}
-            className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white px-8 py-3 text-lg font-semibold"
+            className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white px-6 sm:px-8 py-3 text-base sm:text-lg font-semibold w-full sm:w-auto"
           >
             {t('home.cta.button')}
           </Button>

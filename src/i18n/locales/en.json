@@ -10,12 +10,22 @@
     "signOut": "Sign Out"
   },
   "home": {
+    "hero": {
+      "badge": "Digital Loyalty Platform",
+      "title1": "Digital Loyalty",
+      "title2": "Wallet Revolution"
+    },
     "title": "Digital Loyalty Wallet",
     "subtitle": "Collect loyalty points from your favorite businesses and never lose a card again",
     "exploreOffers": "Explore offers around you",
     "getStarted": "Get Started",
+    "explore": {
+      "title": "Discover Local Businesses",
+      "subtitle": "Find and join loyalty programs from businesses you love"
+    },
     "features": {
       "title": "Why Choose LoyaltyWallet?",
+      "subtitle": "Experience the future of customer loyalty programs",
       "digital": {
         "title": "Digital Convenience",
         "description": "No more physical cards to carry around"
@@ -31,6 +41,7 @@
     },
     "testimonials": {
       "title": "What Our Users Say",
+      "subtitle": "Join thousands of satisfied customers and businesses",
       "customer": {
         "text": "LoyaltyWallet has made managing my loyalty cards so much easier!",
         "author": "Sarah M., Customer"
@@ -39,6 +50,30 @@
         "text": "Our customer engagement has increased significantly since using LoyaltyWallet.",
         "author": "John D., Business Owner"
       }
+    },
+    "brands": {
+      "title": "Trusted by businesses everywhere"
+    },
+    "business": {
+      "badge": "For Business Owners",
+      "title": "Grow Your Business with",
+      "titleHighlight": "Digital Loyalty Programs",
+      "subtitle": "Increase customer retention and engagement with our powerful loyalty platform designed for modern businesses.",
+      "features": [
+        "Easy setup and management",
+        "Real-time analytics and insights",
+        "Custom rewards and offers",
+        "QR code integration",
+        "Customer engagement tools",
+        "Mobile-first design"
+      ],
+      "startProgram": "Start Your Program",
+      "learnMore": "Learn More"
+    },
+    "cta": {
+      "title": "Ready to Join the Loyalty Revolution?",
+      "subtitle": "Start collecting points and rewards from your favorite businesses today",
+      "button": "Get Started Now"
     },
     "trustedBy": "Trusted by businesses"
   },

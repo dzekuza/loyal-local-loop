@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Store, CreditCard, User, Globe } from 'lucide-react';
+import { Home, Compass, CreditCard, User, Globe } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useTranslation } from 'react-i18next';
 
@@ -20,27 +20,27 @@ const MobileNavigation = () => {
     {
       href: '/',
       icon: Home,
-      label: 'Home',
+      label: t('nav.home'),
       active: location.pathname === '/',
     },
     {
-      href: '/businesses',
-      icon: Store,
-      label: t('nav.businesses'),
-      active: location.pathname === '/businesses',
+      href: '/discover',
+      icon: Compass,
+      label: 'Discover',
+      active: location.pathname === '/discover' || location.pathname === '/businesses',
     },
     ...(user ? [
       {
-        href: '/wallet',
+        href: '/my-cards',
         icon: CreditCard,
-        label: t('nav.wallet'),
-        active: location.pathname === '/wallet',
+        label: 'My Cards',
+        active: location.pathname === '/my-cards' || location.pathname === '/wallet',
       },
       {
-        href: '/profile',
+        href: '/customer-profile',
         icon: User,
         label: t('nav.profile'),
-        active: location.pathname === '/profile',
+        active: location.pathname === '/customer-profile' || location.pathname === '/business-profile',
       },
     ] : [
       {
@@ -61,27 +61,27 @@ const MobileNavigation = () => {
             <button
               key={item.label}
               onClick={item.onClick}
-              className={`flex flex-col items-center justify-center py-2 px-1 text-xs transition-colors ${
+              className={`flex flex-col items-center justify-center py-3 px-1 text-xs transition-colors ${
                 item.active
                   ? 'text-purple-600 bg-purple-50'
                   : 'text-gray-600 hover:text-purple-600'
               }`}
             >
               <item.icon className="w-5 h-5 mb-1" />
-              <span className="truncate max-w-full">{item.label}</span>
+              <span className="truncate max-w-full font-medium">{item.label}</span>
             </button>
           ) : (
             <Link
               key={item.href}
               to={item.href}
-              className={`flex flex-col items-center justify-center py-2 px-1 text-xs transition-colors ${
+              className={`flex flex-col items-center justify-center py-3 px-1 text-xs transition-colors ${
                 item.active
                   ? 'text-purple-600 bg-purple-50'
                   : 'text-gray-600 hover:text-purple-600'
               }`}
             >
               <item.icon className="w-5 h-5 mb-1" />
-              <span className="truncate max-w-full">{item.label}</span>
+              <span className="truncate max-w-full font-medium">{item.label}</span>
             </Link>
           )
         ))}

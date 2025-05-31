@@ -55,12 +55,12 @@ const Header = () => {
 
           {/* Navigation */}
           <nav className="hidden md:flex items-center space-x-6">
-            <Link to="/businesses" className="text-gray-600 hover:text-gray-900 transition-colors">
-              {t('nav.businesses')}
+            <Link to="/discover" className="text-gray-600 hover:text-gray-900 transition-colors">
+              Discover
             </Link>
             {isAuthenticated && userRole === 'customer' && (
-              <Link to="/wallet" className="text-gray-600 hover:text-gray-900 transition-colors">
-                {t('nav.wallet')}
+              <Link to="/my-cards" className="text-gray-600 hover:text-gray-900 transition-colors">
+                My Cards
               </Link>
             )}
             {isAuthenticated && userRole === 'business' && (
@@ -117,9 +117,9 @@ const Header = () => {
 
                   {userRole === 'customer' && (
                     <DropdownMenuItem asChild>
-                      <Link to="/wallet" className="cursor-pointer">
+                      <Link to="/my-cards" className="cursor-pointer">
                         <Wallet className="mr-2 h-4 w-4" />
-                        <span>{t('nav.wallet')}</span>
+                        <span>My Cards</span>
                       </Link>
                     </DropdownMenuItem>
                   )}

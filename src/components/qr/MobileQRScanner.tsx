@@ -82,7 +82,7 @@ const MobileQRScanner: React.FC<MobileQRScannerProps> = ({
     setError(null);
 
     try {
-      const constraints = {
+      const constraints: MediaStreamConstraints = {
         video: {
           facingMode: 'environment',
           width: { ideal: 640, max: 1280 },
@@ -177,7 +177,7 @@ const MobileQRScanner: React.FC<MobileQRScannerProps> = ({
   };
 
   // Enhanced constraints for different devices
-  const getVideoConstraints = () => {
+  const getVideoConstraints = (): MediaTrackConstraints => {
     if (deviceInfo.isSamsung || deviceInfo.isOldAndroid) {
       return {
         facingMode: 'environment'
@@ -301,9 +301,7 @@ const MobileQRScanner: React.FC<MobileQRScannerProps> = ({
                     height: '100%',
                     objectFit: 'cover'
                   }}
-                  constraints={{
-                    video: getVideoConstraints()
-                  }}
+                  videoConstraints={getVideoConstraints()}
                 />
               )}
               

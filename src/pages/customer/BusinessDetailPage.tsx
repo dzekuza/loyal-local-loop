@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -226,8 +225,7 @@ const BusinessDetailPage: React.FC = () => {
             ) : (
               <CustomerLoyaltyCard 
                 business={business}
-                currentPoints={userPoints?.total_points || 0}
-                onPointsUpdate={loadBusinessDetails}
+                onJoinSuccess={loadBusinessDetails}
               />
             )}
           </div>

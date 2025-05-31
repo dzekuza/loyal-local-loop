@@ -1,54 +1,53 @@
 
 import * as React from "react"
-import * as TabsPrimitive from "@radix-ui/react-tabs"
-
+import { 
+  Tabs as Tabs21st, 
+  TabsList as TabsList21st, 
+  TabsTrigger as TabsTrigger21st, 
+  TabsContent as TabsContent21st 
+} from "@21st-dev/components"
 import { cn } from "@/lib/utils"
 
-const Tabs = TabsPrimitive.Root
+const Tabs = Tabs21st
 
 const TabsList = React.forwardRef<
-  React.ElementRef<typeof TabsPrimitive.List>,
-  React.ComponentPropsWithoutRef<typeof TabsPrimitive.List>
+  React.ElementRef<typeof TabsList21st>,
+  React.ComponentPropsWithoutRef<typeof TabsList21st>
 >(({ className, ...props }, ref) => (
-  <TabsPrimitive.List
+  <TabsList21st
     ref={ref}
-    className={cn(
-      "inline-flex h-10 items-center justify-center rounded-md bg-muted p-1 text-muted-foreground",
-      className
-    )}
+    className={cn("transition-colors duration-200", className)}
     {...props}
   />
 ))
-TabsList.displayName = TabsPrimitive.List.displayName
+TabsList.displayName = TabsList21st.displayName
 
 const TabsTrigger = React.forwardRef<
-  React.ElementRef<typeof TabsPrimitive.Trigger>,
-  React.ComponentPropsWithoutRef<typeof TabsPrimitive.Trigger>
+  React.ElementRef<typeof TabsTrigger21st>,
+  React.ComponentPropsWithoutRef<typeof TabsTrigger21st>
 >(({ className, ...props }, ref) => (
-  <TabsPrimitive.Trigger
+  <TabsTrigger21st
     ref={ref}
     className={cn(
-      "inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm",
+      "transition-all duration-200 hover:scale-105",
+      "data-[state=active]:scale-105",
       className
     )}
     {...props}
   />
 ))
-TabsTrigger.displayName = TabsPrimitive.Trigger.displayName
+TabsTrigger.displayName = TabsTrigger21st.displayName
 
 const TabsContent = React.forwardRef<
-  React.ElementRef<typeof TabsPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof TabsPrimitive.Content>
+  React.ElementRef<typeof TabsContent21st>,
+  React.ComponentPropsWithoutRef<typeof TabsContent21st>
 >(({ className, ...props }, ref) => (
-  <TabsPrimitive.Content
+  <TabsContent21st
     ref={ref}
-    className={cn(
-      "mt-2 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-      className
-    )}
+    className={cn("animate-fade-in", className)}
     {...props}
   />
 ))
-TabsContent.displayName = TabsPrimitive.Content.displayName
+TabsContent.displayName = TabsContent21st.displayName
 
 export { Tabs, TabsList, TabsTrigger, TabsContent }

@@ -1,24 +1,18 @@
-import * as React from "react"
-import * as LabelPrimitive from "@radix-ui/react-label"
-import { cva, type VariantProps } from "class-variance-authority"
 
+import * as React from "react"
+import { Label as Label21st } from "@21st-dev/components"
 import { cn } from "@/lib/utils"
 
-const labelVariants = cva(
-  "text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-)
-
 const Label = React.forwardRef<
-  React.ElementRef<typeof LabelPrimitive.Root>,
-  React.ComponentPropsWithoutRef<typeof LabelPrimitive.Root> &
-    VariantProps<typeof labelVariants>
+  React.ElementRef<typeof Label21st>,
+  React.ComponentPropsWithoutRef<typeof Label21st>
 >(({ className, ...props }, ref) => (
-  <LabelPrimitive.Root
+  <Label21st
     ref={ref}
-    className={cn(labelVariants(), className)}
+    className={cn("transition-colors duration-200", className)}
     {...props}
   />
 ))
-Label.displayName = LabelPrimitive.Root.displayName
+Label.displayName = Label21st.displayName
 
 export { Label }

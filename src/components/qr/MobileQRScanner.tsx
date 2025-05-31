@@ -176,22 +176,18 @@ const MobileQRScanner: React.FC<MobileQRScannerProps> = ({
     onScan(customerData || demoData);
   };
 
-  // Enhanced constraints for different devices
-  const getVideoConstraints = (): MediaStreamConstraints => {
+  // Enhanced constraints for different devices - returns video constraints only
+  const getVideoConstraints = (): MediaTrackConstraints => {
     if (deviceInfo.isSamsung || deviceInfo.isOldAndroid) {
       return {
-        video: {
-          facingMode: 'environment'
-        }
+        facingMode: 'environment'
       };
     }
     
     return {
-      video: {
-        facingMode: { ideal: 'environment' },
-        width: { ideal: 1280, min: 640 },
-        height: { ideal: 720, min: 480 }
-      }
+      facingMode: { ideal: 'environment' },
+      width: { ideal: 1280, min: 640 },
+      height: { ideal: 720, min: 480 }
     };
   };
 

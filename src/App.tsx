@@ -64,6 +64,11 @@ const App = () => {
                       <BusinessDashboard />
                     </RoleBasedRoute>
                   } />
+                  <Route path="/business/scan" element={
+                    <RoleBasedRoute allowedRoles={['business']} redirectTo="/discover">
+                      <BusinessScanPage />
+                    </RoleBasedRoute>
+                  } />
                   <Route path="/business-profile" element={
                     <RoleBasedRoute allowedRoles={['business']} redirectTo="/customer-profile">
                       <BusinessProfilePage />

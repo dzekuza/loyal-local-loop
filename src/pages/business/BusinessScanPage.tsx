@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import QRCodeScanner from '@/components/qr/QRCodeScanner';
-import { ArrowLeft, User, DollarSign, Gift, CheckCircle } from 'lucide-react';
+import { ArrowLeft, User, DollarSign, Gift, CheckCircle, AlertTriangle } from 'lucide-react';
 
 interface CustomerData {
   customerId: string;
@@ -27,11 +27,14 @@ const BusinessScanPage: React.FC = () => {
   const [amount, setAmount] = useState<string>('');
   const [processing, setProcessing] = useState(false);
   const [pointsToEarn, setPointsToEarn] = useState(0);
+  const [currentOffer, setCurrentOffer] = useState<any>(null);
 
   const calculatePoints = async (spendAmount: number) => {
     if (!currentBusiness) return 0;
 
     try {
+      console.log('💰 Calculating points for amount:', spendAmount);
+      
       const { data: offers, error } = await supabase
         .from('loyalty_offers')
         .select('*')
@@ -39,12 +42,23 @@ const BusinessScanPage: React.FC = () => {
         .eq('is_active', true)
         .limit(1);
 
-      if (error || !offers || offers.length === 0) return 0;
+      if (error) {
+        console.error('❌ Error fetching offers:', error);
+        return 0;
+      }
+
+      if (!offers || offers.length === 0) {
+        console.warn('⚠️ No active offers found');
+        return 0;
+      }
 
       const offer = offers[0];
-      return Math.floor((spendAmount / offer.spend_amount) * offer.points_earned);
+      setCurrentOffer(offer);
+      const points = Math.floor((spendAmount / offer.spend_amount) * offer.points_earned);
+      console.log('🎯 Points calculated:', points, 'for offer:', offer);
+      return points;
     } catch (error) {
-      console.error('Error calculating points:', error);
+      console.error('❌ Error calculating points:', error);
       return 0;
     }
   };
@@ -52,24 +66,31 @@ const BusinessScanPage: React.FC = () => {
   const handleAmountChange = async (value: string) => {
     setAmount(value);
     const numValue = parseFloat(value) || 0;
-    const points = await calculatePoints(numValue);
-    setPointsToEarn(points);
+    if (numValue > 0) {
+      const points = await calculatePoints(numValue);
+      setPointsToEarn(points);
+    } else {
+      setPointsToEarn(0);
+    }
   };
 
   const handleQRScan = (data: string) => {
     try {
-      console.log('QR data received:', data);
+      console.log('📱 QR data received:', data);
       
       let qrData;
       try {
         qrData = JSON.parse(data);
       } catch {
+        // Handle plain text customer ID
         qrData = {
           type: 'customer',
           customerId: data,
           customerName: 'Customer'
         };
       }
+      
+      console.log('🔍 Parsed QR data:', qrData);
       
       if (qrData.type === 'customer' && qrData.customerId) {
         setScannedCustomer({
@@ -82,6 +103,7 @@ const BusinessScanPage: React.FC = () => {
           description: `Ready to award points to ${qrData.customerName || 'customer'}`,
         });
       } else {
+        console.warn('⚠️ Invalid QR data format:', qrData);
         toast({
           title: "Invalid QR Code",
           description: "Please scan a valid customer loyalty QR code",
@@ -89,12 +111,50 @@ const BusinessScanPage: React.FC = () => {
         });
       }
     } catch (error) {
-      console.error('QR scan error:', error);
+      console.error('❌ QR scan error:', error);
       toast({
         title: "Scan Error",
         description: "Unable to read QR code. Please try again.",
         variant: "destructive",
       });
+    }
+  };
+
+  const ensureUserPointsRecord = async (customerId: string, businessId: string) => {
+    try {
+      console.log('🔍 Checking user_points record for customer:', customerId);
+      
+      const { data: existingPoints, error: pointsCheckError } = await supabase
+        .from('user_points')
+        .select('*')
+        .eq('customer_id', customerId)
+        .eq('business_id', businessId)
+        .single();
+
+      if (pointsCheckError && pointsCheckError.code === 'PGRST116') {
+        console.log('➕ Creating new user_points record');
+        const { error: createPointsError } = await supabase
+          .from('user_points')
+          .insert({
+            customer_id: customerId,
+            business_id: businessId,
+            total_points: 0
+          });
+
+        if (createPointsError) {
+          console.error('❌ Error creating user_points:', createPointsError);
+          throw new Error('Failed to initialize customer points record');
+        }
+        console.log('✅ User points record created');
+      } else if (pointsCheckError) {
+        console.error('❌ Error checking user_points:', pointsCheckError);
+        throw pointsCheckError;
+      } else {
+        console.log('✅ User points record exists:', existingPoints);
+      }
+    } catch (error) {
+      console.error('❌ Error in ensureUserPointsRecord:', error);
+      throw error;
     }
   };
 
@@ -116,32 +176,21 @@ const BusinessScanPage: React.FC = () => {
       }
 
       if (pointsToEarn === 0) {
-        throw new Error('Amount too low to earn points. Check your loyalty offer settings.');
+        const minSpend = currentOffer?.spend_amount || 1;
+        throw new Error(`Minimum spend of €${minSpend} required to earn points`);
       }
+
+      console.log('💳 Processing transaction:', {
+        customer: scannedCustomer,
+        amount: spendAmount,
+        points: pointsToEarn,
+        business: currentBusiness.id
+      });
 
       // Ensure user_points record exists
-      const { data: existingPoints, error: pointsCheckError } = await supabase
-        .from('user_points')
-        .select('*')
-        .eq('customer_id', scannedCustomer.customerId)
-        .eq('business_id', currentBusiness.id)
-        .single();
+      await ensureUserPointsRecord(scannedCustomer.customerId, currentBusiness.id);
 
-      if (pointsCheckError && pointsCheckError.code === 'PGRST116') {
-        const { error: createPointsError } = await supabase
-          .from('user_points')
-          .insert({
-            customer_id: scannedCustomer.customerId,
-            business_id: currentBusiness.id,
-            total_points: 0
-          });
-
-        if (createPointsError) {
-          throw new Error('Failed to initialize customer points record');
-        }
-      }
-
-      // Create point transaction
+      // Create point transaction (trigger will update user_points automatically)
       const { error: transactionError } = await supabase
         .from('point_transactions')
         .insert({
@@ -153,8 +202,11 @@ const BusinessScanPage: React.FC = () => {
         });
 
       if (transactionError) {
+        console.error('❌ Transaction error:', transactionError);
         throw transactionError;
       }
+
+      console.log('✅ Transaction successful');
 
       toast({
         title: "Points Awarded Successfully! 🎉",
@@ -165,9 +217,10 @@ const BusinessScanPage: React.FC = () => {
       setScannedCustomer(null);
       setAmount('');
       setPointsToEarn(0);
+      setCurrentOffer(null);
 
     } catch (error) {
-      console.error('Error awarding points:', error);
+      console.error('❌ Error awarding points:', error);
       toast({
         title: "Error",
         description: error instanceof Error ? error.message : "Failed to award points",
@@ -182,8 +235,14 @@ const BusinessScanPage: React.FC = () => {
 
   if (!currentBusiness) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-gray-600">Please set up your business profile first</p>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <Card className="p-6 text-center">
+          <AlertTriangle className="w-12 h-12 text-yellow-500 mx-auto mb-4" />
+          <p className="text-gray-600 mb-4">Please set up your business profile first</p>
+          <Button onClick={() => navigate('/business-profile')}>
+            Set Up Profile
+          </Button>
+        </Card>
       </div>
     );
   }
@@ -274,11 +333,20 @@ const BusinessScanPage: React.FC = () => {
 
                 {/* Points Preview */}
                 {amount && (
-                  <div className="bg-purple-50 p-3 rounded-lg border border-purple-200">
+                  <div className={`p-3 rounded-lg border ${pointsToEarn > 0 ? 'bg-purple-50 border-purple-200' : 'bg-yellow-50 border-yellow-200'}`}>
                     <div className="flex items-center justify-between">
-                      <span className="text-purple-700">Points to earn:</span>
-                      <span className="font-bold text-purple-800 text-lg">{pointsToEarn} points</span>
+                      <span className={pointsToEarn > 0 ? 'text-purple-700' : 'text-yellow-700'}>
+                        Points to earn:
+                      </span>
+                      <span className={`font-bold text-lg ${pointsToEarn > 0 ? 'text-purple-800' : 'text-yellow-800'}`}>
+                        {pointsToEarn} points
+                      </span>
                     </div>
+                    {pointsToEarn === 0 && currentOffer && (
+                      <p className="text-xs text-yellow-600 mt-1">
+                        Minimum spend: €{currentOffer.spend_amount} for {currentOffer.points_earned} points
+                      </p>
+                    )}
                   </div>
                 )}
               </CardContent>
@@ -289,7 +357,7 @@ const BusinessScanPage: React.FC = () => {
               <Button
                 onClick={handleAwardPoints}
                 disabled={!amount || pointsToEarn === 0 || processing}
-                className="flex-1 bg-green-600 hover:bg-green-700"
+                className={`flex-1 ${pointsToEarn > 0 ? 'bg-green-600 hover:bg-green-700' : 'bg-gray-400 cursor-not-allowed'}`}
                 size="lg"
               >
                 {processing ? (

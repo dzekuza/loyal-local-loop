@@ -1,13 +1,15 @@
-
 export interface Business {
   id: string;
   name: string;
   email: string;
   logo?: string;
+  coverImage?: string;
+  address?: string;
   businessType: string;
   description: string;
   qrCode: string;
   createdAt: Date;
+  loyaltyOffers?: LoyaltyOffer[];
 }
 
 export interface LoyaltyOffer {

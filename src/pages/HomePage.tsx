@@ -77,6 +77,12 @@ const HomePage = () => {
     }
   ];
 
+  // Get business features as array from translation
+  const getBusinessFeatures = () => {
+    const features = t('home.business.features', { returnObjects: true });
+    return Array.isArray(features) ? features : [];
+  };
+
   return (
     <div className="homepage-container min-h-screen">
       {/* Hero Section */}
@@ -195,7 +201,7 @@ const HomePage = () => {
             </p>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
-              {t('home.business.features', { returnObjects: true }).map((feature: string, index: number) => (
+              {getBusinessFeatures().map((feature: string, index: number) => (
                 <div key={index} className="flex items-center justify-center md:justify-start">
                   <CheckCircle className="w-5 h-5 text-green-400 mr-3" />
                   <span className="text-gray-200">{feature}</span>

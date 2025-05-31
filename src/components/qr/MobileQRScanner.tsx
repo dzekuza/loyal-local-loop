@@ -3,9 +3,9 @@ import React, { useState, useCallback } from 'react';
 import { QrReader } from 'react-qr-reader';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
-import { Camera, QrCode, X, AlertCircle, RefreshCw } from 'lucide-react';
+import { Camera, QrCode, X, AlertCircle, RefreshCw, Shield } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { detectDevice } from '@/utils/deviceDetection';
+import { detectDevice, requestCameraPermission } from '@/utils/deviceDetection';
 
 interface MobileQRScannerProps {
   onScan: (result: string) => void;
@@ -20,6 +20,8 @@ const MobileQRScanner: React.FC<MobileQRScannerProps> = ({
 }) => {
   const [isScanning, setIsScanning] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [permissionRequested, setPermissionRequested] = useState(false);
+  const [permissionGranted, setPermissionGranted] = useState(false);
   const [cameraStarted, setCameraStarted] = useState(false);
   const { toast } = useToast();
   
@@ -42,15 +44,50 @@ const MobileQRScanner: React.FC<MobileQRScannerProps> = ({
       if (error.name === 'NotAllowedError') {
         setError('Camera permission denied. Please allow camera access.');
         setIsScanning(false);
+        setPermissionGranted(false);
       }
     }
   }, [onScan, toast]);
 
-  const startScanning = () => {
-    console.log('📱 Starting mobile QR scanner...');
+  const requestPermissionAndStart = async () => {
+    console.log('📱 Requesting camera permission for mobile QR scanner...');
     setError(null);
-    setIsScanning(true);
-    setCameraStarted(true);
+    setPermissionRequested(true);
+    
+    try {
+      const granted = await requestCameraPermission();
+      
+      if (granted) {
+        console.log('✅ Permission granted, starting scanner');
+        setPermissionGranted(true);
+        setIsScanning(true);
+        setCameraStarted(true);
+        
+        toast({
+          title: "Camera Access Granted ✅",
+          description: "Starting QR code scanner...",
+        });
+      } else {
+        console.warn('❌ Permission denied');
+        setError('Camera permission is required to scan QR codes. Please enable camera access in your browser settings.');
+        setPermissionGranted(false);
+        
+        toast({
+          title: "Camera Permission Required",
+          description: "Please allow camera access to scan QR codes",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('❌ Error requesting permission:', error);
+      setError('Unable to access camera. Please check your device settings.');
+      
+      toast({
+        title: "Camera Error",
+        description: "Unable to access camera. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const stopScanning = () => {
@@ -106,17 +143,24 @@ const MobileQRScanner: React.FC<MobileQRScannerProps> = ({
               <span className="font-medium">Camera Error</span>
             </div>
             <p className="text-red-700 mt-1 text-sm">{error}</p>
+            
+            {!permissionGranted && (
+              <div className="mt-3 text-xs text-red-600 bg-red-100 p-2 rounded">
+                <Shield className="w-4 h-4 inline mr-1" />
+                <strong>How to enable camera on {deviceInfo.isSamsung ? 'Samsung' : 'mobile'}:</strong><br />
+                • Settings → Apps → Browser → Permissions → Camera → Allow<br />
+                • Or tap the camera icon in your browser's address bar
+              </div>
+            )}
+            
             <Button 
               variant="outline" 
               size="sm" 
-              onClick={() => {
-                setError(null);
-                startScanning();
-              }}
+              onClick={requestPermissionAndStart}
               className="mt-2 w-full"
             >
               <RefreshCw className="w-4 h-4 mr-2" />
-              Try Again
+              Request Permission Again
             </Button>
           </div>
         )}
@@ -130,7 +174,7 @@ const MobileQRScanner: React.FC<MobileQRScannerProps> = ({
           </div>
         )}
 
-        {!isScanning && !error && (
+        {!isScanning && !error && !permissionRequested && (
           <div className="text-center space-y-4">
             <div className="bg-green-50 p-4 rounded-lg border border-green-200">
               <p className="text-sm text-green-800 mb-2">
@@ -140,13 +184,21 @@ const MobileQRScanner: React.FC<MobileQRScannerProps> = ({
                 Optimized for your {deviceInfo.isSamsung ? 'Samsung' : 'mobile'} device
               </p>
             </div>
-            <Button onClick={startScanning} className="w-full" size="lg">
+            <Button onClick={requestPermissionAndStart} className="w-full" size="lg">
               <Camera className="w-5 h-5 mr-2" />
-              Start Camera
+              Request Camera Permission
             </Button>
             <Button variant="outline" onClick={handleManualInput} className="w-full" size="sm">
               Manual Input (Demo)
             </Button>
+          </div>
+        )}
+
+        {permissionRequested && !permissionGranted && !error && (
+          <div className="text-center py-8">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Requesting camera permission...</p>
+            <p className="text-sm text-gray-500 mt-2">Please allow camera access when prompted</p>
           </div>
         )}
 
@@ -156,13 +208,6 @@ const MobileQRScanner: React.FC<MobileQRScannerProps> = ({
               <QrReader
                 onResult={handleScan}
                 constraints={getConstraints()}
-                style={{ 
-                  width: '100%',
-                  height: '300px'
-                }}
-                videoStyle={{
-                  objectFit: 'cover'
-                }}
               />
               
               {/* Scanning overlay */}

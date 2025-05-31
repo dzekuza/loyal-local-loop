@@ -56,6 +56,54 @@ export const detectDevice = (): DeviceInfo => {
   };
 };
 
+export const requestCameraPermission = async (): Promise<boolean> => {
+  try {
+    console.log('📷 Requesting camera permission...');
+    
+    // Check if permissions API is available
+    if ('permissions' in navigator) {
+      try {
+        const permission = await navigator.permissions.query({ name: 'camera' as PermissionName });
+        console.log('📷 Current permission status:', permission.state);
+        
+        if (permission.state === 'granted') {
+          return true;
+        }
+        
+        if (permission.state === 'denied') {
+          console.warn('📷 Camera permission permanently denied');
+          return false;
+        }
+      } catch (error) {
+        console.log('📷 Permissions API not fully supported, trying getUserMedia');
+      }
+    }
+    
+    // Try to access camera to trigger permission prompt
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ 
+          video: { facingMode: 'environment' } 
+        });
+        
+        // Immediately stop the stream since we just wanted permission
+        stream.getTracks().forEach(track => track.stop());
+        console.log('✅ Camera permission granted');
+        return true;
+      } catch (error) {
+        console.error('❌ Camera permission denied or error:', error);
+        return false;
+      }
+    }
+    
+    console.warn('📷 Camera API not supported');
+    return false;
+  } catch (error) {
+    console.error('❌ Error requesting camera permission:', error);
+    return false;
+  }
+};
+
 export const getCameraConstraints = (deviceInfo: DeviceInfo): MediaStreamConstraints => {
   console.log('📱 Getting camera constraints for device:', deviceInfo);
   
@@ -89,5 +137,12 @@ export const getCameraConstraints = (deviceInfo: DeviceInfo): MediaStreamConstra
       height: { ideal: 1080, min: 720, max: 2160 },
       frameRate: { ideal: 30, min: 15 }
     }
+  };
+};
+
+export const getBasicCameraConstraints = (): MediaStreamConstraints => {
+  // Ultra-basic constraints for problematic devices
+  return {
+    video: true
   };
 };

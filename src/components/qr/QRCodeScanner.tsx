@@ -1,9 +1,10 @@
+
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Camera, QrCode, X, AlertCircle, Shield, RefreshCw, Smartphone } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { detectDevice, getCameraConstraints } from '@/utils/deviceDetection';
+import { detectDevice, getCameraConstraints, requestCameraPermission, getBasicCameraConstraints } from '@/utils/deviceDetection';
 import MobileQRScanner from './MobileQRScanner';
 import jsQR from 'jsqr';
 
@@ -92,70 +93,96 @@ const QRCodeScanner: React.FC<QRCodeScannerProps> = ({ onScan, onClose, title = 
 
       console.log('🔒 Requesting camera permissions...');
       
-      const constraints = getCameraConstraints(deviceInfo);
+      // First request permission explicitly
+      const permissionGranted = await requestCameraPermission();
+      
+      if (!permissionGranted) {
+        setPermissionDenied(true);
+        setError('Camera permission denied. Please allow camera access and try again.');
+        setCameraLoading(false);
+        return;
+      }
+
+      let constraints = getCameraConstraints(deviceInfo);
       console.log('📷 Using constraints:', constraints);
 
-      const mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
-      console.log('✅ Camera access granted');
-
-      if (videoRef.current) {
-        videoRef.current.srcObject = mediaStream;
-        setStream(mediaStream);
+      try {
+        const mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
+        console.log('✅ Camera access granted with full constraints');
+        await setupVideoStream(mediaStream);
+      } catch (error) {
+        console.warn('⚠️ Full constraints failed, trying basic constraints');
         
-        videoRef.current.onloadedmetadata = () => {
-          console.log('📹 Video metadata loaded');
-          if (videoRef.current) {
-            videoRef.current.play().then(() => {
-              console.log('▶️ Video playing, starting QR scan...');
-              setIsScanning(true);
-              setCameraLoading(false);
-              startScanning();
-            }).catch(err => {
-              console.error('❌ Video play error:', err);
-              setError('Failed to start video playback');
-              setCameraLoading(false);
-            });
-          }
-        };
-
-        videoRef.current.onerror = (err) => {
-          console.error('❌ Video error:', err);
-          setError('Video playback error');
-          setCameraLoading(false);
-        };
+        // Fallback to basic constraints
+        const basicConstraints = getBasicCameraConstraints();
+        const mediaStream = await navigator.mediaDevices.getUserMedia(basicConstraints);
+        console.log('✅ Camera access granted with basic constraints');
+        await setupVideoStream(mediaStream);
       }
     } catch (error) {
       console.error('❌ Camera error:', error);
       setCameraLoading(false);
-      
-      if (error instanceof Error) {
-        if (error.name === 'NotAllowedError') {
-          setPermissionDenied(true);
-          setError('Camera permission denied. Please allow camera access and try again.');
-        } else if (error.name === 'NotFoundError') {
-          setError('No camera found on this device.');
-        } else if (error.name === 'NotSupportedError') {
-          setError('Camera not supported in this browser.');
-        } else if (error.name === 'OverconstrainedError') {
-          setError('Camera constraints not supported. Switching to mobile scanner...');
-          setTimeout(() => setUseMobileScanner(true), 1000);
-          return;
-        } else {
-          setError(error.message);
-        }
-      } else {
-        setError('Camera access failed. Please check permissions.');
-      }
-
-      toast({
-        title: "Camera Error",
-        description: "Unable to access camera. Switching to mobile scanner...",
-        variant: "destructive",
-      });
-      
-      // Fallback to mobile scanner on error
-      setTimeout(() => setUseMobileScanner(true), 2000);
+      handleCameraError(error);
     }
+  };
+
+  const setupVideoStream = async (mediaStream: MediaStream) => {
+    if (videoRef.current) {
+      videoRef.current.srcObject = mediaStream;
+      setStream(mediaStream);
+      
+      videoRef.current.onloadedmetadata = () => {
+        console.log('📹 Video metadata loaded');
+        if (videoRef.current) {
+          videoRef.current.play().then(() => {
+            console.log('▶️ Video playing, starting QR scan...');
+            setIsScanning(true);
+            setCameraLoading(false);
+            startScanning();
+          }).catch(err => {
+            console.error('❌ Video play error:', err);
+            setError('Failed to start video playback');
+            setCameraLoading(false);
+          });
+        }
+      };
+
+      videoRef.current.onerror = (err) => {
+        console.error('❌ Video error:', err);
+        setError('Video playback error');
+        setCameraLoading(false);
+      };
+    }
+  };
+
+  const handleCameraError = (error: any) => {
+    if (error instanceof Error) {
+      if (error.name === 'NotAllowedError') {
+        setPermissionDenied(true);
+        setError('Camera permission denied. Please allow camera access and try again.');
+      } else if (error.name === 'NotFoundError') {
+        setError('No camera found on this device.');
+      } else if (error.name === 'NotSupportedError') {
+        setError('Camera not supported in this browser.');
+      } else if (error.name === 'OverconstrainedError') {
+        setError('Camera constraints not supported. Switching to mobile scanner...');
+        setTimeout(() => setUseMobileScanner(true), 1000);
+        return;
+      } else {
+        setError(error.message);
+      }
+    } else {
+      setError('Camera access failed. Please check permissions.');
+    }
+
+    toast({
+      title: "Camera Error",
+      description: "Unable to access camera. Switching to mobile scanner...",
+      variant: "destructive",
+    });
+    
+    // Fallback to mobile scanner on error
+    setTimeout(() => setUseMobileScanner(true), 2000);
   };
 
   // Start scanning loop
@@ -297,7 +324,7 @@ const QRCodeScanner: React.FC<QRCodeScannerProps> = ({ onScan, onClose, title = 
             </div>
             <Button onClick={startCamera} className="w-full" size="lg">
               <Camera className="w-5 h-5 mr-2" />
-              Start Camera
+              Request Camera Permission
             </Button>
             <Button variant="outline" onClick={handleManualInput} className="w-full" size="sm">
               Manual Input (Demo)
@@ -308,7 +335,7 @@ const QRCodeScanner: React.FC<QRCodeScannerProps> = ({ onScan, onClose, title = 
         {cameraLoading && (
           <div className="text-center py-8">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">Starting camera...</p>
+            <p className="text-gray-600">Requesting camera permission...</p>
             <p className="text-sm text-gray-500 mt-2">Please allow camera access if prompted</p>
           </div>
         )}

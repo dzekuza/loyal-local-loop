@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -21,7 +20,7 @@ const BusinessDetailPage = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('businesses')
-        .select('*')
+        .select('id, name, email, logo, address, business_type, description, qr_code, created_at, phone')
         .eq('id', id)
         .single();
 

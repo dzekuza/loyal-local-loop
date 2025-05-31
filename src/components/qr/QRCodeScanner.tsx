@@ -83,14 +83,6 @@ const QRCodeScanner: React.FC<QRCodeScannerProps> = ({ onScan, onClose, title = 
         throw new Error('Camera not supported in this browser');
       }
 
-      const isSecure = window.location.protocol === 'https:' || 
-                      window.location.hostname === 'localhost' ||
-                      window.location.hostname === '127.0.0.1';
-      
-      if (!isSecure) {
-        throw new Error('Camera requires HTTPS or localhost');
-      }
-
       console.log('🔒 Requesting camera permissions...');
       
       // First request permission explicitly
@@ -324,7 +316,7 @@ const QRCodeScanner: React.FC<QRCodeScannerProps> = ({ onScan, onClose, title = 
             </div>
             <Button onClick={startCamera} className="w-full" size="lg">
               <Camera className="w-5 h-5 mr-2" />
-              Request Camera Permission
+              Start Camera
             </Button>
             <Button variant="outline" onClick={handleManualInput} className="w-full" size="sm">
               Manual Input (Demo)
@@ -335,8 +327,8 @@ const QRCodeScanner: React.FC<QRCodeScannerProps> = ({ onScan, onClose, title = 
         {cameraLoading && (
           <div className="text-center py-8">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">Requesting camera permission...</p>
-            <p className="text-sm text-gray-500 mt-2">Please allow camera access if prompted</p>
+            <p className="text-gray-600">Starting camera...</p>
+            <p className="text-sm text-gray-500 mt-2">Camera is initializing, please wait</p>
           </div>
         )}
 
@@ -367,11 +359,6 @@ const QRCodeScanner: React.FC<QRCodeScannerProps> = ({ onScan, onClose, title = 
                       Position QR code here
                     </div>
                   </div>
-                </div>
-                
-                {/* Scanning line animation */}
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-48 h-1 bg-green-400 animate-pulse"></div>
                 </div>
               </div>
             </div>

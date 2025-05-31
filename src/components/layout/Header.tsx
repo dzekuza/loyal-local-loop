@@ -12,7 +12,7 @@ import {
 } from '../ui/dropdown-menu';
 import { useAuth } from '@/hooks/useAuth';
 import { useAppStore } from '@/store/useAppStore';
-import { LogOut, User, Settings, Building2, Wallet, CreditCard } from 'lucide-react';
+import { LogOut, User, Settings, Building2, Wallet, CreditCard, Globe } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import LanguageSwitcher from '../ui/language-switcher';
 
@@ -20,7 +20,7 @@ const Header = () => {
   const { user, signOut } = useAuth();
   const { isAuthenticated, userRole, currentUser } = useAppStore();
   const navigate = useNavigate();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   const handleSignOut = async () => {
     await signOut();
@@ -35,6 +35,11 @@ const Header = () => {
     if (currentUser?.name) return currentUser.name;
     if (user?.email) return user.email.split('@')[0];
     return 'User';
+  };
+
+  const toggleLanguage = () => {
+    const newLang = i18n.language === 'en' ? 'lt' : 'en';
+    i18n.changeLanguage(newLang);
   };
 
   return (
@@ -68,7 +73,8 @@ const Header = () => {
 
           {/* Right side */}
           <div className="flex items-center space-x-4">
-            <LanguageSwitcher />
+            {/* Language switcher for non-authenticated users */}
+            {!isAuthenticated && <LanguageSwitcher />}
             
             {isAuthenticated ? (
               <DropdownMenu>
@@ -82,7 +88,7 @@ const Header = () => {
                     </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56" align="end" forceMount>
+                <DropdownMenuContent className="w-56 bg-white z-50" align="end" forceMount>
                   <div className="flex flex-col space-y-1 p-2">
                     <p className="text-sm font-medium leading-none">{getUserDisplayName()}</p>
                     <p className="text-xs leading-none text-muted-foreground">
@@ -118,6 +124,14 @@ const Header = () => {
                       </Link>
                     </DropdownMenuItem>
                   )}
+
+                  <DropdownMenuSeparator />
+                  
+                  {/* Language switcher in dropdown for authenticated users */}
+                  <DropdownMenuItem onClick={toggleLanguage} className="cursor-pointer">
+                    <Globe className="mr-2 h-4 w-4" />
+                    <span>Language: {i18n.language === 'en' ? 'English' : 'Lietuvių'}</span>
+                  </DropdownMenuItem>
 
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer">

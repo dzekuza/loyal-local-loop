@@ -11,6 +11,7 @@ export type Database = {
     Tables: {
       businesses: {
         Row: {
+          address: string | null
           business_type: string
           created_at: string | null
           description: string | null
@@ -18,10 +19,12 @@ export type Database = {
           id: string
           logo: string | null
           name: string
+          phone: string | null
           qr_code: string | null
           user_id: string | null
         }
         Insert: {
+          address?: string | null
           business_type: string
           created_at?: string | null
           description?: string | null
@@ -29,10 +32,12 @@ export type Database = {
           id?: string
           logo?: string | null
           name: string
+          phone?: string | null
           qr_code?: string | null
           user_id?: string | null
         }
         Update: {
+          address?: string | null
           business_type?: string
           created_at?: string | null
           description?: string | null
@@ -40,6 +45,7 @@ export type Database = {
           id?: string
           logo?: string | null
           name?: string
+          phone?: string | null
           qr_code?: string | null
           user_id?: string | null
         }

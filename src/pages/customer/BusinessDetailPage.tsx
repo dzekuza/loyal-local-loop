@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -60,7 +61,7 @@ const BusinessDetailPage = () => {
 
   if (businessLoading) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gray-50 overflow-x-hidden">
         {/* Header Skeleton */}
         <div className="h-48 bg-gradient-to-br from-purple-500 to-blue-600 relative">
           <div className="absolute top-4 left-4">
@@ -71,12 +72,12 @@ const BusinessDetailPage = () => {
           </div>
         </div>
         
-        <div className="container mx-auto px-4 pt-12 pb-8">
+        <div className="container mx-auto px-4 pt-12 pb-8 max-w-full">
           <div className="space-y-6">
             <div className="space-y-2">
-              <Skeleton className="h-8 w-64" />
+              <Skeleton className="h-8 w-64 max-w-full" />
               <Skeleton className="h-5 w-32" />
-              <Skeleton className="h-4 w-96" />
+              <Skeleton className="h-4 w-full max-w-96" />
             </div>
             
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -95,16 +96,16 @@ const BusinessDetailPage = () => {
 
   if (!business) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Card className="max-w-md mx-auto">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <Card className="max-w-md mx-auto w-full">
           <CardHeader>
-            <CardTitle>Business Not Found</CardTitle>
+            <CardTitle className="text-lg sm:text-xl">Business Not Found</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-gray-600 mb-4">
+            <p className="text-gray-600 mb-4 text-sm sm:text-base">
               The business you're looking for doesn't exist or has been removed.
             </p>
-            <Button asChild>
+            <Button asChild className="w-full sm:w-auto">
               <Link to="/businesses">
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Back to Businesses
@@ -117,7 +118,7 @@ const BusinessDetailPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 overflow-x-hidden">
       {/* Hero Section */}
       <div className="relative h-48 md:h-64 overflow-hidden">
         {business.coverImage ? (
@@ -156,21 +157,21 @@ const BusinessDetailPage = () => {
       </div>
 
       {/* Content */}
-      <div className="container mx-auto px-4 pt-12 pb-8">
+      <div className="container mx-auto px-4 pt-12 pb-8 max-w-full overflow-x-hidden">
         <div className="space-y-6">
           {/* Business Header Info */}
           <div className="space-y-3">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-              <div className="space-y-2">
-                <h1 className="text-2xl md:text-3xl font-bold text-gray-900 break-words">
+              <div className="space-y-2 min-w-0 flex-1">
+                <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 break-words leading-tight">
                   {business.name}
                 </h1>
                 <div className="flex flex-wrap items-center gap-2">
-                  <Badge variant="secondary" className="text-sm">
+                  <Badge variant="secondary" className="text-xs sm:text-sm">
                     {business.businessType}
                   </Badge>
                   {offers && offers.length > 0 && (
-                    <Badge variant="default" className="text-sm bg-green-600">
+                    <Badge variant="default" className="text-xs sm:text-sm bg-green-600">
                       <Gift className="w-3 h-3 mr-1" />
                       {offers.length} {t('business.activeOffers')}
                     </Badge>
@@ -180,7 +181,7 @@ const BusinessDetailPage = () => {
             </div>
             
             {business.description && (
-              <p className="text-gray-600 leading-relaxed max-w-3xl break-words">
+              <p className="text-sm sm:text-base text-gray-600 leading-relaxed break-words">
                 {business.description}
               </p>
             )}
@@ -189,11 +190,11 @@ const BusinessDetailPage = () => {
           {/* Main Content Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Left Column - Offers */}
-            <div className="lg:col-span-2 space-y-6">
+            <div className="lg:col-span-2 space-y-6 min-w-0">
               {/* Active Offers Section */}
               <Card>
                 <CardHeader>
-                  <CardTitle className="flex items-center space-x-2">
+                  <CardTitle className="flex items-center space-x-2 text-lg sm:text-xl">
                     <Gift className="w-5 h-5 text-green-600" />
                     <span>Active Offers</span>
                   </CardTitle>
@@ -203,7 +204,7 @@ const BusinessDetailPage = () => {
                     <div className="space-y-4">
                       {[1, 2].map((i) => (
                         <div key={i} className="p-4 border rounded-lg">
-                          <Skeleton className="h-5 w-48 mb-2" />
+                          <Skeleton className="h-5 w-48 mb-2 max-w-full" />
                           <Skeleton className="h-4 w-full mb-2" />
                           <Skeleton className="h-4 w-24" />
                         </div>
@@ -215,12 +216,12 @@ const BusinessDetailPage = () => {
                         <div key={offer.id} className="p-4 border rounded-lg hover:bg-gray-50 transition-colors">
                           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                             <div className="flex-1 min-w-0">
-                              <h3 className="font-semibold text-lg mb-1 break-words">
+                              <h3 className="font-semibold text-base sm:text-lg mb-1 break-words">
                                 {offer.reward_description}
                               </h3>
                               <div className="flex items-center space-x-1 text-purple-600">
                                 <Star className="w-4 h-4" />
-                                <span className="text-sm font-medium">
+                                <span className="text-xs sm:text-sm font-medium">
                                   {offer.reward_threshold} points needed
                                 </span>
                               </div>
@@ -232,8 +233,8 @@ const BusinessDetailPage = () => {
                   ) : (
                     <div className="text-center py-8">
                       <Gift className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-                      <p className="text-gray-500">No active offers at the moment</p>
-                      <p className="text-sm text-gray-400">Check back later for new deals!</p>
+                      <p className="text-gray-500 text-sm sm:text-base">No active offers at the moment</p>
+                      <p className="text-xs sm:text-sm text-gray-400">Check back later for new deals!</p>
                     </div>
                   )}
                 </CardContent>
@@ -241,7 +242,7 @@ const BusinessDetailPage = () => {
             </div>
 
             {/* Right Column - Business Info & Actions */}
-            <div className="space-y-6">
+            <div className="space-y-6 min-w-0">
               {/* Loyalty Program Card */}
               <CustomerLoyaltyCard business={business} />
 
@@ -256,7 +257,7 @@ const BusinessDetailPage = () => {
                       <Mail className="w-4 h-4 text-gray-500 flex-shrink-0" />
                       <a 
                         href={`mailto:${business.email}`}
-                        className="text-blue-600 hover:underline break-all"
+                        className="text-blue-600 hover:underline break-all text-sm sm:text-base"
                       >
                         {business.email}
                       </a>
@@ -268,7 +269,7 @@ const BusinessDetailPage = () => {
                       <Phone className="w-4 h-4 text-gray-500 flex-shrink-0" />
                       <a 
                         href={`tel:${business.phone}`}
-                        className="text-blue-600 hover:underline break-all"
+                        className="text-blue-600 hover:underline break-all text-sm sm:text-base"
                       >
                         {business.phone}
                       </a>
@@ -278,7 +279,7 @@ const BusinessDetailPage = () => {
                   {business.address && (
                     <div className="flex items-start space-x-3">
                       <MapPin className="w-4 h-4 text-gray-500 flex-shrink-0 mt-0.5" />
-                      <span className="text-gray-600 break-words">
+                      <span className="text-gray-600 break-words text-sm sm:text-base">
                         {business.address}
                       </span>
                     </div>

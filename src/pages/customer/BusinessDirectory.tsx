@@ -57,8 +57,8 @@ const BusinessDirectory = () => {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">{t('nav.businesses')}</h1>
-        <p className="text-gray-600">Discover local businesses and their loyalty programs</p>
+        <h1 className="text-2xl md:text-3xl font-bold mb-2">{t('nav.businesses')}</h1>
+        <p className="text-gray-600 break-words">Discover local businesses and their loyalty programs</p>
       </div>
 
       <div className="mb-6">
@@ -86,7 +86,7 @@ const BusinessDirectory = () => {
             <Card key={i} className="hover:shadow-lg transition-all duration-300">
               <CardHeader className="pb-3">
                 <div className="flex items-start space-x-3">
-                  <Skeleton className="w-12 h-12 rounded-lg" />
+                  <Skeleton className="w-12 h-12 rounded-lg flex-shrink-0" />
                   <div className="flex-1 min-w-0">
                     <Skeleton className="h-5 w-32 mb-2" />
                     <Skeleton className="h-4 w-20" />
@@ -106,11 +106,18 @@ const BusinessDirectory = () => {
         </div>
       ) : filteredBusinesses && filteredBusinesses.length > 0 ? (
         <>
-          <div className="flex items-center justify-between mb-4">
-            <p className="text-gray-600">
-              Showing {filteredBusinesses.length} of {businesses?.length || 0} businesses
-              {showSpecialDeals && <Badge variant="secondary" className="ml-2">With Special Deals</Badge>}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-2">
+            <p className="text-gray-600 break-words">
+              {t('search.showingResults', { 
+                count: filteredBusinesses.length, 
+                total: businesses?.length || 0 
+              })}
             </p>
+            {showSpecialDeals && (
+              <Badge variant="secondary" className="self-start sm:self-auto">
+                With Special Deals
+              </Badge>
+            )}
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredBusinesses.map((business) => (
@@ -125,10 +132,10 @@ const BusinessDirectory = () => {
       ) : (
         <Card className="max-w-md mx-auto">
           <CardHeader>
-            <CardTitle>No Businesses Found</CardTitle>
+            <CardTitle>{t('search.noResults')}</CardTitle>
           </CardHeader>
           <CardContent>
-            <p>
+            <p className="break-words">
               {searchTerm || selectedCategory !== 'All' || showSpecialDeals
                 ? 'No businesses match your current filters. Try adjusting your search criteria.'
                 : 'There are no businesses in the directory yet. Check back later!'}

@@ -1,103 +1,78 @@
 
 import React, { useState } from 'react';
-import { useAuth } from '@/hooks/useAuth';
-import { useAppStore } from '@/store/useAppStore';
-import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { Button } from '../ui/button';
-import { Input } from '../ui/input';
-import { Label } from '../ui/label';
-import { Textarea } from '../ui/textarea';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import { Loader2, Gift } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface EnhancedOfferFormProps {
-  onOfferCreated?: () => void;
+  businessId: string;
+  onSuccess?: () => void;
+  onCancel?: () => void;
 }
 
-const EnhancedOfferForm = ({ onOfferCreated }: EnhancedOfferFormProps) => {
-  const { user } = useAuth();
-  const { currentBusiness } = useAppStore();
+const EnhancedOfferForm: React.FC<EnhancedOfferFormProps> = ({
+  businessId,
+  onSuccess,
+  onCancel
+}) => {
+  const { t } = useTranslation();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
-    offer_name: '',
-    short_description: '',
-    spend_amount: '',
-    points_earned: '',
-    reward_threshold: ''
+    offerName: '',
+    shortDescription: '',
+    pointsNeeded: '',
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!currentBusiness || !user) {
+    
+    if (!formData.offerName.trim() || !formData.pointsNeeded) {
       toast({
-        title: "Error",
-        description: "Business profile or user authentication missing",
+        title: "Validation Error",
+        description: "Please fill in all required fields",
         variant: "destructive",
       });
       return;
     }
 
     setLoading(true);
-
     try {
-      console.log('Creating offer with data:', {
-        business_id: currentBusiness.id,
-        offer_name: formData.offer_name,
-        short_description: formData.short_description,
-        spend_amount: parseInt(formData.spend_amount),
-        points_earned: parseInt(formData.points_earned),
-        reward_threshold: parseInt(formData.reward_threshold),
-        is_active: true
-      });
-
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('loyalty_offers')
         .insert({
-          business_id: currentBusiness.id,
-          offer_name: formData.offer_name,
-          short_description: formData.short_description,
-          reward_description: formData.offer_name, // Keep for backward compatibility
-          spend_amount: parseInt(formData.spend_amount),
-          points_earned: parseInt(formData.points_earned),
-          reward_threshold: parseInt(formData.reward_threshold),
+          business_id: businessId,
+          reward_name: formData.offerName.trim(),
+          short_description: formData.shortDescription.trim() || null,
+          reward_threshold: parseInt(formData.pointsNeeded),
           is_active: true
-        })
-        .select()
-        .single();
-
-      console.log('Offer creation result:', { data, error });
-
-      if (error) {
-        console.error('Error creating offer:', error);
-        toast({
-          title: "Database Error",
-          description: `Failed to create offer: ${error.message}`,
-          variant: "destructive",
         });
-        return;
-      }
+
+      if (error) throw error;
 
       toast({
-        title: "Offer Created",
-        description: "Your loyalty offer has been created successfully!",
+        title: "Success! 🎉",
+        description: "Your offer has been created successfully!",
       });
 
       setFormData({
-        offer_name: '',
-        short_description: '',
-        spend_amount: '',
-        points_earned: '',
-        reward_threshold: ''
+        offerName: '',
+        shortDescription: '',
+        pointsNeeded: '',
       });
 
-      onOfferCreated?.();
+      onSuccess?.();
     } catch (error) {
-      console.error('Unexpected error creating offer:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      console.error('Error creating offer:', error);
       toast({
         title: "Error",
-        description: `Unexpected error: ${errorMessage}`,
+        description: "Failed to create offer. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -105,76 +80,111 @@ const EnhancedOfferForm = ({ onOfferCreated }: EnhancedOfferFormProps) => {
     }
   };
 
+  const handleInputChange = (field: string, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Create New Offer</CardTitle>
+        <CardTitle className="flex items-center space-x-2">
+          <Gift className="w-5 h-5 text-purple-600" />
+          <span>{t('offers.create')}</span>
+        </CardTitle>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <Label htmlFor="offer_name">Offer Name *</Label>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Offer Name - Required */}
+          <div className="space-y-2">
+            <Label htmlFor="offerName" className="text-sm font-medium">
+              {t('offers.name')} <span className="text-red-500">*</span>
+            </Label>
             <Input
-              id="offer_name"
-              value={formData.offer_name}
-              onChange={(e) => setFormData({ ...formData, offer_name: e.target.value })}
-              placeholder="e.g., Free Coffee Reward"
+              id="offerName"
+              type="text"
+              value={formData.offerName}
+              onChange={(e) => handleInputChange('offerName', e.target.value)}
+              placeholder="e.g., Free Coffee, 20% Discount, Buy One Get One"
+              className="w-full"
+              maxLength={100}
               required
             />
+            <p className="text-xs text-gray-500">
+              This will be the main headline for your offer
+            </p>
           </div>
 
-          <div>
-            <Label htmlFor="short_description">Short Description</Label>
+          {/* Short Description - Optional */}
+          <div className="space-y-2">
+            <Label htmlFor="shortDescription" className="text-sm font-medium">
+              {t('offers.shortDescription')}
+            </Label>
             <Textarea
-              id="short_description"
-              value={formData.short_description}
-              onChange={(e) => setFormData({ ...formData, short_description: e.target.value })}
-              placeholder="Brief description of your offer..."
-              rows={2}
+              id="shortDescription"
+              value={formData.shortDescription}
+              onChange={(e) => handleInputChange('shortDescription', e.target.value)}
+              placeholder="Provide additional details about your offer..."
+              className="w-full min-h-[80px]"
+              maxLength={250}
             />
+            <p className="text-xs text-gray-500">
+              Optional: Add more details about your offer (max 250 characters)
+            </p>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="spend_amount">Spend Amount ($) *</Label>
-              <Input
-                id="spend_amount"
-                type="number"
-                value={formData.spend_amount}
-                onChange={(e) => setFormData({ ...formData, spend_amount: e.target.value })}
-                placeholder="10"
-                required
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="points_earned">Points Earned *</Label>
-              <Input
-                id="points_earned"
-                type="number"
-                value={formData.points_earned}
-                onChange={(e) => setFormData({ ...formData, points_earned: e.target.value })}
-                placeholder="1"
-                required
-              />
-            </div>
-          </div>
-
-          <div>
-            <Label htmlFor="reward_threshold">Points Needed for Reward *</Label>
+          {/* Points Needed - Required */}
+          <div className="space-y-2">
+            <Label htmlFor="pointsNeeded" className="text-sm font-medium">
+              {t('offers.pointsNeeded')} <span className="text-red-500">*</span>
+            </Label>
             <Input
-              id="reward_threshold"
+              id="pointsNeeded"
               type="number"
-              value={formData.reward_threshold}
-              onChange={(e) => setFormData({ ...formData, reward_threshold: e.target.value })}
-              placeholder="10"
+              value={formData.pointsNeeded}
+              onChange={(e) => handleInputChange('pointsNeeded', e.target.value)}
+              placeholder="100"
+              className="w-full"
+              min="1"
+              max="10000"
               required
             />
+            <p className="text-xs text-gray-500">
+              How many points customers need to redeem this offer
+            </p>
           </div>
 
-          <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? 'Creating...' : 'Create Offer'}
-          </Button>
+          {/* Form Actions */}
+          <div className="flex flex-col sm:flex-row gap-3 pt-4">
+            <Button
+              type="submit"
+              disabled={loading}
+              className="flex-1 sm:flex-none"
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Creating...
+                </>
+              ) : (
+                'Create Offer'
+              )}
+            </Button>
+            
+            {onCancel && (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onCancel}
+                disabled={loading}
+                className="flex-1 sm:flex-none"
+              >
+                {t('common.cancel')}
+              </Button>
+            )}
+          </div>
         </form>
       </CardContent>
     </Card>

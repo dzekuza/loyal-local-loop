@@ -2,6 +2,7 @@
 import React from 'react';
 import { Badge } from '../ui/badge';
 import { ScrollArea } from '../ui/scroll-area';
+import { useTranslation } from 'react-i18next';
 
 interface BusinessCategoryFilterProps {
   categories: string[];
@@ -14,21 +15,23 @@ const BusinessCategoryFilter: React.FC<BusinessCategoryFilterProps> = ({
   selectedCategory,
   onCategoryChange,
 }) => {
+  const { t } = useTranslation();
+
   return (
     <ScrollArea className="w-full">
       <div className="flex space-x-2 pb-2">
         <Badge
           variant={selectedCategory === 'All' ? 'default' : 'outline'}
-          className="cursor-pointer whitespace-nowrap"
+          className="cursor-pointer whitespace-nowrap flex-shrink-0"
           onClick={() => onCategoryChange('All')}
         >
-          All Categories
+          {t('business.categories.all')}
         </Badge>
         {categories.map((category) => (
           <Badge
             key={category}
             variant={selectedCategory === category ? 'default' : 'outline'}
-            className="cursor-pointer whitespace-nowrap"
+            className="cursor-pointer whitespace-nowrap flex-shrink-0"
             onClick={() => onCategoryChange(category)}
           >
             {category}

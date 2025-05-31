@@ -6,12 +6,14 @@ import { Button } from '../ui/button';
 import { Building2, MapPin, Gift } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Business } from '@/types';
+import { useTranslation } from 'react-i18next';
 
 interface BusinessPreviewCardProps {
   business: Business;
 }
 
 const BusinessPreviewCard: React.FC<BusinessPreviewCardProps> = ({ business }) => {
+  const { t } = useTranslation();
   const offersCount = business.loyaltyOffers?.length || 0;
 
   return (
@@ -54,28 +56,30 @@ const BusinessPreviewCard: React.FC<BusinessPreviewCardProps> = ({ business }) =
 
       <CardContent className="pt-0">
         {business.description && (
-          <p className="text-gray-600 text-sm mb-3 line-clamp-2">
+          <p className="text-gray-600 text-sm mb-3 line-clamp-2 break-words">
             {business.description}
           </p>
         )}
         
         {business.address && (
           <div className="flex items-center text-xs text-gray-500 mb-3">
-            <MapPin className="w-3 h-3 mr-1" />
+            <MapPin className="w-3 h-3 mr-1 flex-shrink-0" />
             <span className="truncate">{business.address}</span>
           </div>
         )}
 
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center text-sm text-green-600">
-            <Gift className="w-4 h-4 mr-1" />
-            <span>{offersCount} active offers</span>
+            <Gift className="w-4 h-4 mr-1 flex-shrink-0" />
+            <span className="truncate">
+              {offersCount} {t('business.activeOffers')}
+            </span>
           </div>
         </div>
         
         <Button asChild variant="outline" size="sm" className="w-full">
           <Link to={`/business/${business.id}`}>
-            View Profile
+            {t('business.viewProfile')}
           </Link>
         </Button>
       </CardContent>

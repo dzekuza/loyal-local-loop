@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
@@ -15,6 +14,16 @@ interface QRCodeScannerProps {
 }
 
 const QRCodeScanner: React.FC<QRCodeScannerProps> = ({ onScan, onClose, title = "Scan QR Code" }) => {
+  // Check device info BEFORE any hooks to avoid hook violations
+  const deviceInfo = detectDevice();
+  
+  // Early routing to mobile scanner for problematic devices - moved before hooks
+  if (deviceInfo.isProblematicDevice || deviceInfo.isMobile) {
+    console.log('📱 Auto-routing to mobile scanner for device:', deviceInfo);
+    return <MobileQRScanner onScan={onScan} onClose={onClose} title={title} />;
+  }
+
+  // Now we can safely use hooks since we won't early return
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationRef = useRef<number | null>(null);
@@ -26,17 +35,7 @@ const QRCodeScanner: React.FC<QRCodeScannerProps> = ({ onScan, onClose, title = 
   const [useMobileScanner, setUseMobileScanner] = useState(false);
   const { toast } = useToast();
 
-  const deviceInfo = detectDevice();
-
-  // Auto-route to mobile scanner for problematic devices
-  useEffect(() => {
-    if (deviceInfo.isProblematicDevice || deviceInfo.isMobile) {
-      console.log('📱 Auto-routing to mobile scanner for device:', deviceInfo);
-      setUseMobileScanner(true);
-    }
-  }, [deviceInfo]);
-
-  // If using mobile scanner, render that instead
+  // If user manually switches to mobile scanner, render that
   if (useMobileScanner) {
     return <MobileQRScanner onScan={onScan} onClose={onClose} title={title} />;
   }
@@ -85,7 +84,6 @@ const QRCodeScanner: React.FC<QRCodeScannerProps> = ({ onScan, onClose, title = 
 
       console.log('🔒 Requesting camera permissions...');
       
-      // First request permission explicitly
       const permissionGranted = await requestCameraPermission();
       
       if (!permissionGranted) {
@@ -105,7 +103,6 @@ const QRCodeScanner: React.FC<QRCodeScannerProps> = ({ onScan, onClose, title = 
       } catch (error) {
         console.warn('⚠️ Full constraints failed, trying basic constraints');
         
-        // Fallback to basic constraints
         const basicConstraints = getBasicCameraConstraints();
         const mediaStream = await navigator.mediaDevices.getUserMedia(basicConstraints);
         console.log('✅ Camera access granted with basic constraints');

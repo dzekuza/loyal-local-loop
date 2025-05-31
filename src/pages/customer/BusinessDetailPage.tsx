@@ -21,7 +21,7 @@ const BusinessDetailPage = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('businesses')
-        .select('id, name, email, logo, address, business_type, description, qr_code, created_at, phone')
+        .select('id, name, email, logo, cover_image, address, business_type, description, qr_code, created_at, phone')
         .eq('id', id)
         .single();
 
@@ -33,6 +33,7 @@ const BusinessDetailPage = () => {
         name: data.name,
         email: data.email,
         logo: data.logo,
+        coverImage: data.cover_image,
         address: data.address,
         businessType: data.business_type,
         description: data.description,
@@ -132,7 +133,7 @@ const BusinessDetailPage = () => {
         )}
         
         {/* Back Button */}
-        <div className="absolute top-4 left-4">
+        <div className="absolute top-4 left-4 z-20">
           <Button asChild variant="secondary" size="icon" className="bg-white/90 backdrop-blur-sm">
             <Link to="/businesses">
               <ArrowLeft className="w-4 h-4" />
@@ -141,7 +142,7 @@ const BusinessDetailPage = () => {
         </div>
         
         {/* Logo */}
-        <div className="absolute -bottom-8 left-4 md:left-8">
+        <div className="absolute -bottom-8 left-4 md:left-8 z-20">
           <div className="w-16 h-16 md:w-20 md:h-20 bg-white rounded-xl shadow-lg flex items-center justify-center border-4 border-white">
             {business.logo ? (
               <img 

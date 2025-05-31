@@ -30,7 +30,7 @@ const BusinessPreviewCard: React.FC<BusinessPreviewCardProps> = ({ business }) =
           <div className="w-full h-full bg-gradient-to-br from-purple-500 to-blue-600" />
         )}
         {/* Logo positioned over cover */}
-        <div className="absolute -bottom-6 left-4">
+        <div className="absolute -bottom-6 left-4 z-10">
           <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center shadow-lg border">
             {business.logo ? (
               <img src={business.logo} alt={business.name} className="w-10 h-10 object-cover rounded-md" />

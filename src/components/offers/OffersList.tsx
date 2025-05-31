@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useAppStore } from '@/store/useAppStore';
 import { supabase } from '@/integrations/supabase/client';
@@ -70,7 +69,12 @@ const OffersList = () => {
       }
 
       console.log('Successfully fetched offers:', data);
-      setOffers(data || []);
+      // Type assertion to ensure offer_type is properly typed
+      const typedOffers = (data || []).map(offer => ({
+        ...offer,
+        offer_type: (offer.offer_type as 'points_deal' | 'special_offer') || 'points_deal'
+      }));
+      setOffers(typedOffers);
     } catch (error) {
       console.error('Unexpected error fetching offers:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';

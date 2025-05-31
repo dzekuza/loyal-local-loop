@@ -21,7 +21,11 @@ export const useLoyaltyOffers = (businessId?: string) => {
         throw error;
       }
 
-      return data || [];
+      // Type cast the data to match our LoyaltyOffer interface
+      return (data || []).map(item => ({
+        ...item,
+        offer_type: (item.offer_type as 'points_deal' | 'special_offer') || 'points_deal'
+      }));
     },
     enabled: !!businessId,
   });

@@ -1,3 +1,4 @@
+
 {
   "nav": {
     "home": "Home",
@@ -116,7 +117,19 @@
     "redemptionFailedMessage": "Failed to redeem reward. Please try again.",
     "keepEarning": "Keep earning points to unlock rewards!",
     "noRewardsYet": "No rewards available yet",
-    "loadingOffers": "Loading offers..."
+    "loadingOffers": "Loading offers...",
+    "qrCode": {
+      "title": "Your QR Code",
+      "description": "Show this QR code to earn points at {businessName}"
+    },
+    "wallet": {
+      "title": "Add to Wallet",
+      "description": "Choose how you'd like to save your {businessName} loyalty card:",
+      "web": "Web Wallet",
+      "pwa": "Install as App (PWA)",
+      "google": "Google Wallet",
+      "apple": "Apple Wallet"
+    }
   },
   "wallet": {
     "title": "My Loyalty Wallet",

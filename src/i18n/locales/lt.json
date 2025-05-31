@@ -1,133 +1,101 @@
 
 {
   "nav": {
-    "home": "Pagrindinis",
     "businesses": "Verslas",
-    "wallet": "Piniginė",
-    "dashboard": "Valdymo skydelis",
-    "profile": "Profilis",
-    "login": "Prisijungti",
-    "register": "Registruotis",
-    "logout": "Atsijungti"
+    "wallet": "Mano Piniginė",
+    "dashboard": "Valdymo Skydelis",
+    "profile": "Profilio Nustatymai",
+    "signIn": "Prisijungti",
+    "signUp": "Registruotis",
+    "signOut": "Atsijungti"
   },
   "home": {
-    "hero": {
-      "badge": "Lojalumo Atlyginimų Platforma",
-      "title1": "Jūsų lojalumo kortelės,",
-      "title2": "supaprastintos."
-    },
-    "explore": {
-      "title": "Naršykite pasiūlymus aplinkui",
-      "subtitle": "Atraskite nuostabius sandorius ir lojalumo programas iš vietinių verslų"
-    },
+    "title": "Skaitmeninė Lojalumo Piniginė",
+    "subtitle": "Rinkite lojalumo taškus iš savo mėgstamų verslų ir niekada nebepraraskite kortelės",
+    "exploreOffers": "Ištyrinėkite pasiūlymus aplink jus",
+    "getStarted": "Pradėti",
     "features": {
-      "title": "Viskas, ko reikia daugiau uždirbti",
-      "subtitle": "Paprasti, galingi įrankiai, padedantys gauti maksimalų naudą iš vietinių apsipirkimų."
+      "title": "Kodėl Pasirinkti LoyaltyWallet?",
+      "digital": {
+        "title": "Skaitmeninis Patogumas",
+        "description": "Nereikia nešiotis fizinių kortelių"
+      },
+      "rewards": {
+        "title": "Uždirbkite Apdovanojimus",
+        "description": "Rinkite taškus ir atrakinkite ekskluzyvius pasiūlymus"
+      },
+      "business": {
+        "title": "Verslui",
+        "description": "Įtraukite klientus su skaitmeninėmis lojalumo programomis"
+      }
     },
     "testimonials": {
-      "title": "Mylimi klientų visur",
-      "subtitle": "Pažiūrėkite, ką žmonės sako apie savo lojalumo atlyginimų patirtį"
+      "title": "Ką Sako Mūsų Vartotojai",
+      "customer": {
+        "text": "LoyaltyWallet labai palengvino mano lojalumo kortelių valdymą!",
+        "author": "Sarah M., Klientė"
+      },
+      "business": {
+        "text": "Mūsų klientų įsitraukimas žymiai išaugo naudojant LoyaltyWallet.",
+        "author": "John D., Verslo Savininkas"
+      }
     },
-    "business": {
-      "badge": "Verslo Savininkams",
-      "title": "Turite verslą?",
-      "titleHighlight": "Prisijunkite dabar.",
-      "subtitle": "Sukurkite modernią lojalumo programą, kurią pamils jūsų klientai. Padidinkite išlaikymą, padidinkite pardavimus ir kurkite ilgalaikius santykius.",
-      "features": [
-        "Padidinkite klientų išlaikymą 25%",
-        "Lengvas QR kodo nustatymas per minutes", 
-        "Realaus laiko analitikos skydelis",
-        "Apple Wallet integracija įtraukta"
-      ],
-      "startProgram": "Pradėti Programą",
-      "learnMore": "Sužinoti Daugiau"
-    },
-    "cta": {
-      "title": "Pasiruošę pradėti uždirbti atlygius?",
-      "subtitle": "Prisijunkite prie tūkstančių klientų, kurie jau kaupia taškus ir atrakina atlygius.",
-      "button": "Pradėti Šiandien"
-    },
-    "brands": {
-      "title": "Pasitiki šie įmonės"
-    }
+    "trustedBy": "Patikimas verslų"
+  },
+  "business": {
+    "viewProfile": "Peržiūrėti Profilį",
+    "activeOffers": "aktyvūs pasiūlymai"
   },
   "wallet": {
-    "title": "Mano Piniginė",
-    "description": "Tvarkykite savo lojalumo korteles įvairiais formatais - viskas nemokamai!",
-    "addCards": "Pridėti Korteles",
+    "title": "Mano Lojalumo Piniginė",
+    "description": "Tvarkykite visas savo lojalumo korteles vienoje vietoje",
+    "noCards": "Dar nėra lojalumo kortelių",
+    "noCardsDescription": "Pradėkite tyrinėti verslus, kad prisijungtumėte prie jų lojalumo programų",
+    "exploreBusinesses": "Tyrinėti Verslus",
     "backToBusinesses": "Grįžti į Verslus",
-    "noCards": "Kol Kas Nėra Lojalumo Kortelių",
-    "noCardsDescription": "Prisijunkite prie verslo lojalumo programų ir pradėkite kaupti taškus",
-    "exploreBusinesses": "Naršyti Verslus",
-    "totalPoints": "Visi Taškai",
-    "points": "Taškai",
-    "lastActivity": "Paskutinis aktyvumas",
-    "viewBusinessDetails": "Peržiūrėti Verslo Detales",
-    "tabs": {
-      "web": "Web Kortelės",
-      "pwa": "PWA Piniginė",
-      "google": "Google Piniginė",
-      "apple": "Apple Piniginė",
-      "download": "Atsisiųsti"
-    }
+    "addCards": "Pridėti Korteles"
   },
   "profile": {
-    "title": "Redaguoti Profilį",
-    "avatar": "Avataras",
-    "avatarUpload": "Įkelti naują avatarą (neprivaloma)",
-    "firstName": "Vardas",
-    "lastName": "Pavardė",
-    "email": "El. paštas",
-    "phone": "Telefono numeris",
-    "phoneOptional": "Neprivaloma",
-    "updateProfile": "Atnaujinti Profilį",
-    "updating": "Atnaujinama...",
+    "title": "Profilio Nustatymai",
+    "personalInfo": "Asmeninė Informacija",
+    "name": "Pilnas Vardas",
+    "email": "El. Pašto Adresas",
+    "phone": "Telefono Numeris",
+    "avatar": "Profilio Nuotrauka",
+    "changeAvatar": "Keisti Avataras",
+    "save": "Išsaugoti Pakeitimus",
+    "saving": "Išsaugoma...",
+    "success": "Profilis sėkmingai atnaujintas!",
+    "error": "Nepavyko atnaujinti profilio",
+    "security": "Saugumas",
     "changePassword": "Keisti Slaptažodį",
     "currentPassword": "Dabartinis Slaptažodis",
     "newPassword": "Naujas Slaptažodis",
     "confirmPassword": "Patvirtinti Naują Slaptažodį",
     "updatePassword": "Atnaujinti Slaptažodį",
-    "cancel": "Atšaukti",
-    "emailUpdate": "El. pašto Atnaujinimas",
-    "emailUpdateDescription": "Patikrinkite savo naują el. paštą, kad patvirtintumėte pakeitimą",
-    "profileUpdateSuccess": "Profilis sėkmingai atnaujintas",
-    "passwordUpdateSuccess": "Slaptažodis sėkmingai atnaujintas",
-    "profileUpdateError": "Nepavyko atnaujinti profilio",
-    "passwordUpdateError": "Nepavyko atnaujinti slaptažodžio"
-  },
-  "business": {
-    "activeOffers": "aktyvūs pasiūlymai",
-    "viewProfile": "Peržiūrėti Profilį"
-  },
-  "appleWallet": {
-    "addToWallet": "Pridėti į Apple Piniginę",
-    "generating": "Generuojamas Praleistumas...",
-    "success": "Pridėta į Apple Piniginę!",
-    "error": "Nepavyko pridėti į Apple Piniginę",
-    "description": "Pridėkite šią lojalumo kortelę į Apple Piniginę lengvam priėjimui"
-  },
-  "subscription": {
-    "freeTrial": "Nemokamas Bandymas",
-    "trialDaysLeft": "Liko {{days}} dienų",
-    "trialExpired": "Bandymas Baigėsi",
-    "subscribe": "Prenumeruoti Dabar",
-    "monthly": "Mėnesinis",
-    "price": "€19/mėn",
-    "features": {
-      "unlimited": "Neribotai lojalumo programų",
-      "analytics": "Išplėstinė analitika",
-      "support": "Pirmenybės palaikymas",
-      "integrations": "Trečiųjų šalių integracijos"
-    }
+    "passwordSuccess": "Slaptažodis sėkmingai atnaujintas!",
+    "passwordError": "Nepavyko atnaujinti slaptažodžio"
   },
   "common": {
     "loading": "Kraunama...",
     "error": "Klaida",
     "success": "Sėkmė",
-    "cancel": "Atšaukti",
     "save": "Išsaugoti",
-    "delete": "Ištrinti",
+    "cancel": "Atšaukti",
     "edit": "Redaguoti",
-    "back": "Atgal"
+    "delete": "Ištrinti",
+    "yes": "Taip",
+    "no": "Ne"
+  },
+  "subscription": {
+    "monthly": "Mėnesinis",
+    "price": "9,99€/mėn",
+    "subscribe": "Prenumeruoti Dabar",
+    "features": {
+      "unlimited": "Neriboto lojalumo programos",
+      "analytics": "Išplėstinė analitika",
+      "support": "Pirmesnis palaikymas",
+      "integrations": "Trečių šalių integracijos"
+    }
   }
 }

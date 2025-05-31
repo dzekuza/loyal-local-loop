@@ -1,182 +1,143 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '../ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '../ui/dropdown-menu';
 import { useAuth } from '@/hooks/useAuth';
 import { useAppStore } from '@/store/useAppStore';
-import { LogOut, User, Store, Menu, X } from 'lucide-react';
+import { LogOut, User, Settings, Building2, Wallet, CreditCard } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import LanguageSwitcher from '../ui/language-switcher';
 
 const Header = () => {
-  const navigate = useNavigate();
   const { user, signOut } = useAuth();
-  const { userRole, currentUser } = useAppStore();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { isAuthenticated, userRole, currentUser } = useAppStore();
+  const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const handleSignOut = async () => {
-    try {
-      await signOut();
-      navigate('/');
-    } catch (error) {
-      console.error('Sign out error:', error);
-    }
+    await signOut();
+    navigate('/');
+  };
+
+  const getProfilePath = () => {
+    return userRole === 'business' ? '/business-profile' : '/customer-profile';
+  };
+
+  const getUserDisplayName = () => {
+    if (currentUser?.name) return currentUser.name;
+    if (user?.email) return user.email.split('@')[0];
+    return 'User';
   };
 
   return (
-    <header className="header bg-white border-b border-gray-200 sticky top-0 z-50">
-      <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-16">
+    <header className="bg-white shadow-sm border-b sticky top-0 z-50">
+      <div className="container mx-auto px-4 py-4">
+        <div className="flex items-center justify-between">
           {/* Logo */}
-          <Link to="/" className="header-logo flex items-center space-x-2">
-            <div className="logo-icon w-8 h-8 bg-gradient-to-br from-purple-600 to-blue-600 rounded-lg flex items-center justify-center">
-              <Store className="w-5 h-5 text-white" />
+          <Link to="/" className="flex items-center space-x-2">
+            <div className="w-8 h-8 bg-gradient-to-br from-purple-600 to-blue-600 rounded-lg flex items-center justify-center">
+              <CreditCard className="w-5 h-5 text-white" />
             </div>
-            <span className="text-xl font-bold text-gray-900">LoyaltyApp</span>
+            <span className="text-xl font-bold text-gray-900">LoyaltyWallet</span>
           </Link>
 
-          {/* Desktop Navigation */}
-          <nav className="header-nav hidden md:flex items-center space-x-6">
-            <Link 
-              to="/businesses" 
-              className="nav-link text-gray-600 hover:text-purple-600 transition-colors"
-            >
-              Businesses
+          {/* Navigation */}
+          <nav className="hidden md:flex items-center space-x-6">
+            <Link to="/businesses" className="text-gray-600 hover:text-gray-900 transition-colors">
+              {t('nav.businesses')}
             </Link>
-            {user && userRole === 'business' && (
-              <Link 
-                to="/dashboard" 
-                className="nav-link text-gray-600 hover:text-purple-600 transition-colors"
-              >
-                Dashboard
+            {isAuthenticated && userRole === 'customer' && (
+              <Link to="/wallet" className="text-gray-600 hover:text-gray-900 transition-colors">
+                {t('nav.wallet')}
+              </Link>
+            )}
+            {isAuthenticated && userRole === 'business' && (
+              <Link to="/dashboard" className="text-gray-600 hover:text-gray-900 transition-colors">
+                {t('nav.dashboard')}
               </Link>
             )}
           </nav>
 
-          {/* Desktop Auth Section */}
-          <div className="header-auth hidden md:flex items-center space-x-4">
-            {user ? (
-              <div className="user-section flex items-center space-x-3">
-                <div className="user-info flex items-center space-x-2">
-                  <div className="user-avatar w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
-                    <User className="w-4 h-4 text-gray-600" />
+          {/* Right side */}
+          <div className="flex items-center space-x-4">
+            <LanguageSwitcher />
+            
+            {isAuthenticated ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+                    <Avatar className="h-10 w-10">
+                      <AvatarImage src={currentUser?.avatar_url} alt={getUserDisplayName()} />
+                      <AvatarFallback>
+                        {getUserDisplayName().charAt(0).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56" align="end" forceMount>
+                  <div className="flex flex-col space-y-1 p-2">
+                    <p className="text-sm font-medium leading-none">{getUserDisplayName()}</p>
+                    <p className="text-xs leading-none text-muted-foreground">
+                      {user?.email}
+                    </p>
+                    <p className="text-xs leading-none text-muted-foreground capitalize">
+                      {userRole} account
+                    </p>
                   </div>
-                  <span className="user-name text-sm font-medium text-gray-900">
-                    {currentUser?.name || user.email}
-                  </span>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleSignOut}
-                  className="btn-signout flex items-center space-x-1"
-                >
-                  <LogOut className="w-4 h-4" />
-                  <span>Sign Out</span>
-                </Button>
-              </div>
+                  <DropdownMenuSeparator />
+                  
+                  <DropdownMenuItem asChild>
+                    <Link to={getProfilePath()} className="cursor-pointer">
+                      <User className="mr-2 h-4 w-4" />
+                      <span>{t('nav.profile')}</span>
+                    </Link>
+                  </DropdownMenuItem>
+
+                  {userRole === 'business' && (
+                    <DropdownMenuItem asChild>
+                      <Link to="/dashboard" className="cursor-pointer">
+                        <Building2 className="mr-2 h-4 w-4" />
+                        <span>{t('nav.dashboard')}</span>
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
+
+                  {userRole === 'customer' && (
+                    <DropdownMenuItem asChild>
+                      <Link to="/wallet" className="cursor-pointer">
+                        <Wallet className="mr-2 h-4 w-4" />
+                        <span>{t('nav.wallet')}</span>
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
+
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer">
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>{t('nav.signOut')}</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             ) : (
-              <div className="auth-buttons flex items-center space-x-2">
-                <Button
-                  variant="ghost"
-                  onClick={() => navigate('/login')}
-                  className="btn-login"
-                >
-                  Sign In
+              <div className="flex items-center space-x-2">
+                <Button variant="ghost" asChild>
+                  <Link to="/login">{t('nav.signIn')}</Link>
                 </Button>
-                <Button
-                  onClick={() => navigate('/register')}
-                  className="btn-register"
-                >
-                  Sign Up
+                <Button asChild>
+                  <Link to="/register">{t('nav.signUp')}</Link>
                 </Button>
               </div>
             )}
           </div>
-
-          {/* Mobile Menu Button */}
-          <div className="md:hidden">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2"
-            >
-              {mobileMenuOpen ? (
-                <X className="w-6 h-6" />
-              ) : (
-                <Menu className="w-6 h-6" />
-              )}
-            </Button>
-          </div>
         </div>
-
-        {/* Mobile Menu */}
-        {mobileMenuOpen && (
-          <div className="md:hidden border-t border-gray-200 py-4 space-y-4">
-            <nav className="flex flex-col space-y-2">
-              <Link 
-                to="/businesses" 
-                className="text-gray-600 hover:text-purple-600 transition-colors py-2"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Businesses
-              </Link>
-              {user && userRole === 'business' && (
-                <Link 
-                  to="/dashboard" 
-                  className="text-gray-600 hover:text-purple-600 transition-colors py-2"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  Dashboard
-                </Link>
-              )}
-            </nav>
-            
-            <div className="border-t border-gray-200 pt-4">
-              {user ? (
-                <div className="space-y-3">
-                  <div className="flex items-center space-x-2">
-                    <div className="user-avatar w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
-                      <User className="w-4 h-4 text-gray-600" />
-                    </div>
-                    <span className="text-sm font-medium text-gray-900">
-                      {currentUser?.name || user.email}
-                    </span>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    onClick={handleSignOut}
-                    className="w-full justify-start text-left"
-                  >
-                    <LogOut className="w-4 h-4 mr-2" />
-                    Sign Out
-                  </Button>
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  <Button
-                    variant="ghost"
-                    onClick={() => {
-                      navigate('/login');
-                      setMobileMenuOpen(false);
-                    }}
-                    className="w-full justify-start"
-                  >
-                    Sign In
-                  </Button>
-                  <Button
-                    onClick={() => {
-                      navigate('/register');
-                      setMobileMenuOpen(false);
-                    }}
-                    className="w-full"
-                  >
-                    Sign Up
-                  </Button>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
       </div>
     </header>
   );

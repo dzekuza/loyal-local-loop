@@ -1,133 +1,101 @@
 
 {
   "nav": {
-    "home": "Home",
     "businesses": "Businesses",
-    "wallet": "Wallet",
+    "wallet": "My Wallet",
     "dashboard": "Dashboard",
-    "profile": "Profile",
-    "login": "Login",
-    "register": "Register",
-    "logout": "Logout"
+    "profile": "Profile Settings",
+    "signIn": "Sign In",
+    "signUp": "Sign Up",
+    "signOut": "Sign Out"
   },
   "home": {
-    "hero": {
-      "badge": "Loyalty Rewards Platform",
-      "title1": "Your loyalty cards,",
-      "title2": "simplified."
-    },
-    "explore": {
-      "title": "Explore offers around you",
-      "subtitle": "Discover amazing deals and loyalty programs from local businesses"
-    },
+    "title": "Digital Loyalty Wallet",
+    "subtitle": "Collect loyalty points from your favorite businesses and never lose a card again",
+    "exploreOffers": "Explore offers around you",
+    "getStarted": "Get Started",
     "features": {
-      "title": "Everything you need to earn more",
-      "subtitle": "Simple, powerful tools to help you get the most out of your local shopping experience."
+      "title": "Why Choose LoyaltyWallet?",
+      "digital": {
+        "title": "Digital Convenience",
+        "description": "No more physical cards to carry around"
+      },
+      "rewards": {
+        "title": "Earn Rewards",
+        "description": "Collect points and unlock exclusive offers"
+      },
+      "business": {
+        "title": "For Businesses",
+        "description": "Engage customers with digital loyalty programs"
+      }
     },
     "testimonials": {
-      "title": "Loved by customers everywhere",
-      "subtitle": "See what people are saying about their loyalty rewards experience"
+      "title": "What Our Users Say",
+      "customer": {
+        "text": "LoyaltyWallet has made managing my loyalty cards so much easier!",
+        "author": "Sarah M., Customer"
+      },
+      "business": {
+        "text": "Our customer engagement has increased significantly since using LoyaltyWallet.",
+        "author": "John D., Business Owner"
+      }
     },
-    "business": {
-      "badge": "For Business Owners",
-      "title": "Own a business?",
-      "titleHighlight": "Join now.",
-      "subtitle": "Create a modern loyalty program that your customers will love. Increase retention, boost sales, and build lasting relationships.",
-      "features": [
-        "Increase customer retention by 25%",
-        "Easy QR code setup in minutes", 
-        "Real-time analytics dashboard",
-        "Apple Wallet integration included"
-      ],
-      "startProgram": "Start Your Program",
-      "learnMore": "Learn More"
-    },
-    "cta": {
-      "title": "Ready to start earning rewards?",
-      "subtitle": "Join thousands of customers who are already earning points and unlocking rewards.",
-      "button": "Get Started Today"
-    },
-    "brands": {
-      "title": "Trusted by these companies"
-    }
+    "trustedBy": "Trusted by businesses"
+  },
+  "business": {
+    "viewProfile": "View Profile",
+    "activeOffers": "active offers"
   },
   "wallet": {
-    "title": "My Wallet",
-    "description": "Manage your loyalty cards in multiple formats - all free!",
-    "addCards": "Add Cards",
-    "backToBusinesses": "Back to Businesses",
-    "noCards": "No Loyalty Cards Yet",
-    "noCardsDescription": "Join business loyalty programs to start earning points",
+    "title": "My Loyalty Wallet",
+    "description": "Manage all your loyalty cards in one place",
+    "noCards": "No loyalty cards yet",
+    "noCardsDescription": "Start exploring businesses to join their loyalty programs",
     "exploreBusinesses": "Explore Businesses",
-    "totalPoints": "Total Points",
-    "points": "Points",
-    "lastActivity": "Last activity",
-    "viewBusinessDetails": "View Business Details",
-    "tabs": {
-      "web": "Web Cards",
-      "pwa": "PWA Wallet",
-      "google": "Google Wallet",
-      "apple": "Apple Wallet",
-      "download": "Download"
-    }
+    "backToBusinesses": "Back to Businesses",
+    "addCards": "Add Cards"
   },
   "profile": {
-    "title": "Edit Profile",
-    "avatar": "Avatar",
-    "avatarUpload": "Upload a new avatar (optional)",
-    "firstName": "First Name",
-    "lastName": "Last Name",
-    "email": "Email",
+    "title": "Profile Settings",
+    "personalInfo": "Personal Information",
+    "name": "Full Name",
+    "email": "Email Address",
     "phone": "Phone Number",
-    "phoneOptional": "Optional",
-    "updateProfile": "Update Profile",
-    "updating": "Updating...",
+    "avatar": "Profile Picture",
+    "changeAvatar": "Change Avatar",
+    "save": "Save Changes",
+    "saving": "Saving...",
+    "success": "Profile updated successfully!",
+    "error": "Failed to update profile",
+    "security": "Security",
     "changePassword": "Change Password",
     "currentPassword": "Current Password",
     "newPassword": "New Password",
     "confirmPassword": "Confirm New Password",
     "updatePassword": "Update Password",
+    "passwordSuccess": "Password updated successfully!",
+    "passwordError": "Failed to update password"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "save": "Save",
     "cancel": "Cancel",
-    "emailUpdate": "Email Update",
-    "emailUpdateDescription": "Please check your new email to confirm the change",
-    "profileUpdateSuccess": "Profile updated successfully",
-    "passwordUpdateSuccess": "Password updated successfully",
-    "profileUpdateError": "Failed to update profile",
-    "passwordUpdateError": "Failed to update password"
-  },
-  "business": {
-    "activeOffers": "active offers",
-    "viewProfile": "View Profile"
-  },
-  "appleWallet": {
-    "addToWallet": "Add to Apple Wallet",
-    "generating": "Generating Pass...",
-    "success": "Added to Apple Wallet!",
-    "error": "Failed to add to Apple Wallet",
-    "description": "Add this loyalty card to Apple Wallet for easy access"
+    "edit": "Edit",
+    "delete": "Delete",
+    "yes": "Yes",
+    "no": "No"
   },
   "subscription": {
-    "freeTrial": "Free Trial",
-    "trialDaysLeft": "{{days}} days left",
-    "trialExpired": "Trial Expired",
-    "subscribe": "Subscribe Now",
     "monthly": "Monthly",
-    "price": "€19/month",
+    "price": "$9.99/month",
+    "subscribe": "Subscribe Now",
     "features": {
       "unlimited": "Unlimited loyalty programs",
       "analytics": "Advanced analytics",
       "support": "Priority support",
       "integrations": "Third-party integrations"
     }
-  },
-  "common": {
-    "loading": "Loading...",
-    "error": "Error",
-    "success": "Success",
-    "cancel": "Cancel",
-    "save": "Save",
-    "delete": "Delete",
-    "edit": "Edit",
-    "back": "Back"
   }
 }

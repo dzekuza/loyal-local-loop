@@ -10,7 +10,7 @@ import QRGenerator from '../../components/business/QRGenerator';
 import OfferForm from '../../components/offers/OfferForm';
 import OffersList from '../../components/offers/OffersList';
 import PointCollection from '../../components/business/PointCollection';
-import { Store, Users, Gift, TrendingUp, Scan, Smartphone, ArrowRight } from 'lucide-react';
+import { Store, Users, Gift, TrendingUp, Scan, ArrowRight } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 const BusinessDashboard = () => {
@@ -160,10 +160,6 @@ const BusinessDashboard = () => {
     setRefreshKey(prev => prev + 1);
   };
 
-  const handlePointsAwarded = () => {
-    setRefreshKey(prev => prev + 1);
-  };
-
   if (loading) {
     return (
       <div className="dashboard-loading min-h-screen flex items-center justify-center">
@@ -225,27 +221,24 @@ const BusinessDashboard = () => {
           </div>
         </div>
 
-        {/* Quick Actions */}
-        <div className="quick-actions mb-8">
+        {/* Single Prominent Scan Action */}
+        <div className="scan-action mb-8">
           <Card className="bg-gradient-to-r from-green-500 to-blue-600 text-white">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-xl font-bold mb-2">Ready to Award Points?</h3>
-                  <p className="text-green-100">Use our dedicated scanning page for the best experience</p>
+                  <h3 className="text-xl font-bold mb-2">Award Loyalty Points</h3>
+                  <p className="text-green-100">Scan customer QR codes or enter customer codes manually</p>
                 </div>
-                <div className="flex items-center space-x-4">
-                  <Smartphone className="w-12 h-12 text-green-100" />
-                  <Button
-                    onClick={() => navigate('/business/scan')}
-                    className="bg-white text-green-600 hover:bg-green-50 font-semibold"
-                    size="lg"
-                  >
-                    <Scan className="w-5 h-5 mr-2" />
-                    Open Scanner
-                    <ArrowRight className="w-4 h-4 ml-2" />
-                  </Button>
-                </div>
+                <Button
+                  onClick={() => navigate('/business/scan')}
+                  className="bg-white text-green-600 hover:bg-green-50 font-semibold"
+                  size="lg"
+                >
+                  <Scan className="w-5 h-5 mr-2" />
+                  Start Scanning
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </Button>
               </div>
             </CardContent>
           </Card>
@@ -275,15 +268,6 @@ const BusinessDashboard = () => {
 
         {/* Main Content */}
         <div className="dashboard-content space-y-8">
-          {/* Point Collection - Featured at the top */}
-          <div className="point-collection-section">
-            <PointCollection 
-              businessId={currentBusiness.id}
-              businessName={currentBusiness.name}
-              onScanSuccess={handlePointsAwarded}
-            />
-          </div>
-
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <div className="qr-section">
               <QRGenerator 

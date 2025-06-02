@@ -14,7 +14,11 @@ interface BusinessPreviewCardProps {
 
 const BusinessPreviewCard: React.FC<BusinessPreviewCardProps> = ({ business }) => {
   const { t } = useTranslation();
-  const offersCount = business.loyaltyOffers?.length || 0;
+  
+  // Count only active offers
+  const activeOffersCount = business.loyaltyOffers?.filter(offer => offer.is_active)?.length || 0;
+
+  console.log('🏢 Business card for:', business.name, 'active offers:', activeOffersCount, 'total offers:', business.loyaltyOffers?.length);
 
   return (
     <Card className="hover:shadow-lg transition-all duration-300">
@@ -72,7 +76,7 @@ const BusinessPreviewCard: React.FC<BusinessPreviewCardProps> = ({ business }) =
           <div className="flex items-center text-sm text-green-600">
             <Gift className="w-4 h-4 mr-1 flex-shrink-0" />
             <span className="truncate">
-              {offersCount} {t('business.activeOffers')}
+              {activeOffersCount} {activeOffersCount === 1 ? 'aktyvus pasiūlymas' : 'aktyvūs pasiūlymai'}
             </span>
           </div>
         </div>

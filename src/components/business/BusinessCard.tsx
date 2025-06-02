@@ -3,7 +3,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
-import { Building2, Calendar, Eye } from 'lucide-react';
+import { Building2, Calendar, Eye, Gift } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Business } from '@/types';
 import { useTranslation } from 'react-i18next';
@@ -31,6 +31,9 @@ const BusinessCard: React.FC<BusinessCardProps> = ({
     });
   };
 
+  // Count only active offers
+  const activeOffersCount = business.loyaltyOffers?.filter(offer => offer.is_active)?.length || 0;
+
   return (
     <Card className="hover:shadow-lg transition-all duration-300">
       <CardHeader className="pb-3">
@@ -46,9 +49,15 @@ const BusinessCard: React.FC<BusinessCardProps> = ({
             <CardTitle className="text-lg font-semibold truncate">
               {business.name}
             </CardTitle>
-            <Badge variant="secondary" className="mt-1">
-              {business.businessType}
-            </Badge>
+            <div className="flex items-center space-x-2 mt-1">
+              <Badge variant="secondary">
+                {business.businessType}
+              </Badge>
+              <div className="flex items-center text-xs text-green-600">
+                <Gift className="w-3 h-3 mr-1" />
+                <span>{activeOffersCount} offers</span>
+              </div>
+            </div>
           </div>
         </div>
       </CardHeader>

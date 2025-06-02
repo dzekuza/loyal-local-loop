@@ -17,9 +17,9 @@ const BusinessPreviewCard: React.FC<BusinessPreviewCardProps> = ({ business }) =
   const offersCount = business.loyaltyOffers?.length || 0;
 
   return (
-    <Card className="hover:shadow-lg transition-all duration-300 overflow-hidden">
+    <Card className="hover:shadow-lg transition-all duration-300">
       {/* Cover Image */}
-      <div className="h-32 bg-gradient-to-br from-purple-500 to-blue-600 relative overflow-hidden">
+      <div className="h-32 bg-gradient-to-br from-purple-500 to-blue-600 relative">
         {business.coverImage ? (
           <img 
             src={business.coverImage} 
@@ -29,8 +29,8 @@ const BusinessPreviewCard: React.FC<BusinessPreviewCardProps> = ({ business }) =
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-purple-500 to-blue-600" />
         )}
-        {/* Logo positioned over cover */}
-        <div className="absolute -bottom-6 left-4 z-10">
+        {/* Logo positioned over cover - fixed positioning */}
+        <div className="absolute bottom-0 left-4 z-10 transform translate-y-1/2">
           <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center shadow-lg border">
             {business.logo ? (
               <img src={business.logo} alt={business.name} className="w-10 h-10 object-cover rounded-md" />
@@ -41,7 +41,7 @@ const BusinessPreviewCard: React.FC<BusinessPreviewCardProps> = ({ business }) =
         </div>
       </div>
 
-      <CardHeader className="pt-8 pb-3">
+      <CardHeader className="pt-10 pb-3">
         <div className="flex items-start justify-between">
           <div className="flex-1 min-w-0">
             <h3 className="font-semibold text-lg truncate mb-1">

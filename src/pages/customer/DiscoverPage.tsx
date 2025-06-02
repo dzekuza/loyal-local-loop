@@ -147,11 +147,11 @@ const DiscoverPage = () => {
                     {categoryBusinesses.map((business) => (
                       <CarouselItem key={business.id} className="pl-2 md:pl-4 basis-64 md:basis-72">
                         <Card 
-                          className="cursor-pointer hover:shadow-lg transition-all duration-300 overflow-hidden"
+                          className="cursor-pointer hover:shadow-lg transition-all duration-300"
                           onClick={() => handleBusinessClick(business.id)}
                         >
                           {/* Business Cover/Logo */}
-                          <div className="h-32 bg-gradient-to-br from-purple-500 to-blue-600 relative overflow-hidden">
+                          <div className="h-32 bg-gradient-to-br from-purple-500 to-blue-600 relative">
                             {business.coverImage ? (
                               <img 
                                 src={business.coverImage} 
@@ -161,8 +161,8 @@ const DiscoverPage = () => {
                             ) : (
                               <div className="w-full h-full bg-gradient-to-br from-purple-500 to-blue-600" />
                             )}
-                            {/* Logo positioned over cover */}
-                            <div className="absolute -bottom-4 left-3 z-10">
+                            {/* Logo positioned over cover - fixed positioning */}
+                            <div className="absolute bottom-0 left-3 z-10 transform translate-y-1/2">
                               <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center shadow-lg border">
                                 {business.logo ? (
                                   <img src={business.logo} alt={business.name} className="w-6 h-6 object-cover rounded-md" />
@@ -173,7 +173,7 @@ const DiscoverPage = () => {
                             </div>
                           </div>
 
-                          <CardContent className="p-4 pt-6">
+                          <CardContent className="p-4 pt-8">
                             <div className="space-y-3">
                               <div>
                                 <h3 className="font-semibold text-base truncate mb-1">

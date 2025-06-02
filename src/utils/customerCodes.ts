@@ -24,7 +24,7 @@ export const generateCustomerCode = (userId: string): string => {
   // Make hash positive
   hash = Math.abs(hash);
   
-  // Generate code parts
+  // Generate code parts - fixed algorithm for consistency
   const part1 = generateCodePart(hash, 3, true); // Letters
   const part2 = generateCodePart(hash >> 8, 3, false); // Numbers
   const part3 = generateCodePart(hash >> 16, 3, true); // Letters
@@ -35,17 +35,17 @@ export const generateCustomerCode = (userId: string): string => {
 };
 
 /**
- * Generate a part of the customer code
+ * Generate a part of the customer code with deterministic algorithm
  */
 const generateCodePart = (seed: number, length: number, letters: boolean): string => {
   let result = '';
-  let current = seed;
+  let current = Math.abs(seed);
   
-  const chars = letters ? CODE_CHARS.slice(10) : '23456789'; // Letters or numbers only
+  const chars = letters ? 'ABCDEFGHJKLMNPQRSTUVWXYZ' : '23456789'; // Consistent character sets
   
   for (let i = 0; i < length; i++) {
     result += chars[current % chars.length];
-    current = Math.floor(current / chars.length) + 1;
+    current = Math.floor(current / chars.length) + (i + 1); // Add deterministic increment
   }
   
   return result;
@@ -79,17 +79,22 @@ export const formatCustomerCodeInput = (input: string): string => {
 };
 
 /**
- * Find customer by code (searches through existing customers)
- * This is a helper function that can be used with Supabase
+ * Find customer by code and verify business enrollment
+ * This function checks if the customer with the given code is enrolled in the specified business's loyalty program
  */
-export const findCustomerByCode = async (code: string, supabase: any): Promise<string | null> => {
+export const findCustomerByCode = async (code: string, businessId: string, supabase: any): Promise<{ customerId: string; customerName: string } | null> => {
   try {
-    console.log('🔍 Searching for customer with code:', code);
+    console.log('🔍 Searching for customer with code:', code, 'for business:', businessId);
     
-    // Get all user profiles to check their generated codes
+    if (!businessId) {
+      console.error('❌ Business ID is required for customer lookup');
+      return null;
+    }
+
+    // Get all customer profiles to check their generated codes
     const { data: profiles, error } = await supabase
       .from('profiles')
-      .select('id')
+      .select('id, name')
       .eq('user_role', 'customer');
 
     if (error) {
@@ -102,18 +107,80 @@ export const findCustomerByCode = async (code: string, supabase: any): Promise<s
     // Check each profile to see if their generated code matches
     for (const profile of profiles || []) {
       const generatedCode = generateCustomerCode(profile.id);
-      console.log('🔍 Checking profile:', profile.id, 'generated code:', generatedCode);
+      console.log('🔍 Checking profile:', profile.id, 'name:', profile.name, 'generated code:', generatedCode);
       
       if (generatedCode === code.toUpperCase()) {
         console.log('✅ Found matching customer:', profile.id, 'for code:', code);
-        return profile.id;
+        
+        // Now check if this customer is enrolled in the specific business's loyalty program
+        const { data: enrollment, error: enrollmentError } = await supabase
+          .from('user_points')
+          .select('customer_id, total_points')
+          .eq('customer_id', profile.id)
+          .eq('business_id', businessId)
+          .single();
+
+        if (enrollmentError && enrollmentError.code === 'PGRST116') {
+          console.log('❌ Customer not enrolled in business loyalty program:', profile.id, 'business:', businessId);
+          return null; // Customer exists but not enrolled in this business
+        }
+
+        if (enrollmentError) {
+          console.error('❌ Error checking customer enrollment:', enrollmentError);
+          return null;
+        }
+
+        if (enrollment) {
+          console.log('✅ Customer is enrolled in business loyalty program:', {
+            customerId: profile.id,
+            businessId,
+            totalPoints: enrollment.total_points
+          });
+          
+          return {
+            customerId: profile.id,
+            customerName: profile.name || 'Customer'
+          };
+        }
       }
     }
 
-    console.log('❌ No customer found for code:', code);
+    console.log('❌ No enrolled customer found for code:', code, 'in business:', businessId);
     return null;
   } catch (error) {
     console.error('❌ Error finding customer by code:', error);
     return null;
+  }
+};
+
+/**
+ * Check if customer is enrolled in business loyalty program
+ */
+export const checkCustomerEnrollment = async (customerId: string, businessId: string, supabase: any): Promise<boolean> => {
+  try {
+    console.log('🔍 Checking enrollment for customer:', customerId, 'in business:', businessId);
+    
+    const { data, error } = await supabase
+      .from('user_points')
+      .select('customer_id')
+      .eq('customer_id', customerId)
+      .eq('business_id', businessId)
+      .single();
+
+    if (error && error.code === 'PGRST116') {
+      console.log('❌ Customer not enrolled:', customerId, 'in business:', businessId);
+      return false;
+    }
+
+    if (error) {
+      console.error('❌ Error checking enrollment:', error);
+      return false;
+    }
+
+    console.log('✅ Customer is enrolled:', customerId, 'in business:', businessId);
+    return true;
+  } catch (error) {
+    console.error('❌ Error checking customer enrollment:', error);
+    return false;
   }
 };

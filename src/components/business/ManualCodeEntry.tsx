@@ -4,17 +4,24 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
-import { Keyboard, User, CheckCircle, AlertTriangle } from 'lucide-react';
+import { Keyboard, User, CheckCircle, AlertTriangle, UserX, Building } from 'lucide-react';
 import { validateCustomerCode, formatCustomerCodeInput, findCustomerByCode } from '@/utils/customerCodes';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
 interface ManualCodeEntryProps {
+  businessId: string;
+  businessName: string;
   onCustomerFound: (customerId: string, customerName: string) => void;
   onCancel: () => void;
 }
 
-const ManualCodeEntry: React.FC<ManualCodeEntryProps> = ({ onCustomerFound, onCancel }) => {
+const ManualCodeEntry: React.FC<ManualCodeEntryProps> = ({ 
+  businessId, 
+  businessName, 
+  onCustomerFound, 
+  onCancel 
+}) => {
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -24,7 +31,7 @@ const ManualCodeEntry: React.FC<ManualCodeEntryProps> = ({ onCustomerFound, onCa
     const formatted = formatCustomerCodeInput(value);
     setCode(formatted);
     setError(null);
-    console.log('📝 Code input changed:', { original: value, formatted });
+    console.log('📝 Code input changed:', { original: value, formatted, businessId });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -35,47 +42,34 @@ const ManualCodeEntry: React.FC<ManualCodeEntryProps> = ({ onCustomerFound, onCa
       return;
     }
 
+    if (!businessId) {
+      setError('Business information is missing. Please try again.');
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
     try {
-      console.log('🔍 Looking up customer by code:', code);
+      console.log('🔍 Looking up customer by code:', code, 'for business:', businessId);
       
-      const customerId = await findCustomerByCode(code, supabase);
+      const customerData = await findCustomerByCode(code, businessId, supabase);
       
-      if (!customerId) {
-        console.warn('❌ Customer code not found:', code);
-        setError('Customer code not found. Please check the code and try again.');
+      if (!customerData) {
+        console.warn('❌ Customer code not found or not enrolled:', code, 'business:', businessId);
+        setError(`Customer code not found or customer is not enrolled in ${businessName}'s loyalty program. Please check the code or ask the customer to join the program first.`);
         setLoading(false);
         return;
       }
 
-      console.log('✅ Customer ID found:', customerId);
+      console.log('✅ Customer found and enrolled:', customerData);
 
-      // Get customer profile info
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('name, id')
-        .eq('id', customerId)
-        .single();
-
-      if (profileError) {
-        console.error('❌ Error fetching profile:', profileError);
-        setError('Error fetching customer information.');
-        setLoading(false);
-        return;
-      }
-
-      const customerName = profile?.name || 'Customer';
-      
-      console.log('✅ Customer found:', { customerId, customerName });
-      
       toast({
         title: "Customer Found! ✅",
-        description: `Ready to award points to ${customerName}`,
+        description: `${customerData.customerName} is enrolled in ${businessName}'s loyalty program`,
       });
 
-      onCustomerFound(customerId, customerName);
+      onCustomerFound(customerData.customerId, customerData.customerName);
       
     } catch (error) {
       console.error('❌ Error looking up customer:', error);
@@ -94,9 +88,15 @@ const ManualCodeEntry: React.FC<ManualCodeEntryProps> = ({ onCustomerFound, onCa
           <Keyboard className="w-5 h-5" />
           <span>Enter Customer Code</span>
         </CardTitle>
-        <p className="text-sm text-gray-600">
-          Enter the customer's loyalty code manually (Format: ABC-123-XYZ)
-        </p>
+        <div className="space-y-2">
+          <p className="text-sm text-gray-600">
+            Enter the customer's loyalty code manually (Format: ABC-123-XYZ)
+          </p>
+          <div className="flex items-center space-x-2 text-xs text-blue-600 bg-blue-50 p-2 rounded">
+            <Building className="w-4 h-4" />
+            <span>Checking enrollment for: <strong>{businessName}</strong></span>
+          </div>
+        </div>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -132,7 +132,13 @@ const ManualCodeEntry: React.FC<ManualCodeEntryProps> = ({ onCustomerFound, onCa
 
           {error && (
             <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-              <p className="text-sm text-red-700">{error}</p>
+              <div className="flex items-start space-x-2">
+                <UserX className="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0" />
+                <div>
+                  <p className="text-sm font-medium text-red-800">Customer Not Found</p>
+                  <p className="text-sm text-red-700 mt-1">{error}</p>
+                </div>
+              </div>
             </div>
           )}
 
@@ -167,7 +173,7 @@ const ManualCodeEntry: React.FC<ManualCodeEntryProps> = ({ onCustomerFound, onCa
 
         <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
           <p className="text-xs text-blue-800">
-            💡 <strong>Tip:</strong> Ask the customer to show their loyalty card or read their customer code aloud
+            💡 <strong>Tip:</strong> The customer must be enrolled in your loyalty program for their code to work. If the code is valid but not found, ask them to join your program first.
           </p>
         </div>
       </CardContent>

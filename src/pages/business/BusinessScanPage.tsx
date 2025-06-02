@@ -143,17 +143,64 @@ const BusinessScanPage: React.FC = () => {
     }
   };
 
-  const handleQRScan = (data: string) => {
+  const handleQRScan = async (data: string) => {
+    if (!currentBusiness) {
+      toast({
+        title: "Business Required",
+        description: "Please set up your business profile first.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     const customerData = parseQRData(data);
     
     if (customerData) {
-      console.log('✅ Customer data extracted:', customerData);
-      setScannedCustomer(customerData);
+      console.log('✅ Customer data extracted from QR:', customerData);
       
-      toast({
-        title: "Customer Scanned Successfully! ✅",
-        description: `Ready to award points to ${customerData.customerName}`,
-      });
+      // Check if customer is enrolled in this business's loyalty program
+      try {
+        const { data: enrollment, error } = await supabase
+          .from('user_points')
+          .select('customer_id, total_points')
+          .eq('customer_id', customerData.customerId)
+          .eq('business_id', currentBusiness.id)
+          .single();
+
+        if (error && error.code === 'PGRST116') {
+          toast({
+            title: "Customer Not Enrolled",
+            description: `${customerData.customerName} is not enrolled in your loyalty program. Ask them to join first.`,
+            variant: "destructive",
+          });
+          return;
+        }
+
+        if (error) {
+          console.error('❌ Error checking enrollment:', error);
+          toast({
+            title: "Error",
+            description: "Failed to verify customer enrollment. Please try again.",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        console.log('✅ Customer is enrolled:', enrollment);
+        setScannedCustomer(customerData);
+        
+        toast({
+          title: "Customer Scanned Successfully! ✅",
+          description: `${customerData.customerName} is enrolled and ready to earn points`,
+        });
+      } catch (error) {
+        console.error('❌ Error verifying customer enrollment:', error);
+        toast({
+          title: "Error",
+          description: "Failed to verify customer. Please try again.",
+          variant: "destructive",
+        });
+      }
     } else {
       console.error('❌ Failed to extract customer data from QR code');
       toast({
@@ -165,7 +212,7 @@ const BusinessScanPage: React.FC = () => {
   };
 
   const handleManualCustomerFound = (customerId: string, customerName: string) => {
-    console.log('📝 Manual customer found:', { customerId, customerName });
+    console.log('📝 Manual customer found and verified:', { customerId, customerName, businessId: currentBusiness?.id });
     setScannedCustomer({
       customerId,
       customerName
@@ -316,6 +363,9 @@ const BusinessScanPage: React.FC = () => {
         <div className="text-center mb-6">
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Award Customer Points</h1>
           <p className="text-gray-600">Scan QR code or enter customer code to award points</p>
+          <div className="mt-2 text-sm text-blue-600 bg-blue-50 p-2 rounded">
+            <strong>{currentBusiness.name}</strong> - Only enrolled customers can earn points
+          </div>
         </div>
 
         {!scannedCustomer ? (
@@ -331,6 +381,8 @@ const BusinessScanPage: React.FC = () => {
               />
             ) : (
               <ManualCodeEntry
+                businessId={currentBusiness.id}
+                businessName={currentBusiness.name}
                 onCustomerFound={handleManualCustomerFound}
                 onCancel={() => setScanMode('qr')}
               />

@@ -93,17 +93,56 @@ const PointCollection: React.FC<PointCollectionProps> = ({
     }
   };
 
-  const handleQRScan = (data: string) => {
+  const handleQRScan = async (data: string) => {
     const customerData = parseQRData(data);
     
     if (customerData) {
       console.log('✅ PointCollection - Customer data extracted:', customerData);
-      setScannedCustomer(customerData);
-      setScanMode('selection');
-      toast({
-        title: "Customer Scanned Successfully! ✅",
-        description: `Ready to award points to ${customerData.customerName}`,
-      });
+      
+      // Check if customer is enrolled in this business's loyalty program
+      try {
+        const { data: enrollment, error } = await supabase
+          .from('user_points')
+          .select('customer_id, total_points')
+          .eq('customer_id', customerData.customerId)
+          .eq('business_id', businessId)
+          .single();
+
+        if (error && error.code === 'PGRST116') {
+          toast({
+            title: "Customer Not Enrolled",
+            description: `${customerData.customerName} is not enrolled in ${businessName}'s loyalty program. Ask them to join first.`,
+            variant: "destructive",
+          });
+          return;
+        }
+
+        if (error) {
+          console.error('❌ PointCollection - Error checking enrollment:', error);
+          toast({
+            title: "Error",
+            description: "Failed to verify customer enrollment. Please try again.",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        console.log('✅ PointCollection - Customer is enrolled:', enrollment);
+        setScannedCustomer(customerData);
+        setScanMode('selection');
+        
+        toast({
+          title: "Customer Scanned Successfully! ✅",
+          description: `${customerData.customerName} is enrolled and ready to earn points`,
+        });
+      } catch (error) {
+        console.error('❌ PointCollection - Error verifying enrollment:', error);
+        toast({
+          title: "Error",
+          description: "Failed to verify customer. Please try again.",
+          variant: "destructive",
+        });
+      }
     } else {
       console.error('❌ PointCollection - Failed to extract customer data from QR code');
       toast({
@@ -115,7 +154,7 @@ const PointCollection: React.FC<PointCollectionProps> = ({
   };
 
   const handleManualCustomerFound = (customerId: string, customerName: string) => {
-    console.log('📝 PointCollection - Manual customer found:', { customerId, customerName });
+    console.log('📝 PointCollection - Manual customer found and verified:', { customerId, customerName, businessId });
     setScannedCustomer({
       customerId,
       customerName
@@ -263,6 +302,9 @@ const PointCollection: React.FC<PointCollectionProps> = ({
             <Scan className="w-5 h-5" />
             <span>Award Points</span>
           </CardTitle>
+          <div className="text-sm text-blue-600 bg-blue-50 p-2 rounded border border-blue-200">
+            <strong>{businessName}</strong> - Only enrolled customers can earn points
+          </div>
         </CardHeader>
         <CardContent className="space-y-4">
           {scanMode === 'selection' && !scannedCustomer ? (
@@ -309,6 +351,8 @@ const PointCollection: React.FC<PointCollectionProps> = ({
           ) : scanMode === 'manual' && !scannedCustomer ? (
             <div>
               <ManualCodeEntry
+                businessId={businessId}
+                businessName={businessName}
                 onCustomerFound={handleManualCustomerFound}
                 onCancel={() => setScanMode('selection')}
               />

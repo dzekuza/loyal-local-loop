@@ -41,6 +41,56 @@ const MobileQRScanner: React.FC<MobileQRScannerProps> = ({
     }
   }, [deviceInfo]);
 
+  // Manual video scanning with jsQR
+  const startManualScanning = useCallback(() => {
+    if (!videoRef.current || !canvasRef.current || !isScanning) return;
+
+    const scan = () => {
+      if (!isScanning || !videoRef.current || !canvasRef.current) return;
+
+      const video = videoRef.current;
+      const canvas = canvasRef.current;
+      const context = canvas.getContext('2d');
+
+      if (!context || video.readyState !== video.HAVE_ENOUGH_DATA) {
+        animationRef.current = requestAnimationFrame(scan);
+        return;
+      }
+
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      try {
+        const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+        const code = jsQR(imageData.data, imageData.width, imageData.height, {
+          inversionAttempts: "dontInvert",
+        });
+        
+        if (code && code.data) {
+          console.log('🎯 QR scan successful:', code.data);
+          
+          toast({
+            title: "QR Code Scanned! ✅",
+            description: "Processing customer information...",
+          });
+          
+          onScan(code.data);
+          cleanup();
+          return;
+        }
+      } catch (error) {
+        console.error('❌ QR scan error:', error);
+      }
+
+      if (isScanning) {
+        animationRef.current = requestAnimationFrame(scan);
+      }
+    };
+
+    animationRef.current = requestAnimationFrame(scan);
+  }, [isScanning, onScan, toast]);
+
   // Enhanced video event listeners for iOS
   const setupVideoEventListeners = useCallback((video: HTMLVideoElement) => {
     console.log('📱 Setting up video event listeners for iOS...');
@@ -144,56 +194,6 @@ const MobileQRScanner: React.FC<MobileQRScannerProps> = ({
   useEffect(() => {
     return cleanup;
   }, [cleanup]);
-
-  // Manual video scanning with jsQR
-  const startManualScanning = useCallback(() => {
-    if (!videoRef.current || !canvasRef.current || !isScanning) return;
-
-    const scan = () => {
-      if (!isScanning || !videoRef.current || !canvasRef.current) return;
-
-      const video = videoRef.current;
-      const canvas = canvasRef.current;
-      const context = canvas.getContext('2d');
-
-      if (!context || video.readyState !== video.HAVE_ENOUGH_DATA) {
-        animationRef.current = requestAnimationFrame(scan);
-        return;
-      }
-
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      context.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-      try {
-        const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-        const code = jsQR(imageData.data, imageData.width, imageData.height, {
-          inversionAttempts: "dontInvert",
-        });
-        
-        if (code && code.data) {
-          console.log('🎯 QR scan successful:', code.data);
-          
-          toast({
-            title: "QR Code Scanned! ✅",
-            description: "Processing customer information...",
-          });
-          
-          onScan(code.data);
-          cleanup();
-          return;
-        }
-      } catch (error) {
-        console.error('❌ QR scan error:', error);
-      }
-
-      if (isScanning) {
-        animationRef.current = requestAnimationFrame(scan);
-      }
-    };
-
-    animationRef.current = requestAnimationFrame(scan);
-  }, [isScanning, onScan, toast, cleanup]);
 
   // Enhanced camera start with iOS-specific handling
   const startCamera = async () => {

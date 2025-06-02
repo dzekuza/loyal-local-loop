@@ -79,67 +79,79 @@ export const formatCustomerCodeInput = (input: string): string => {
 };
 
 /**
- * Find customer by code and verify business enrollment
- * This function checks if the customer with the given code is enrolled in the specified business's loyalty program
+ * NEW LOGIC: Find customer by code and verify business enrollment
+ * Step 1: Find which customer ID generates the given code
+ * Step 2: Check if that customer is enrolled in the specified business
  */
 export const findCustomerByCode = async (code: string, businessId: string, supabase: any): Promise<{ customerId: string; customerName: string } | null> => {
   try {
-    console.log('🔍 Searching for customer with code:', code, 'for business:', businessId);
+    console.log('🔍 NEW LOOKUP: Searching for customer with code:', code, 'for business:', businessId);
     
     if (!businessId) {
       console.error('❌ Business ID is required for customer lookup');
       return null;
     }
 
-    // First, get all enrolled customers for this business
-    const { data: enrolledCustomers, error: enrollmentError } = await supabase
-      .from('user_points')
-      .select('customer_id, total_points')
-      .eq('business_id', businessId);
-
-    if (enrollmentError) {
-      console.error('❌ Error fetching enrolled customers:', enrollmentError);
-      return null;
-    }
-
-    if (!enrolledCustomers || enrolledCustomers.length === 0) {
-      console.log('❌ No customers enrolled in this business:', businessId);
-      return null;
-    }
-
-    console.log('👥 Found', enrolledCustomers.length, 'enrolled customers to check');
-
-    // Then get profiles for all enrolled customers
-    const customerIds = enrolledCustomers.map(ec => ec.customer_id);
-    const { data: profiles, error: profilesError } = await supabase
+    // Step 1: Get ALL customer profiles (only customers, not businesses)
+    const { data: allCustomers, error: customersError } = await supabase
       .from('profiles')
-      .select('id, name')
-      .in('id', customerIds);
+      .select('id, name, user_role')
+      .eq('user_role', 'customer');
 
-    if (profilesError) {
-      console.error('❌ Error fetching customer profiles:', profilesError);
+    if (customersError) {
+      console.error('❌ Error fetching customer profiles:', customersError);
       return null;
     }
 
-    console.log('👤 Found', profiles?.length || 0, 'customer profiles');
+    if (!allCustomers || allCustomers.length === 0) {
+      console.log('❌ No customers found in the system');
+      return null;
+    }
 
-    // Check each enrolled customer to see if their generated code matches
-    for (const profile of profiles || []) {
-      const generatedCode = generateCustomerCode(profile.id);
-      console.log('🔍 Checking customer:', profile.id, 'name:', profile.name, 'generated code:', generatedCode);
+    console.log('👥 Found', allCustomers.length, 'total customers in system');
+
+    // Step 2: Generate codes for all customers and find the matching one
+    let matchingCustomer = null;
+    for (const customer of allCustomers) {
+      const generatedCode = generateCustomerCode(customer.id);
+      console.log('🔍 Checking customer:', customer.id, 'name:', customer.name, 'generated code:', generatedCode);
       
       if (generatedCode === code.toUpperCase()) {
-        console.log('✅ Found matching enrolled customer:', profile.id, 'for code:', code);
-        
-        return {
-          customerId: profile.id,
-          customerName: profile.name || 'Customer'
-        };
+        console.log('✅ Found customer with matching code:', customer.id, 'for code:', code);
+        matchingCustomer = customer;
+        break;
       }
     }
 
-    console.log('❌ No enrolled customer found for code:', code, 'in business:', businessId);
-    return null;
+    if (!matchingCustomer) {
+      console.log('❌ No customer found with code:', code);
+      return null;
+    }
+
+    // Step 3: Check if this customer is enrolled in the specific business
+    const { data: enrollmentData, error: enrollmentError } = await supabase
+      .from('user_points')
+      .select('customer_id')
+      .eq('customer_id', matchingCustomer.id)
+      .eq('business_id', businessId)
+      .single();
+
+    if (enrollmentError && enrollmentError.code === 'PGRST116') {
+      console.log('❌ Customer found but not enrolled in business:', matchingCustomer.id, 'business:', businessId);
+      return null;
+    }
+
+    if (enrollmentError) {
+      console.error('❌ Error checking enrollment:', enrollmentError);
+      return null;
+    }
+
+    console.log('✅ Customer found and enrolled:', matchingCustomer.id, 'in business:', businessId);
+    
+    return {
+      customerId: matchingCustomer.id,
+      customerName: matchingCustomer.name || 'Customer'
+    };
   } catch (error) {
     console.error('❌ Error finding customer by code:', error);
     return null;

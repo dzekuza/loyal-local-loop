@@ -53,6 +53,7 @@ export const useCustomerLoyalty = () => {
       }
 
       // Create user_points record to join the loyalty program
+      // The database trigger will now enforce that only customers can join
       const { error: joinError } = await supabase
         .from('user_points')
         .insert({
@@ -62,6 +63,15 @@ export const useCustomerLoyalty = () => {
         });
 
       if (joinError) {
+        // If the trigger fires, we'll get a specific error message
+        if (joinError.message.includes('Only customers can join loyalty programs')) {
+          toast({
+            title: "Access Denied",
+            description: "Only customer accounts can join loyalty programs. Business accounts cannot participate.",
+            variant: "destructive",
+          });
+          return false;
+        }
         throw joinError;
       }
 

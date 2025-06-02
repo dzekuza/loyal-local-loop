@@ -129,26 +129,12 @@ const ManualCodeEntry: React.FC<ManualCodeEntryProps> = ({
       
       if (!customerData) {
         console.warn('❌ Customer code not found or not enrolled:', code, 'business:', businessId);
-        setError(`Customer code not found or customer is not enrolled in ${businessName}'s loyalty program. Please check the code or ask the customer to join the program first.`);
+        setError(`Customer code "${code}" not found or customer is not enrolled in ${businessName}'s loyalty program. Please check the code or ask the customer to join the program first.`);
         setLoading(false);
         return;
       }
 
-      // Additional verification that the found customer has 'customer' role
-      const { data: customerProfile, error: profileError } = await supabase
-        .from('profiles')
-        .select('user_role')
-        .eq('id', customerData.customerId)
-        .single();
-
-      if (profileError || customerProfile?.user_role !== 'customer') {
-        console.warn('❌ Found user is not a customer:', customerData.customerId);
-        setError('This code belongs to a business account, not a customer. Only customer codes are valid for loyalty programs.');
-        setLoading(false);
-        return;
-      }
-
-      console.log('✅ Customer found and verified as customer role:', customerData);
+      console.log('✅ Customer found and verified:', customerData);
 
       toast({
         title: "Customer Found! ✅",
@@ -204,7 +190,7 @@ const ManualCodeEntry: React.FC<ManualCodeEntryProps> = ({
           </CardTitle>
           <div className="space-y-2">
             <p className="text-sm text-gray-600">
-              Enter the customer's loyalty code manually (Format: ABC-123-XYZ)
+              Enter any customer's loyalty code (Format: ABC-123-XYZ). The system will find the customer and check if they're enrolled in your program.
             </p>
             <div className="flex items-center space-x-2 text-xs text-blue-600 bg-blue-50 p-2 rounded">
               <Building className="w-4 h-4" />
@@ -287,7 +273,7 @@ const ManualCodeEntry: React.FC<ManualCodeEntryProps> = ({
 
           <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
             <p className="text-xs text-blue-800">
-              💡 <strong>Tip:</strong> Only customers (not businesses) can have loyalty codes and join loyalty programs.
+              💡 <strong>How it works:</strong> Enter any customer's code. The system will find the customer in the database and check if they're enrolled in your loyalty program.
             </p>
           </div>
         </CardContent>

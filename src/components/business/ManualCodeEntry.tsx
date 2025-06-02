@@ -50,16 +50,11 @@ const ManualCodeEntry: React.FC<ManualCodeEntryProps> = ({
     try {
       console.log('👥 Loading enrolled customers for business:', businessId);
       
-      // Get enrolled customers with role filtering
+      // First get enrolled customers
       const { data: enrolledData, error: enrollmentError } = await supabase
         .from('user_points')
-        .select(`
-          customer_id, 
-          total_points,
-          profiles!inner(id, name, user_role)
-        `)
-        .eq('business_id', businessId)
-        .eq('profiles.user_role', 'customer');
+        .select('customer_id, total_points')
+        .eq('business_id', businessId);
 
       if (enrollmentError) {
         console.error('❌ Error fetching enrolled customers:', enrollmentError);
@@ -71,13 +66,36 @@ const ManualCodeEntry: React.FC<ManualCodeEntryProps> = ({
         return;
       }
 
-      // Transform data and generate codes
-      const customers: EnrolledCustomer[] = enrolledData.map(item => ({
-        id: item.customer_id,
-        name: item.profiles.name || 'Customer',
-        code: generateCustomerCode(item.customer_id),
-        points: item.total_points || 0
-      }));
+      // Get customer IDs
+      const customerIds = enrolledData.map(item => item.customer_id);
+
+      // Fetch profiles separately with role filtering
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, name, user_role')
+        .in('id', customerIds)
+        .eq('user_role', 'customer');
+
+      if (profilesError) {
+        console.error('❌ Error fetching customer profiles:', profilesError);
+        return;
+      }
+
+      if (!profilesData || profilesData.length === 0) {
+        setEnrolledCustomers([]);
+        return;
+      }
+
+      // Combine the data
+      const customers: EnrolledCustomer[] = profilesData.map(profile => {
+        const pointsData = enrolledData.find(item => item.customer_id === profile.id);
+        return {
+          id: profile.id,
+          name: profile.name || 'Customer',
+          code: generateCustomerCode(profile.id),
+          points: pointsData?.total_points || 0
+        };
+      });
 
       setEnrolledCustomers(customers);
       console.log('✅ Loaded', customers.length, 'enrolled customers (customers only)');

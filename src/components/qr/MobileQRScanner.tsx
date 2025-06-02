@@ -23,6 +23,8 @@ const MobileQRScanner: React.FC<MobileQRScannerProps> = ({
   const [permissionGranted, setPermissionGranted] = useState(false);
   const [cameraLoading, setCameraLoading] = useState(false);
   const [userGestureRequired, setUserGestureRequired] = useState(false);
+  const [videoState, setVideoState] = useState<string>('idle');
+  const [streamStatus, setStreamStatus] = useState<string>('none');
   
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -39,6 +41,73 @@ const MobileQRScanner: React.FC<MobileQRScannerProps> = ({
     }
   }, [deviceInfo]);
 
+  // Enhanced video event listeners for iOS
+  const setupVideoEventListeners = useCallback((video: HTMLVideoElement) => {
+    console.log('📱 Setting up video event listeners for iOS...');
+    
+    video.onloadstart = () => {
+      console.log('📱 Video loadstart event');
+      setVideoState('loading');
+    };
+
+    video.onloadedmetadata = () => {
+      console.log('📱 Video metadata loaded');
+      setVideoState('metadata-loaded');
+    };
+
+    video.onloadeddata = () => {
+      console.log('📱 Video data loaded');
+      setVideoState('data-loaded');
+    };
+
+    video.oncanplay = () => {
+      console.log('📱 Video can play');
+      setVideoState('can-play');
+      
+      // For iOS, we need to explicitly play the video
+      if (deviceInfo.isIOS) {
+        video.play().then(() => {
+          console.log('✅ iOS video playing successfully');
+          setVideoState('playing');
+          setCameraLoading(false);
+          setIsScanning(true);
+          startManualScanning();
+        }).catch(err => {
+          console.error('❌ iOS video play error:', err);
+          setError('Failed to start video on iOS. Try tapping the video area.');
+          setCameraLoading(false);
+        });
+      }
+    };
+
+    video.onplaying = () => {
+      console.log('📱 Video playing event');
+      setVideoState('playing');
+      if (!deviceInfo.isIOS) {
+        setCameraLoading(false);
+        setIsScanning(true);
+        startManualScanning();
+      }
+    };
+
+    video.onerror = (e) => {
+      console.error('❌ Video error:', e);
+      setVideoState('error');
+      setError('Video display error. Please try again.');
+      setCameraLoading(false);
+    };
+
+    video.onstalled = () => {
+      console.warn('⚠️ Video stalled');
+      setVideoState('stalled');
+    };
+
+    video.onwaiting = () => {
+      console.log('📱 Video waiting for data');
+      setVideoState('waiting');
+    };
+  }, [deviceInfo, startManualScanning]);
+
   // Cleanup camera stream
   const cleanup = useCallback(() => {
     console.log('🧹 Cleaning up camera resources...');
@@ -49,16 +118,27 @@ const MobileQRScanner: React.FC<MobileQRScannerProps> = ({
     }
     
     if (streamRef.current) {
-      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current.getTracks().forEach(track => {
+        track.stop();
+        console.log('🔒 Camera track stopped');
+      });
       streamRef.current = null;
+      setStreamStatus('stopped');
     }
     
     if (videoRef.current) {
       videoRef.current.srcObject = null;
+      videoRef.current.onloadstart = null;
+      videoRef.current.onloadedmetadata = null;
+      videoRef.current.onloadeddata = null;
+      videoRef.current.oncanplay = null;
+      videoRef.current.onplaying = null;
+      videoRef.current.onerror = null;
     }
     
     setIsScanning(false);
     setCameraLoading(false);
+    setVideoState('idle');
   }, []);
 
   useEffect(() => {
@@ -115,11 +195,12 @@ const MobileQRScanner: React.FC<MobileQRScannerProps> = ({
     animationRef.current = requestAnimationFrame(scan);
   }, [isScanning, onScan, toast, cleanup]);
 
-  // Start camera
+  // Enhanced camera start with iOS-specific handling
   const startCamera = async () => {
-    console.log('📱 Starting camera...');
+    console.log('📱 Starting camera for device:', deviceInfo);
     setCameraLoading(true);
     setError(null);
+    setVideoState('initializing');
 
     try {
       const constraints = getCameraConstraints(deviceInfo);
@@ -127,27 +208,61 @@ const MobileQRScanner: React.FC<MobileQRScannerProps> = ({
 
       const stream = await navigator.mediaDevices.getUserMedia(constraints);
       streamRef.current = stream;
+      setStreamStatus('active');
+
+      console.log('📱 Stream obtained:', {
+        tracks: stream.getTracks().length,
+        videoTracks: stream.getVideoTracks().length,
+        active: stream.active
+      });
 
       if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        videoRef.current.onloadedmetadata = () => {
-          if (videoRef.current) {
-            videoRef.current.play().then(() => {
-              console.log('✅ Camera started successfully');
-              setIsScanning(true);
+        const video = videoRef.current;
+        
+        // Setup event listeners before assigning stream
+        setupVideoEventListeners(video);
+        
+        // For iOS, we need to ensure the video element is ready
+        video.setAttribute('playsinline', 'true');
+        video.setAttribute('autoplay', 'true');
+        video.setAttribute('muted', 'true');
+        video.style.objectFit = 'cover';
+        
+        video.srcObject = stream;
+        setStreamStatus('assigned');
+        
+        console.log('📱 Video element configured for iOS');
+        
+        // For non-iOS devices, fallback to original logic
+        if (!deviceInfo.isIOS) {
+          video.onloadedmetadata = () => {
+            video.play().then(() => {
+              console.log('✅ Non-iOS video started successfully');
+              setVideoState('playing');
               setCameraLoading(false);
+              setIsScanning(true);
               startManualScanning();
             }).catch(err => {
-              console.error('❌ Video play error:', err);
+              console.error('❌ Non-iOS video play error:', err);
               setError('Failed to start video playback');
               setCameraLoading(false);
             });
+          };
+        }
+        
+        // Add timeout for video loading
+        setTimeout(() => {
+          if (videoState === 'initializing' || videoState === 'loading') {
+            console.warn('⚠️ Video loading timeout');
+            setError('Video loading timed out. Please try again.');
+            setCameraLoading(false);
           }
-        };
+        }, 10000);
       }
     } catch (error) {
       console.error('❌ Camera error:', error);
       setCameraLoading(false);
+      setStreamStatus('error');
       handleCameraError(error);
     }
   };
@@ -167,16 +282,21 @@ const MobileQRScanner: React.FC<MobileQRScannerProps> = ({
         // Try with basic constraints
         setTimeout(async () => {
           try {
-            const basicStream = await navigator.mediaDevices.getUserMedia({ video: true });
+            const basicStream = await navigator.mediaDevices.getUserMedia({ 
+              video: { facingMode: 'environment' } 
+            });
             streamRef.current = basicStream;
+            setStreamStatus('basic-active');
+            
             if (videoRef.current) {
-              videoRef.current.srcObject = basicStream;
-              setIsScanning(true);
-              setCameraLoading(false);
-              startManualScanning();
+              const video = videoRef.current;
+              setupVideoEventListeners(video);
+              video.srcObject = basicStream;
+              setError(null);
             }
           } catch (basicError) {
             setError('Camera initialization failed completely.');
+            setStreamStatus('failed');
           }
         }, 1000);
         return;
@@ -185,6 +305,23 @@ const MobileQRScanner: React.FC<MobileQRScannerProps> = ({
       }
     } else {
       setError('Camera access failed. Please check permissions.');
+    }
+  };
+
+  // Manual video trigger for iOS
+  const triggerVideoPlay = () => {
+    if (videoRef.current && streamRef.current) {
+      console.log('📱 Manual video play trigger for iOS');
+      videoRef.current.play().then(() => {
+        console.log('✅ Manual video play successful');
+        setVideoState('playing');
+        setCameraLoading(false);
+        setIsScanning(true);
+        startManualScanning();
+      }).catch(err => {
+        console.error('❌ Manual video play error:', err);
+        setError('Unable to start video. Please try refreshing the page.');
+      });
     }
   };
 
@@ -255,7 +392,7 @@ const MobileQRScanner: React.FC<MobileQRScannerProps> = ({
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Device Info */}
+        {/* Enhanced Device Info */}
         <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
           <p className="text-xs text-blue-800">
             <strong>Device:</strong> {deviceInfo.isIOS ? 'iOS' : deviceInfo.isAndroid ? 'Android' : 'Desktop'} | 
@@ -263,6 +400,11 @@ const MobileQRScanner: React.FC<MobileQRScannerProps> = ({
             <strong> Method:</strong> jsQR scanning
             {deviceInfo.isProblematicDevice && <span className="text-yellow-600"> (Compatibility Mode)</span>}
           </p>
+          {(videoState !== 'idle' || streamStatus !== 'none') && (
+            <p className="text-xs text-blue-600 mt-1">
+              <strong>Video:</strong> {videoState} | <strong>Stream:</strong> {streamStatus}
+            </p>
+          )}
         </div>
 
         {error && (
@@ -334,7 +476,26 @@ const MobileQRScanner: React.FC<MobileQRScannerProps> = ({
           <div className="text-center py-8">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
             <p className="text-gray-600">Starting camera...</p>
-            <p className="text-sm text-gray-500 mt-2">Initializing camera...</p>
+            <p className="text-sm text-gray-500 mt-2">Video state: {videoState}</p>
+            
+            {/* iOS-specific help during loading */}
+            {deviceInfo.isIOS && cameraLoading && (
+              <div className="mt-4 bg-yellow-50 p-3 rounded border border-yellow-200">
+                <p className="text-xs text-yellow-800">
+                  <strong>iOS:</strong> If camera doesn't appear, try tapping the video area when it loads
+                </p>
+                {streamStatus === 'assigned' && videoState !== 'playing' && (
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={triggerVideoPlay}
+                    className="mt-2"
+                  >
+                    Tap to Start Video
+                  </Button>
+                )}
+              </div>
+            )}
           </div>
         )}
 
@@ -347,10 +508,11 @@ const MobileQRScanner: React.FC<MobileQRScannerProps> = ({
                 autoPlay
                 playsInline
                 muted
+                style={{ transform: 'scaleX(-1)' }} // Mirror effect for better UX
               />
               <canvas ref={canvasRef} className="hidden" />
               
-              {/* Scanning overlay */}
+              {/* Enhanced scanning overlay */}
               <div className="absolute inset-0 pointer-events-none">
                 <div className="absolute top-4 left-4 w-8 h-8 border-l-4 border-t-4 border-green-400 rounded-tl animate-pulse"></div>
                 <div className="absolute top-4 right-4 w-8 h-8 border-r-4 border-t-4 border-green-400 rounded-tr animate-pulse"></div>
@@ -365,6 +527,19 @@ const MobileQRScanner: React.FC<MobileQRScannerProps> = ({
                   </div>
                 </div>
               </div>
+              
+              {/* iOS manual trigger overlay */}
+              {deviceInfo.isIOS && videoState !== 'playing' && streamStatus === 'assigned' && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black/50">
+                  <Button 
+                    onClick={triggerVideoPlay}
+                    className="bg-white text-black hover:bg-gray-100"
+                  >
+                    <Camera className="w-5 h-5 mr-2" />
+                    Start Video
+                  </Button>
+                </div>
+              )}
             </div>
             
             <div className="flex space-x-2">
@@ -381,6 +556,11 @@ const MobileQRScanner: React.FC<MobileQRScannerProps> = ({
                 🎯 <strong>Scanning active...</strong><br />
                 <span className="text-xs text-green-600">Point camera at the QR code</span>
               </p>
+              {deviceInfo.isIOS && (
+                <p className="text-xs text-green-600 text-center mt-1">
+                  iOS: If video is black, tap "Start Video" button
+                </p>
+              )}
             </div>
           </div>
         )}

@@ -1,8 +1,11 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { QrCode, Star } from 'lucide-react';
+import { Button } from '../ui/button';
+import { QrCode, Star, Copy, Check } from 'lucide-react';
+import { generateCustomerCode } from '@/utils/customerCodes';
+import { useToast } from '@/hooks/use-toast';
 
 interface CustomerQRCodeProps {
   customerId: string;
@@ -10,6 +13,12 @@ interface CustomerQRCodeProps {
 }
 
 const CustomerQRCode: React.FC<CustomerQRCodeProps> = ({ customerId, customerName }) => {
+  const [codeCopied, setCodeCopied] = useState(false);
+  const { toast } = useToast();
+
+  // Generate unique customer code
+  const customerCode = generateCustomerCode(customerId);
+
   // Standardized QR code data format for consistency
   const qrData = JSON.stringify({
     type: 'customer',
@@ -20,6 +29,25 @@ const CustomerQRCode: React.FC<CustomerQRCodeProps> = ({ customerId, customerNam
   });
 
   console.log('🎯 Generated customer QR data:', qrData);
+  console.log('🔢 Generated customer code:', customerCode);
+
+  const handleCopyCode = async () => {
+    try {
+      await navigator.clipboard.writeText(customerCode);
+      setCodeCopied(true);
+      toast({
+        title: "Code Copied! 📋",
+        description: "Your customer code has been copied to clipboard",
+      });
+      setTimeout(() => setCodeCopied(false), 2000);
+    } catch (error) {
+      toast({
+        title: "Copy Failed",
+        description: "Please copy the code manually",
+        variant: "destructive",
+      });
+    }
+  };
 
   return (
     <Card className="w-full max-w-sm mx-auto shadow-lg">
@@ -42,6 +70,39 @@ const CustomerQRCode: React.FC<CustomerQRCodeProps> = ({ customerId, customerNam
           />
         </div>
         
+        {/* Customer Code Display */}
+        <div className="w-full bg-gradient-to-r from-green-50 to-blue-50 p-4 rounded-lg border border-green-200">
+          <p className="text-sm font-medium text-green-800 text-center mb-2">
+            📱 Your Customer Code
+          </p>
+          <div className="flex items-center justify-center space-x-2">
+            <div className="bg-white px-4 py-2 rounded-md border border-gray-300 font-mono text-lg font-bold text-gray-800 tracking-widest">
+              {customerCode}
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleCopyCode}
+              className="flex items-center space-x-1"
+            >
+              {codeCopied ? (
+                <>
+                  <Check className="w-4 h-4 text-green-600" />
+                  <span className="text-green-600">Copied!</span>
+                </>
+              ) : (
+                <>
+                  <Copy className="w-4 h-4" />
+                  <span>Copy</span>
+                </>
+              )}
+            </Button>
+          </div>
+          <p className="text-xs text-green-600 text-center mt-2">
+            💡 Share this code if QR scanning doesn't work
+          </p>
+        </div>
+        
         <div className="text-center">
           <div className="flex items-center justify-center space-x-2 mb-2">
             <Star className="w-5 h-5 text-yellow-500 fill-current" />
@@ -51,7 +112,7 @@ const CustomerQRCode: React.FC<CustomerQRCodeProps> = ({ customerId, customerNam
         </div>
         
         <div className="text-xs text-center bg-gradient-to-r from-blue-50 to-purple-50 p-4 rounded-lg border border-blue-200 w-full">
-          <p className="font-medium text-blue-800 mb-2">📱 How to use your QR code:</p>
+          <p className="font-medium text-blue-800 mb-2">📱 How to use your loyalty card:</p>
           <ol className="text-left space-y-1 text-blue-700">
             <li className="flex items-start">
               <span className="font-bold mr-2">1.</span>
@@ -59,7 +120,7 @@ const CustomerQRCode: React.FC<CustomerQRCodeProps> = ({ customerId, customerNam
             </li>
             <li className="flex items-start">
               <span className="font-bold mr-2">2.</span>
-              <span>Show this QR code when making purchases</span>
+              <span>Show your QR code OR share your customer code</span>
             </li>
             <li className="flex items-start">
               <span className="font-bold mr-2">3.</span>
@@ -70,7 +131,7 @@ const CustomerQRCode: React.FC<CustomerQRCodeProps> = ({ customerId, customerNam
         
         <div className="bg-yellow-50 p-3 rounded-lg border border-yellow-200 w-full">
           <p className="text-xs text-yellow-800 text-center">
-            💡 <strong>Tip:</strong> Save this QR code to your photos for quick access
+            💡 <strong>Tip:</strong> Save this QR code and code to your photos for quick access
           </p>
         </div>
       </CardContent>

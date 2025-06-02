@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -10,12 +9,15 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import QRCodeScanner from '@/components/qr/QRCodeScanner';
-import { ArrowLeft, User, DollarSign, Gift, CheckCircle, AlertTriangle } from 'lucide-react';
+import ManualCodeEntry from '@/components/business/ManualCodeEntry';
+import { ArrowLeft, User, DollarSign, Gift, CheckCircle, AlertTriangle, Scan, Keyboard } from 'lucide-react';
 
 interface CustomerData {
   customerId: string;
   customerName: string;
 }
+
+type ScanMode = 'qr' | 'manual';
 
 const BusinessScanPage: React.FC = () => {
   const navigate = useNavigate();
@@ -23,6 +25,7 @@ const BusinessScanPage: React.FC = () => {
   const { currentBusiness } = useAppStore();
   const { toast } = useToast();
   
+  const [scanMode, setScanMode] = useState<ScanMode>('qr');
   const [scannedCustomer, setScannedCustomer] = useState<CustomerData | null>(null);
   const [amount, setAmount] = useState<string>('');
   const [processing, setProcessing] = useState(false);
@@ -118,6 +121,14 @@ const BusinessScanPage: React.FC = () => {
         variant: "destructive",
       });
     }
+  };
+
+  const handleManualCustomerFound = (customerId: string, customerName: string) => {
+    setScannedCustomer({
+      customerId,
+      customerName
+    });
+    setScanMode('qr'); // Return to main view after finding customer
   };
 
   const ensureUserPointsRecord = async (customerId: string, businessId: string) => {
@@ -263,15 +274,49 @@ const BusinessScanPage: React.FC = () => {
         </div>
 
         <div className="text-center mb-6">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Scan Customer QR Code</h1>
-          <p className="text-gray-600">Scan customer loyalty QR codes to award points</p>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Award Customer Points</h1>
+          <p className="text-gray-600">Scan QR code or enter customer code to award points</p>
         </div>
 
         {!scannedCustomer ? (
-          <QRCodeScanner 
-            onScan={handleQRScan}
-            title="Scan Customer QR Code"
-          />
+          <div className="space-y-6">
+            {/* Mode Selection */}
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex rounded-lg border border-gray-200 overflow-hidden">
+                  <Button
+                    variant={scanMode === 'qr' ? 'default' : 'ghost'}
+                    className={`flex-1 rounded-none ${scanMode === 'qr' ? 'bg-blue-600 text-white' : ''}`}
+                    onClick={() => setScanMode('qr')}
+                  >
+                    <Scan className="w-4 h-4 mr-2" />
+                    Scan QR Code
+                  </Button>
+                  <Button
+                    variant={scanMode === 'manual' ? 'default' : 'ghost'}
+                    className={`flex-1 rounded-none ${scanMode === 'manual' ? 'bg-blue-600 text-white' : ''}`}
+                    onClick={() => setScanMode('manual')}
+                  >
+                    <Keyboard className="w-4 h-4 mr-2" />
+                    Enter Code
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Scanner or Manual Entry */}
+            {scanMode === 'qr' ? (
+              <QRCodeScanner 
+                onScan={handleQRScan}
+                title="Scan Customer QR Code"
+              />
+            ) : (
+              <ManualCodeEntry
+                onCustomerFound={handleManualCustomerFound}
+                onCancel={() => setScanMode('qr')}
+              />
+            )}
+          </div>
         ) : (
           <div className="space-y-6">
             {/* Customer Info */}
@@ -280,7 +325,7 @@ const BusinessScanPage: React.FC = () => {
                 <div className="flex items-center space-x-3 p-4 bg-green-50 rounded-lg border border-green-200">
                   <CheckCircle className="w-6 h-6 text-green-600" />
                   <div>
-                    <p className="font-medium text-green-800">Customer Scanned</p>
+                    <p className="font-medium text-green-800">Customer Found</p>
                     <p className="text-green-700">{scannedCustomer.customerName}</p>
                     <p className="text-xs text-green-600">ID: {scannedCustomer.customerId.slice(0, 8)}...</p>
                   </div>

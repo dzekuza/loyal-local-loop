@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
@@ -6,8 +5,9 @@ import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { useToast } from '../../hooks/use-toast';
 import { supabase } from '../../integrations/supabase/client';
-import { Scan, DollarSign, Gift, CheckCircle, X } from 'lucide-react';
+import { Scan, DollarSign, Gift, CheckCircle, X, Keyboard } from 'lucide-react';
 import QRCodeScanner from '../qr/QRCodeScanner';
+import ManualCodeEntry from './ManualCodeEntry';
 
 interface PointCollectionProps {
   businessId: string;
@@ -20,6 +20,8 @@ interface CustomerData {
   customerName: string;
 }
 
+type ScanMode = 'selection' | 'qr' | 'manual';
+
 const PointCollection: React.FC<PointCollectionProps> = ({ 
   businessId, 
   businessName, 
@@ -28,7 +30,7 @@ const PointCollection: React.FC<PointCollectionProps> = ({
   const [scannedCustomer, setScannedCustomer] = useState<CustomerData | null>(null);
   const [amount, setAmount] = useState<string>('');
   const [processing, setProcessing] = useState(false);
-  const [showScanner, setShowScanner] = useState(false);
+  const [scanMode, setScanMode] = useState<ScanMode>('selection');
   const { toast } = useToast();
 
   const handleQRScan = (data: string) => {
@@ -53,7 +55,7 @@ const PointCollection: React.FC<PointCollectionProps> = ({
           customerId: qrData.customerId,
           customerName: qrData.customerName || 'Unknown Customer'
         });
-        setShowScanner(false);
+        setScanMode('selection');
         toast({
           title: "Customer Scanned",
           description: `Ready to award points to ${qrData.customerName || 'customer'}`,
@@ -73,6 +75,14 @@ const PointCollection: React.FC<PointCollectionProps> = ({
         variant: "destructive",
       });
     }
+  };
+
+  const handleManualCustomerFound = (customerId: string, customerName: string) => {
+    setScannedCustomer({
+      customerId,
+      customerName
+    });
+    setScanMode('selection');
   };
 
   const ensureUserPointsRecord = async (customerId: string, businessId: string) => {
@@ -192,6 +202,7 @@ const PointCollection: React.FC<PointCollectionProps> = ({
       // Reset form
       setScannedCustomer(null);
       setAmount('');
+      setScanMode('selection');
       onScanSuccess?.();
 
     } catch (error) {
@@ -216,26 +227,60 @@ const PointCollection: React.FC<PointCollectionProps> = ({
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          {!scannedCustomer ? (
-            <div className="text-center">
+          {scanMode === 'selection' && !scannedCustomer ? (
+            <div className="space-y-3">
+              <p className="text-sm text-gray-600 text-center mb-4">
+                Choose how to identify the customer:
+              </p>
               <Button 
-                onClick={() => setShowScanner(true)}
+                onClick={() => setScanMode('qr')}
                 className="w-full"
                 size="lg"
               >
                 <Scan className="w-5 h-5 mr-2" />
-                Scan Customer QR Code
+                Scan QR Code
               </Button>
-              <p className="text-sm text-gray-600 mt-2">
-                Ask customer to show their QR code
-              </p>
+              <Button 
+                onClick={() => setScanMode('manual')}
+                variant="outline"
+                className="w-full"
+                size="lg"
+              >
+                <Keyboard className="w-5 h-5 mr-2" />
+                Enter Customer Code
+              </Button>
             </div>
-          ) : (
+          ) : scanMode === 'qr' && !scannedCustomer ? (
+            <div className="space-y-4">
+              <div className="text-center">
+                <p className="text-sm text-gray-600 mb-2">
+                  Point the camera at the customer's QR code
+                </p>
+              </div>
+              <div className="h-64 bg-gray-100 rounded-lg flex items-center justify-center">
+                <p className="text-gray-500">QR Scanner would be here</p>
+              </div>
+              <Button
+                variant="outline"
+                onClick={() => setScanMode('selection')}
+                className="w-full"
+              >
+                Back to Options
+              </Button>
+            </div>
+          ) : scanMode === 'manual' && !scannedCustomer ? (
+            <div>
+              <ManualCodeEntry
+                onCustomerFound={handleManualCustomerFound}
+                onCancel={() => setScanMode('selection')}
+              />
+            </div>
+          ) : scannedCustomer ? (
             <div className="space-y-4">
               <div className="p-4 bg-green-50 rounded-lg border border-green-200">
                 <div className="flex items-center space-x-2 mb-2">
                   <CheckCircle className="w-5 h-5 text-green-600" />
-                  <span className="font-medium text-green-800">Customer Scanned</span>
+                  <span className="font-medium text-green-800">Customer Found</span>
                 </div>
                 <p className="text-green-700">{scannedCustomer.customerName}</p>
                 <p className="text-xs text-green-600">ID: {scannedCustomer.customerId.slice(0, 8)}...</p>
@@ -278,24 +323,27 @@ const PointCollection: React.FC<PointCollectionProps> = ({
                 </Button>
                 <Button
                   variant="outline"
-                  onClick={() => setScannedCustomer(null)}
+                  onClick={() => {
+                    setScannedCustomer(null);
+                    setScanMode('selection');
+                  }}
                   disabled={processing}
                 >
                   Cancel
                 </Button>
               </div>
             </div>
-          )}
+          ) : null}
         </CardContent>
       </Card>
 
       {/* QR Scanner Modal */}
-      {showScanner && (
+      {scanMode === 'qr' && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999] p-4">
           <div className="bg-white rounded-lg max-w-md w-full mx-4 relative">
             <QRCodeScanner 
               onScan={handleQRScan}
-              onClose={() => setShowScanner(false)}
+              onClose={() => setScanMode('selection')}
               title="Scan Customer QR Code"
             />
           </div>

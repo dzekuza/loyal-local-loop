@@ -1,7 +1,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { Business } from '@/types';
+import { Business, LoyaltyOffer } from '@/types';
 
 export const useBusinesses = () => {
   return useQuery({
@@ -27,7 +27,13 @@ export const useBusinesses = () => {
             id,
             offer_name,
             reward_description,
-            is_active
+            is_active,
+            business_id,
+            spend_amount,
+            points_earned,
+            reward_threshold,
+            created_at,
+            updated_at
           )
         `)
         .order('created_at', { ascending: false });
@@ -52,7 +58,18 @@ export const useBusinesses = () => {
         description: business.description || '',
         qrCode: business.qr_code || '',
         createdAt: new Date(business.created_at || ''),
-        loyaltyOffers: business.loyalty_offers || []
+        loyaltyOffers: (business.loyalty_offers || []).map(offer => ({
+          id: offer.id,
+          business_id: offer.business_id || business.id,
+          spend_amount: offer.spend_amount || 0,
+          points_earned: offer.points_earned || 0,
+          reward_threshold: offer.reward_threshold || 0,
+          reward_description: offer.reward_description,
+          offer_name: offer.offer_name || '',
+          is_active: offer.is_active,
+          created_at: offer.created_at || '',
+          updated_at: offer.updated_at || ''
+        } as LoyaltyOffer))
       }));
     },
   });

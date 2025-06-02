@@ -24,6 +24,7 @@ const ManualCodeEntry: React.FC<ManualCodeEntryProps> = ({ onCustomerFound, onCa
     const formatted = formatCustomerCodeInput(value);
     setCode(formatted);
     setError(null);
+    console.log('📝 Code input changed:', { original: value, formatted });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -43,10 +44,13 @@ const ManualCodeEntry: React.FC<ManualCodeEntryProps> = ({ onCustomerFound, onCa
       const customerId = await findCustomerByCode(code, supabase);
       
       if (!customerId) {
+        console.warn('❌ Customer code not found:', code);
         setError('Customer code not found. Please check the code and try again.');
         setLoading(false);
         return;
       }
+
+      console.log('✅ Customer ID found:', customerId);
 
       // Get customer profile info
       const { data: profile, error: profileError } = await supabase
@@ -56,7 +60,7 @@ const ManualCodeEntry: React.FC<ManualCodeEntryProps> = ({ onCustomerFound, onCa
         .single();
 
       if (profileError) {
-        console.error('Error fetching profile:', profileError);
+        console.error('❌ Error fetching profile:', profileError);
         setError('Error fetching customer information.');
         setLoading(false);
         return;
@@ -91,7 +95,7 @@ const ManualCodeEntry: React.FC<ManualCodeEntryProps> = ({ onCustomerFound, onCa
           <span>Enter Customer Code</span>
         </CardTitle>
         <p className="text-sm text-gray-600">
-          Enter the customer's loyalty code manually
+          Enter the customer's loyalty code manually (Format: ABC-123-XYZ)
         </p>
       </CardHeader>
       <CardContent>
@@ -122,7 +126,7 @@ const ManualCodeEntry: React.FC<ManualCodeEntryProps> = ({ onCustomerFound, onCa
               </div>
             </div>
             <p className="text-xs text-gray-500 mt-1">
-              Format: 3 letters - 3 numbers - 3 letters
+              Format: 3 letters - 3 numbers - 3 letters (e.g., ABC-123-XYZ)
             </p>
           </div>
 

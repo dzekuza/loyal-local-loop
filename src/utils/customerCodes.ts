@@ -11,6 +11,8 @@ const CODE_CHARS = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
  * Format: ABC-123-XYZ (3 letters - 3 numbers - 3 letters)
  */
 export const generateCustomerCode = (userId: string): string => {
+  console.log('🔢 Generating customer code for userId:', userId);
+  
   // Use a simple hash of the user ID to ensure consistency
   let hash = 0;
   for (let i = 0; i < userId.length; i++) {
@@ -27,7 +29,9 @@ export const generateCustomerCode = (userId: string): string => {
   const part2 = generateCodePart(hash >> 8, 3, false); // Numbers
   const part3 = generateCodePart(hash >> 16, 3, true); // Letters
   
-  return `${part1}-${part2}-${part3}`;
+  const code = `${part1}-${part2}-${part3}`;
+  console.log('✅ Generated customer code:', code, 'for userId:', userId);
+  return code;
 };
 
 /**
@@ -52,7 +56,9 @@ const generateCodePart = (seed: number, length: number, letters: boolean): strin
  */
 export const validateCustomerCode = (code: string): boolean => {
   const pattern = /^[A-Z]{3}-[0-9]{3}-[A-Z]{3}$/;
-  return pattern.test(code.toUpperCase());
+  const isValid = pattern.test(code.toUpperCase());
+  console.log('✓ Validating customer code:', code, 'valid:', isValid);
+  return isValid;
 };
 
 /**
@@ -78,6 +84,8 @@ export const formatCustomerCodeInput = (input: string): string => {
  */
 export const findCustomerByCode = async (code: string, supabase: any): Promise<string | null> => {
   try {
+    console.log('🔍 Searching for customer with code:', code);
+    
     // Get all user profiles to check their generated codes
     const { data: profiles, error } = await supabase
       .from('profiles')
@@ -85,21 +93,27 @@ export const findCustomerByCode = async (code: string, supabase: any): Promise<s
       .eq('user_role', 'customer');
 
     if (error) {
-      console.error('Error fetching profiles:', error);
+      console.error('❌ Error fetching profiles:', error);
       return null;
     }
+
+    console.log('👥 Found', profiles?.length || 0, 'customer profiles to check');
 
     // Check each profile to see if their generated code matches
     for (const profile of profiles || []) {
       const generatedCode = generateCustomerCode(profile.id);
+      console.log('🔍 Checking profile:', profile.id, 'generated code:', generatedCode);
+      
       if (generatedCode === code.toUpperCase()) {
+        console.log('✅ Found matching customer:', profile.id, 'for code:', code);
         return profile.id;
       }
     }
 
+    console.log('❌ No customer found for code:', code);
     return null;
   } catch (error) {
-    console.error('Error finding customer by code:', error);
+    console.error('❌ Error finding customer by code:', error);
     return null;
   }
 };

@@ -19,7 +19,7 @@ const CustomerQRCode: React.FC<CustomerQRCodeProps> = ({ customerId, customerNam
   // Generate unique customer code
   const customerCode = generateCustomerCode(customerId);
 
-  // Standardized QR code data format for consistency
+  // Standardized QR code data format for consistency across the app
   const qrData = JSON.stringify({
     type: 'customer',
     customerId,
@@ -28,7 +28,7 @@ const CustomerQRCode: React.FC<CustomerQRCodeProps> = ({ customerId, customerNam
     version: '1.0'
   });
 
-  console.log('🎯 Generated customer QR data:', qrData);
+  console.log('🎯 Generated standardized customer QR data:', qrData);
   console.log('🔢 Generated customer code:', customerCode);
 
   const handleCopyCode = async () => {
@@ -70,13 +70,13 @@ const CustomerQRCode: React.FC<CustomerQRCodeProps> = ({ customerId, customerNam
           />
         </div>
         
-        {/* Customer Code Display */}
-        <div className="w-full bg-gradient-to-r from-green-50 to-blue-50 p-4 rounded-lg border border-green-200">
-          <p className="text-sm font-medium text-green-800 text-center mb-2">
+        {/* Customer Code Display - PROMINENT */}
+        <div className="w-full bg-gradient-to-r from-green-50 to-blue-50 p-4 rounded-lg border-2 border-green-300">
+          <p className="text-lg font-bold text-green-800 text-center mb-2">
             📱 Your Customer Code
           </p>
           <div className="flex items-center justify-center space-x-2">
-            <div className="bg-white px-4 py-2 rounded-md border border-gray-300 font-mono text-lg font-bold text-gray-800 tracking-widest">
+            <div className="bg-white px-6 py-3 rounded-md border-2 border-gray-400 font-mono text-2xl font-bold text-gray-800 tracking-widest shadow-md">
               {customerCode}
             </div>
             <Button
@@ -98,7 +98,7 @@ const CustomerQRCode: React.FC<CustomerQRCodeProps> = ({ customerId, customerNam
               )}
             </Button>
           </div>
-          <p className="text-xs text-green-600 text-center mt-2">
+          <p className="text-sm text-green-700 text-center mt-2 font-medium">
             💡 Share this code if QR scanning doesn't work
           </p>
         </div>

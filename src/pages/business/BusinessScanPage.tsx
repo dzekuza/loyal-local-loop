@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -79,53 +78,94 @@ const BusinessScanPage: React.FC = () => {
     }
   };
 
-  const handleQRScan = (data: string) => {
+  const parseQRData = (data: string) => {
+    console.log('🔍 Raw QR data received:', data);
+    
+    // Try to parse as JSON first
     try {
-      console.log('📱 QR data received:', data);
+      const qrData = JSON.parse(data);
+      console.log('📋 Parsed QR JSON:', qrData);
       
-      let qrData;
-      try {
-        qrData = JSON.parse(data);
-      } catch {
-        // Handle plain text customer ID
-        qrData = {
-          type: 'customer',
+      // Handle standardized customer format
+      if (qrData.type === 'customer' && qrData.customerId) {
+        return {
+          customerId: qrData.customerId,
+          customerName: qrData.customerName || 'Customer'
+        };
+      }
+      
+      // Handle legacy customer_business format (backward compatibility)
+      if (qrData.type === 'customer_business' && qrData.customerId) {
+        console.log('⚠️ Legacy QR format detected, converting...');
+        return {
+          customerId: qrData.customerId,
+          customerName: qrData.customerName || qrData['business Name'] || 'Customer'
+        };
+      }
+      
+      // Handle any other format that has customerId
+      if (qrData.customerId) {
+        console.log('🔄 Converting unknown QR format with customerId');
+        return {
+          customerId: qrData.customerId,
+          customerName: qrData.customerName || qrData.name || 'Customer'
+        };
+      }
+      
+      console.warn('⚠️ QR data missing customerId:', qrData);
+      return null;
+      
+    } catch (parseError) {
+      console.log('📝 Not JSON, checking if it\'s a plain customer ID or timestamp...');
+      
+      // Handle plain timestamp (legacy format)
+      if (/^\d+$/.test(data)) {
+        console.warn('⚠️ Timestamp-only QR code detected:', data);
+        toast({
+          title: "Invalid QR Code Format",
+          description: "This appears to be an old QR code format. Please ask the customer to regenerate their QR code.",
+          variant: "destructive",
+        });
+        return null;
+      }
+      
+      // Handle plain UUID (treat as customer ID)
+      if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(data)) {
+        console.log('🆔 Plain UUID detected, treating as customer ID');
+        return {
           customerId: data,
           customerName: 'Customer'
         };
       }
       
-      console.log('🔍 Parsed QR data:', qrData);
+      console.error('❌ Unable to parse QR data:', data);
+      return null;
+    }
+  };
+
+  const handleQRScan = (data: string) => {
+    const customerData = parseQRData(data);
+    
+    if (customerData) {
+      console.log('✅ Customer data extracted:', customerData);
+      setScannedCustomer(customerData);
       
-      if (qrData.type === 'customer' && qrData.customerId) {
-        setScannedCustomer({
-          customerId: qrData.customerId,
-          customerName: qrData.customerName || 'Unknown Customer'
-        });
-        
-        toast({
-          title: "Customer Scanned Successfully! ✅",
-          description: `Ready to award points to ${qrData.customerName || 'customer'}`,
-        });
-      } else {
-        console.warn('⚠️ Invalid QR data format:', qrData);
-        toast({
-          title: "Invalid QR Code",
-          description: "Please scan a valid customer loyalty QR code",
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
-      console.error('❌ QR scan error:', error);
       toast({
-        title: "Scan Error",
-        description: "Unable to read QR code. Please try again.",
+        title: "Customer Scanned Successfully! ✅",
+        description: `Ready to award points to ${customerData.customerName}`,
+      });
+    } else {
+      console.error('❌ Failed to extract customer data from QR code');
+      toast({
+        title: "Invalid QR Code",
+        description: "Please scan a valid customer loyalty QR code or ask the customer to regenerate their code.",
         variant: "destructive",
       });
     }
   };
 
   const handleManualCustomerFound = (customerId: string, customerName: string) => {
+    console.log('📝 Manual customer found:', { customerId, customerName });
     setScannedCustomer({
       customerId,
       customerName

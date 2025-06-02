@@ -91,40 +91,49 @@ export const findCustomerByCode = async (code: string, businessId: string, supab
       return null;
     }
 
-    // Get all enrolled customers for this business with their profile information
-    const { data: enrolledCustomers, error } = await supabase
+    // First, get all enrolled customers for this business
+    const { data: enrolledCustomers, error: enrollmentError } = await supabase
       .from('user_points')
-      .select(`
-        customer_id,
-        total_points,
-        profiles!inner(
-          id,
-          name
-        )
-      `)
+      .select('customer_id, total_points')
       .eq('business_id', businessId);
 
-    if (error) {
-      console.error('❌ Error fetching enrolled customers:', error);
+    if (enrollmentError) {
+      console.error('❌ Error fetching enrolled customers:', enrollmentError);
       return null;
     }
 
-    console.log('👥 Found', enrolledCustomers?.length || 0, 'enrolled customers to check');
+    if (!enrolledCustomers || enrolledCustomers.length === 0) {
+      console.log('❌ No customers enrolled in this business:', businessId);
+      return null;
+    }
+
+    console.log('👥 Found', enrolledCustomers.length, 'enrolled customers to check');
+
+    // Then get profiles for all enrolled customers
+    const customerIds = enrolledCustomers.map(ec => ec.customer_id);
+    const { data: profiles, error: profilesError } = await supabase
+      .from('profiles')
+      .select('id, name')
+      .in('id', customerIds);
+
+    if (profilesError) {
+      console.error('❌ Error fetching customer profiles:', profilesError);
+      return null;
+    }
+
+    console.log('👤 Found', profiles?.length || 0, 'customer profiles');
 
     // Check each enrolled customer to see if their generated code matches
-    for (const customerData of enrolledCustomers || []) {
-      const customerId = customerData.customer_id;
-      const customerName = customerData.profiles?.name || 'Customer';
-      
-      const generatedCode = generateCustomerCode(customerId);
-      console.log('🔍 Checking customer:', customerId, 'name:', customerName, 'generated code:', generatedCode);
+    for (const profile of profiles || []) {
+      const generatedCode = generateCustomerCode(profile.id);
+      console.log('🔍 Checking customer:', profile.id, 'name:', profile.name, 'generated code:', generatedCode);
       
       if (generatedCode === code.toUpperCase()) {
-        console.log('✅ Found matching enrolled customer:', customerId, 'for code:', code);
+        console.log('✅ Found matching enrolled customer:', profile.id, 'for code:', code);
         
         return {
-          customerId: customerId,
-          customerName: customerName
+          customerId: profile.id,
+          customerName: profile.name || 'Customer'
         };
       }
     }

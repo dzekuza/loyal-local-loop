@@ -3,17 +3,28 @@ import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from './use-toast';
 import { useAuth } from './useAuth';
+import { useAppStore } from '@/store/useAppStore';
 
 export const useCustomerLoyalty = () => {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
+  const { userRole } = useAppStore();
 
   const joinLoyaltyProgram = async (businessId: string, businessName: string) => {
     if (!user) {
       toast({
         title: "Authentication Required",
         description: "Please log in to join loyalty programs",
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    if (userRole !== 'customer') {
+      toast({
+        title: "Access Denied",
+        description: "Only customers can join loyalty programs. Business accounts cannot participate in loyalty programs.",
         variant: "destructive",
       });
       return false;
@@ -74,7 +85,7 @@ export const useCustomerLoyalty = () => {
   };
 
   const getCustomerPoints = async (businessId: string) => {
-    if (!user) return null;
+    if (!user || userRole !== 'customer') return null;
 
     try {
       const { data, error } = await supabase

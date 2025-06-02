@@ -50,11 +50,16 @@ const ManualCodeEntry: React.FC<ManualCodeEntryProps> = ({
     try {
       console.log('👥 Loading enrolled customers for business:', businessId);
       
-      // Get enrolled customers
+      // Get enrolled customers with role filtering
       const { data: enrolledData, error: enrollmentError } = await supabase
         .from('user_points')
-        .select('customer_id, total_points')
-        .eq('business_id', businessId);
+        .select(`
+          customer_id, 
+          total_points,
+          profiles!inner(id, name, user_role)
+        `)
+        .eq('business_id', businessId)
+        .eq('profiles.user_role', 'customer');
 
       if (enrollmentError) {
         console.error('❌ Error fetching enrolled customers:', enrollmentError);
@@ -66,31 +71,16 @@ const ManualCodeEntry: React.FC<ManualCodeEntryProps> = ({
         return;
       }
 
-      // Get customer profiles
-      const customerIds = enrolledData.map(ec => ec.customer_id);
-      const { data: profiles, error: profilesError } = await supabase
-        .from('profiles')
-        .select('id, name')
-        .in('id', customerIds);
-
-      if (profilesError) {
-        console.error('❌ Error fetching customer profiles:', profilesError);
-        return;
-      }
-
-      // Combine data and generate codes
-      const customers: EnrolledCustomer[] = profiles?.map(profile => {
-        const enrollmentData = enrolledData.find(ed => ed.customer_id === profile.id);
-        return {
-          id: profile.id,
-          name: profile.name || 'Customer',
-          code: generateCustomerCode(profile.id),
-          points: enrollmentData?.total_points || 0
-        };
-      }) || [];
+      // Transform data and generate codes
+      const customers: EnrolledCustomer[] = enrolledData.map(item => ({
+        id: item.customer_id,
+        name: item.profiles.name || 'Customer',
+        code: generateCustomerCode(item.customer_id),
+        points: item.total_points || 0
+      }));
 
       setEnrolledCustomers(customers);
-      console.log('✅ Loaded', customers.length, 'enrolled customers');
+      console.log('✅ Loaded', customers.length, 'enrolled customers (customers only)');
     } catch (error) {
       console.error('❌ Error loading enrolled customers:', error);
     } finally {
@@ -126,7 +116,21 @@ const ManualCodeEntry: React.FC<ManualCodeEntryProps> = ({
         return;
       }
 
-      console.log('✅ Customer found and enrolled:', customerData);
+      // Additional verification that the found customer has 'customer' role
+      const { data: customerProfile, error: profileError } = await supabase
+        .from('profiles')
+        .select('user_role')
+        .eq('id', customerData.customerId)
+        .single();
+
+      if (profileError || customerProfile?.user_role !== 'customer') {
+        console.warn('❌ Found user is not a customer:', customerData.customerId);
+        setError('This code belongs to a business account, not a customer. Only customer codes are valid for loyalty programs.');
+        setLoading(false);
+        return;
+      }
+
+      console.log('✅ Customer found and verified as customer role:', customerData);
 
       toast({
         title: "Customer Found! ✅",
@@ -265,7 +269,7 @@ const ManualCodeEntry: React.FC<ManualCodeEntryProps> = ({
 
           <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
             <p className="text-xs text-blue-800">
-              💡 <strong>Tip:</strong> The customer must be enrolled in your loyalty program for their code to work. If the code is valid but not found, ask them to join your program first.
+              💡 <strong>Tip:</strong> Only customers (not businesses) can have loyalty codes and join loyalty programs.
             </p>
           </div>
         </CardContent>

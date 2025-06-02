@@ -5,6 +5,7 @@ import { Button } from '../ui/button';
 import { Copy, Check, CreditCard, Info } from 'lucide-react';
 import { generateCustomerCode } from '@/utils/customerCodes';
 import { useToast } from '@/hooks/use-toast';
+import { useAppStore } from '@/store/useAppStore';
 
 interface CustomerCodeDisplayProps {
   customerId: string;
@@ -21,6 +22,12 @@ const CustomerCodeDisplay: React.FC<CustomerCodeDisplayProps> = ({
 }) => {
   const [codeCopied, setCodeCopied] = useState(false);
   const { toast } = useToast();
+  const { userRole } = useAppStore();
+
+  // Only show customer codes for actual customers
+  if (userRole !== 'customer') {
+    return null;
+  }
 
   const customerCode = generateCustomerCode(customerId);
 

@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
-import { CreditCard, Plus } from 'lucide-react';
+import { CreditCard, Plus, AlertTriangle, Building } from 'lucide-react';
 import EnhancedLoyaltyCard from '@/components/loyalty/EnhancedLoyaltyCard';
 import CustomerCodeDisplay from '@/components/customer/CustomerCodeDisplay';
 
@@ -36,16 +36,26 @@ const MyCardsPage: React.FC = () => {
   const [customerProfile, setCustomerProfile] = useState<any>(null);
 
   useEffect(() => {
-    if (!user || userRole !== 'customer') {
+    if (!user) {
       navigate('/login');
       return;
     }
-    loadWalletCards();
-    loadCustomerProfile();
+    
+    if (userRole === 'business') {
+      navigate('/dashboard');
+      return;
+    }
+    
+    if (userRole === 'customer') {
+      loadWalletCards();
+      loadCustomerProfile();
+    }
+    
+    setLoading(false);
   }, [user, userRole]);
 
   const loadCustomerProfile = async () => {
-    if (!user) return;
+    if (!user || userRole !== 'customer') return;
 
     try {
       const { data, error } = await supabase
@@ -65,7 +75,7 @@ const MyCardsPage: React.FC = () => {
   };
 
   const loadWalletCards = async () => {
-    if (!user) return;
+    if (!user || userRole !== 'customer') return;
 
     try {
       const { data, error } = await supabase
@@ -109,6 +119,56 @@ const MyCardsPage: React.FC = () => {
   const handleAddCards = () => {
     navigate('/discover');
   };
+
+  const handleGoToDashboard = () => {
+    navigate('/dashboard');
+  };
+
+  // Show message for business users
+  if (user && userRole === 'business') {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <div className="container mx-auto px-4 py-8">
+          <Card className="max-w-md mx-auto">
+            <CardContent className="p-8 text-center">
+              <Building className="w-16 h-16 text-blue-500 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold mb-2">Business Account</h3>
+              <p className="text-gray-600 mb-6">
+                You're logged in as a business. This page is for customers to view their loyalty cards.
+                Go to your business dashboard to manage your loyalty programs.
+              </p>
+              <Button onClick={handleGoToDashboard} className="w-full">
+                <Building className="w-4 h-4 mr-2" />
+                Go to Business Dashboard
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  // Show message for non-authenticated users
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <div className="container mx-auto px-4 py-8">
+          <Card className="max-w-md mx-auto">
+            <CardContent className="p-8 text-center">
+              <AlertTriangle className="w-16 h-16 text-orange-500 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold mb-2">Authentication Required</h3>
+              <p className="text-gray-600 mb-6">
+                Please log in as a customer to view your loyalty cards.
+              </p>
+              <Button onClick={() => navigate('/login')} className="w-full">
+                Sign In
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
@@ -170,8 +230,8 @@ const MyCardsPage: React.FC = () => {
 
       {/* Content */}
       <div className="container mx-auto px-4 py-6">
-        {/* Customer Code Display - Always show for logged in customers */}
-        {user && customerProfile && (
+        {/* Customer Code Display - Only show for customers */}
+        {user && userRole === 'customer' && customerProfile && (
           <div className="mb-6">
             <CustomerCodeDisplay
               customerId={user.id}

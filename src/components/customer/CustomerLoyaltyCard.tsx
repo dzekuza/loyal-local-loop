@@ -5,7 +5,8 @@ import { Button } from '../ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { CreditCard, Star, CheckCircle, Loader2 } from 'lucide-react';
+import { useAppStore } from '@/store/useAppStore';
+import { CreditCard, Star, CheckCircle, Loader2, AlertTriangle } from 'lucide-react';
 import AuthModal from './AuthModal';
 
 interface CustomerLoyaltyCardProps {
@@ -23,14 +24,15 @@ const CustomerLoyaltyCard: React.FC<CustomerLoyaltyCardProps> = ({ business, onJ
   const [hasJoined, setHasJoined] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const { user } = useAuth();
+  const { userRole } = useAppStore();
   const { toast } = useToast();
 
   React.useEffect(() => {
     checkMembership();
-  }, [business.id, user]);
+  }, [business.id, user, userRole]);
 
   const checkMembership = async () => {
-    if (!user) return;
+    if (!user || userRole !== 'customer') return;
 
     try {
       const { data, error } = await supabase
@@ -54,6 +56,15 @@ const CustomerLoyaltyCard: React.FC<CustomerLoyaltyCardProps> = ({ business, onJ
   const handleJoinProgram = async () => {
     if (!user) {
       setShowAuthModal(true);
+      return;
+    }
+
+    if (userRole !== 'customer') {
+      toast({
+        title: "Access Denied",
+        description: "Only customers can join loyalty programs. Please register as a customer.",
+        variant: "destructive",
+      });
       return;
     }
 
@@ -93,11 +104,30 @@ const CustomerLoyaltyCard: React.FC<CustomerLoyaltyCardProps> = ({ business, onJ
 
   const handleAuthSuccess = () => {
     setShowAuthModal(false);
-    // After successful auth, the useEffect will trigger and check membership
     setTimeout(() => {
       checkMembership();
     }, 1000);
   };
+
+  // Show message for business users
+  if (user && userRole === 'business') {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <AlertTriangle className="w-5 h-5 text-orange-500" />
+            <span>Business Account</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-gray-600">
+            You're logged in as a business. Loyalty programs are for customers only. 
+            If you'd like to join loyalty programs, please create a customer account.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <>
@@ -109,7 +139,7 @@ const CustomerLoyaltyCard: React.FC<CustomerLoyaltyCardProps> = ({ business, onJ
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {user && hasJoined ? (
+          {user && userRole === 'customer' && hasJoined ? (
             <div className="text-center">
               <div className="flex items-center justify-center space-x-2 mb-4">
                 <CheckCircle className="w-6 h-6 text-green-600" />

@@ -1,4 +1,3 @@
-
 import { useState, useEffect, createContext, useContext } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
@@ -72,9 +71,43 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       console.log('Profile fetch result:', { profile, error: fetchError });
 
-      if (fetchError && fetchError.code !== 'PGRST116') {
+      if (fetchError) {
         console.error('Error fetching profile:', fetchError);
-        setStoreUser({ id: user.id, email: user.email }, 'customer');
+        
+        // Only try to create profile if it's a "not found" error, not an RLS error
+        if (fetchError.code === 'PGRST116') {
+          console.log('Profile not found, creating new profile');
+          const success = await createUserProfile(user);
+          if (success) {
+            // Retry fetching the profile after creation
+            const { data: newProfile, error: retryError } = await supabase
+              .from('profiles')
+              .select('*')
+              .eq('id', user.id)
+              .maybeSingle();
+            
+            if (newProfile && !retryError) {
+              console.log('Setting user with newly created profile:', newProfile);
+              setStoreUser(newProfile, newProfile.user_role as UserRole);
+            } else {
+              console.error('Failed to fetch newly created profile:', retryError);
+              // Set basic user info without profile data
+              setStoreUser({ id: user.id, email: user.email }, 'customer');
+            }
+          } else {
+            // Profile creation failed, set basic user info
+            setStoreUser({ id: user.id, email: user.email }, 'customer');
+          }
+        } else {
+          // Other error (like RLS), don't default to customer - use user metadata if available
+          const userRole = user.user_metadata?.user_role as UserRole || 'customer';
+          console.log('Using user metadata role due to profile fetch error:', userRole);
+          setStoreUser({ 
+            id: user.id, 
+            email: user.email,
+            name: user.user_metadata?.name || user.email
+          }, userRole);
+        }
         return;
       }
 
@@ -92,10 +125,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             console.log('Setting user with newly created profile:', newProfile);
             setStoreUser(newProfile, newProfile.user_role as UserRole);
           } else {
-            setStoreUser({ id: user.id, email: user.email }, 'customer');
+            // Fallback to user metadata
+            const userRole = user.user_metadata?.user_role as UserRole || 'customer';
+            setStoreUser({ id: user.id, email: user.email }, userRole);
           }
         } else {
-          setStoreUser({ id: user.id, email: user.email }, 'customer');
+          // Fallback to user metadata
+          const userRole = user.user_metadata?.user_role as UserRole || 'customer';
+          setStoreUser({ id: user.id, email: user.email }, userRole);
         }
       } else {
         console.log('Setting user with existing profile:', profile);
@@ -106,7 +143,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       checkSubscription();
     } catch (error) {
       console.error('Error in handleUserProfile:', error);
-      setStoreUser({ id: user.id, email: user.email }, 'customer');
+      // Fallback to user metadata when there's an unexpected error
+      const userRole = user.user_metadata?.user_role as UserRole || 'customer';
+      console.log('Using fallback user role due to error:', userRole);
+      setStoreUser({ 
+        id: user.id, 
+        email: user.email,
+        name: user.user_metadata?.name || user.email
+      }, userRole);
     }
   };
 

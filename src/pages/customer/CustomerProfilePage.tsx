@@ -5,6 +5,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useAppStore } from '@/store/useAppStore';
 import { supabase } from '@/integrations/supabase/client';
 import CustomerProfileForm from '@/components/customer/CustomerProfileForm';
+import CustomerCodeDisplay from '@/components/customer/CustomerCodeDisplay';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -76,6 +77,17 @@ const CustomerProfilePage = () => {
             Back to Businesses
           </Button>
         </div>
+
+        {/* Customer Code Display */}
+        {user && profile && (
+          <div className="mb-6">
+            <CustomerCodeDisplay
+              customerId={user.id}
+              customerName={profile.name || user.email || 'Customer'}
+              showInstructions={true}
+            />
+          </div>
+        )}
 
         <CustomerProfileForm 
           profile={profile}

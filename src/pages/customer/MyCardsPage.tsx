@@ -10,6 +10,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { CreditCard, Plus } from 'lucide-react';
 import EnhancedLoyaltyCard from '@/components/loyalty/EnhancedLoyaltyCard';
+import CustomerCodeDisplay from '@/components/customer/CustomerCodeDisplay';
 
 interface WalletCard {
   id: string;
@@ -32,6 +33,7 @@ const MyCardsPage: React.FC = () => {
   const { toast } = useToast();
   const [walletCards, setWalletCards] = useState<WalletCard[]>([]);
   const [loading, setLoading] = useState(true);
+  const [customerProfile, setCustomerProfile] = useState<any>(null);
 
   useEffect(() => {
     if (!user || userRole !== 'customer') {
@@ -39,7 +41,28 @@ const MyCardsPage: React.FC = () => {
       return;
     }
     loadWalletCards();
+    loadCustomerProfile();
   }, [user, userRole]);
+
+  const loadCustomerProfile = async () => {
+    if (!user) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        throw error;
+      }
+
+      setCustomerProfile(data);
+    } catch (error) {
+      console.error('Error loading customer profile:', error);
+    }
+  };
 
   const loadWalletCards = async () => {
     if (!user) return;
@@ -147,6 +170,18 @@ const MyCardsPage: React.FC = () => {
 
       {/* Content */}
       <div className="container mx-auto px-4 py-6">
+        {/* Customer Code Display - Always show for logged in customers */}
+        {user && customerProfile && (
+          <div className="mb-6">
+            <CustomerCodeDisplay
+              customerId={user.id}
+              customerName={customerProfile.name || user.email || 'Customer'}
+              showInstructions={walletCards.length === 0}
+              className="max-w-md mx-auto"
+            />
+          </div>
+        )}
+
         {walletCards.length === 0 ? (
           <Card className="max-w-md mx-auto">
             <CardContent className="p-8 text-center">

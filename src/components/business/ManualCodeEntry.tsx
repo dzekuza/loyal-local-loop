@@ -1,11 +1,11 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
-import { Keyboard, User, CheckCircle, AlertTriangle, UserX, Building } from 'lucide-react';
-import { validateCustomerCode, formatCustomerCodeInput, findCustomerByCode } from '@/utils/customerCodes';
+import { Keyboard, User, CheckCircle, AlertTriangle, UserX, Building, Users, Copy, Check } from 'lucide-react';
+import { validateCustomerCode, formatCustomerCodeInput, findCustomerByCode, generateCustomerCode } from '@/utils/customerCodes';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -14,6 +14,13 @@ interface ManualCodeEntryProps {
   businessName: string;
   onCustomerFound: (customerId: string, customerName: string) => void;
   onCancel: () => void;
+}
+
+interface EnrolledCustomer {
+  id: string;
+  name: string;
+  code: string;
+  points: number;
 }
 
 const ManualCodeEntry: React.FC<ManualCodeEntryProps> = ({ 
@@ -25,6 +32,10 @@ const ManualCodeEntry: React.FC<ManualCodeEntryProps> = ({
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [enrolledCustomers, setEnrolledCustomers] = useState<EnrolledCustomer[]>([]);
+  const [showEnrolledCustomers, setShowEnrolledCustomers] = useState(false);
+  const [loadingCustomers, setLoadingCustomers] = useState(false);
+  const [copiedCode, setCopiedCode] = useState<string | null>(null);
   const { toast } = useToast();
 
   const handleCodeChange = (value: string) => {
@@ -32,6 +43,59 @@ const ManualCodeEntry: React.FC<ManualCodeEntryProps> = ({
     setCode(formatted);
     setError(null);
     console.log('📝 Code input changed:', { original: value, formatted, businessId });
+  };
+
+  const loadEnrolledCustomers = async () => {
+    setLoadingCustomers(true);
+    try {
+      console.log('👥 Loading enrolled customers for business:', businessId);
+      
+      // Get enrolled customers
+      const { data: enrolledData, error: enrollmentError } = await supabase
+        .from('user_points')
+        .select('customer_id, total_points')
+        .eq('business_id', businessId);
+
+      if (enrollmentError) {
+        console.error('❌ Error fetching enrolled customers:', enrollmentError);
+        return;
+      }
+
+      if (!enrolledData || enrolledData.length === 0) {
+        setEnrolledCustomers([]);
+        return;
+      }
+
+      // Get customer profiles
+      const customerIds = enrolledData.map(ec => ec.customer_id);
+      const { data: profiles, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, name')
+        .in('id', customerIds);
+
+      if (profilesError) {
+        console.error('❌ Error fetching customer profiles:', profilesError);
+        return;
+      }
+
+      // Combine data and generate codes
+      const customers: EnrolledCustomer[] = profiles?.map(profile => {
+        const enrollmentData = enrolledData.find(ed => ed.customer_id === profile.id);
+        return {
+          id: profile.id,
+          name: profile.name || 'Customer',
+          code: generateCustomerCode(profile.id),
+          points: enrollmentData?.total_points || 0
+        };
+      }) || [];
+
+      setEnrolledCustomers(customers);
+      console.log('✅ Loaded', customers.length, 'enrolled customers');
+    } catch (error) {
+      console.error('❌ Error loading enrolled customers:', error);
+    } finally {
+      setLoadingCustomers(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -79,105 +143,209 @@ const ManualCodeEntry: React.FC<ManualCodeEntryProps> = ({
     }
   };
 
+  const handleCopyCode = async (customerCode: string) => {
+    try {
+      await navigator.clipboard.writeText(customerCode);
+      setCopiedCode(customerCode);
+      toast({
+        title: "Code Copied! 📋",
+        description: "Customer code copied to clipboard",
+      });
+      setTimeout(() => setCopiedCode(null), 2000);
+    } catch (error) {
+      toast({
+        title: "Copy Failed",
+        description: "Please copy the code manually",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleSelectCustomer = (customer: EnrolledCustomer) => {
+    setCode(customer.code);
+    setShowEnrolledCustomers(false);
+    toast({
+      title: "Customer Selected",
+      description: `${customer.name}'s code has been entered`,
+    });
+  };
+
   const isValidFormat = code.length === 0 || validateCustomerCode(code);
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center space-x-2">
-          <Keyboard className="w-5 h-5" />
-          <span>Enter Customer Code</span>
-        </CardTitle>
-        <div className="space-y-2">
-          <p className="text-sm text-gray-600">
-            Enter the customer's loyalty code manually (Format: ABC-123-XYZ)
-          </p>
-          <div className="flex items-center space-x-2 text-xs text-blue-600 bg-blue-50 p-2 rounded">
-            <Building className="w-4 h-4" />
-            <span>Checking enrollment for: <strong>{businessName}</strong></span>
-          </div>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <Label htmlFor="customer-code">Customer Code</Label>
-            <div className="relative mt-1">
-              <Input
-                id="customer-code"
-                type="text"
-                value={code}
-                onChange={(e) => handleCodeChange(e.target.value)}
-                placeholder="ABC-123-XYZ"
-                maxLength={11}
-                className={`font-mono text-lg tracking-widest text-center uppercase ${
-                  !isValidFormat ? 'border-red-300 focus:border-red-500' : ''
-                }`}
-                disabled={loading}
-              />
-              <div className="absolute right-3 top-3">
-                {code.length > 0 && (
-                  isValidFormat ? (
-                    <CheckCircle className="w-5 h-5 text-green-500" />
-                  ) : (
-                    <AlertTriangle className="w-5 h-5 text-red-500" />
-                  )
-                )}
-              </div>
-            </div>
-            <p className="text-xs text-gray-500 mt-1">
-              Format: 3 letters - 3 numbers - 3 letters (e.g., ABC-123-XYZ)
+    <div className="space-y-4">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <Keyboard className="w-5 h-5" />
+            <span>Enter Customer Code</span>
+          </CardTitle>
+          <div className="space-y-2">
+            <p className="text-sm text-gray-600">
+              Enter the customer's loyalty code manually (Format: ABC-123-XYZ)
             </p>
+            <div className="flex items-center space-x-2 text-xs text-blue-600 bg-blue-50 p-2 rounded">
+              <Building className="w-4 h-4" />
+              <span>Checking enrollment for: <strong>{businessName}</strong></span>
+            </div>
           </div>
-
-          {error && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-              <div className="flex items-start space-x-2">
-                <UserX className="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0" />
-                <div>
-                  <p className="text-sm font-medium text-red-800">Customer Not Found</p>
-                  <p className="text-sm text-red-700 mt-1">{error}</p>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <Label htmlFor="customer-code">Customer Code</Label>
+              <div className="relative mt-1">
+                <Input
+                  id="customer-code"
+                  type="text"
+                  value={code}
+                  onChange={(e) => handleCodeChange(e.target.value)}
+                  placeholder="ABC-123-XYZ"
+                  maxLength={11}
+                  className={`font-mono text-lg tracking-widest text-center uppercase ${
+                    !isValidFormat ? 'border-red-300 focus:border-red-500' : ''
+                  }`}
+                  disabled={loading}
+                />
+                <div className="absolute right-3 top-3">
+                  {code.length > 0 && (
+                    isValidFormat ? (
+                      <CheckCircle className="w-5 h-5 text-green-500" />
+                    ) : (
+                      <AlertTriangle className="w-5 h-5 text-red-500" />
+                    )
+                  )}
                 </div>
               </div>
+              <p className="text-xs text-gray-500 mt-1">
+                Format: 3 letters - 3 numbers - 3 letters (e.g., ABC-123-XYZ)
+              </p>
             </div>
-          )}
 
-          <div className="flex space-x-2">
-            <Button
-              type="submit"
-              disabled={!validateCustomerCode(code) || loading}
-              className="flex-1"
-            >
-              {loading ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  Looking up...
-                </>
-              ) : (
-                <>
-                  <User className="w-4 h-4 mr-2" />
-                  Find Customer
-                </>
-              )}
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onCancel}
-              disabled={loading}
-            >
-              Cancel
-            </Button>
+            {error && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                <div className="flex items-start space-x-2">
+                  <UserX className="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="text-sm font-medium text-red-800">Customer Not Found</p>
+                    <p className="text-sm text-red-700 mt-1">{error}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div className="flex space-x-2">
+              <Button
+                type="submit"
+                disabled={!validateCustomerCode(code) || loading}
+                className="flex-1"
+              >
+                {loading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Looking up...
+                  </>
+                ) : (
+                  <>
+                    <User className="w-4 h-4 mr-2" />
+                    Find Customer
+                  </>
+                )}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onCancel}
+                disabled={loading}
+              >
+                Cancel
+              </Button>
+            </div>
+          </form>
+
+          <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+            <p className="text-xs text-blue-800">
+              💡 <strong>Tip:</strong> The customer must be enrolled in your loyalty program for their code to work. If the code is valid but not found, ask them to join your program first.
+            </p>
           </div>
-        </form>
+        </CardContent>
+      </Card>
 
-        <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
-          <p className="text-xs text-blue-800">
-            💡 <strong>Tip:</strong> The customer must be enrolled in your loyalty program for their code to work. If the code is valid but not found, ask them to join your program first.
+      {/* Enrolled Customers Helper */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <Users className="w-5 h-5" />
+              <span>Enrolled Customers</span>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                if (!showEnrolledCustomers) {
+                  loadEnrolledCustomers();
+                }
+                setShowEnrolledCustomers(!showEnrolledCustomers);
+              }}
+              disabled={loadingCustomers}
+            >
+              {loadingCustomers ? 'Loading...' : showEnrolledCustomers ? 'Hide' : 'Show'}
+            </Button>
+          </CardTitle>
+          <p className="text-sm text-gray-600">
+            View customers enrolled in your loyalty program and their codes
           </p>
-        </div>
-      </CardContent>
-    </Card>
+        </CardHeader>
+        {showEnrolledCustomers && (
+          <CardContent>
+            {enrolledCustomers.length === 0 ? (
+              <div className="text-center py-4">
+                <p className="text-gray-500">No customers enrolled yet.</p>
+                <p className="text-sm text-gray-400">Ask customers to join your loyalty program first.</p>
+              </div>
+            ) : (
+              <div className="space-y-2 max-h-64 overflow-y-auto">
+                {enrolledCustomers.map((customer) => (
+                  <div
+                    key={customer.id}
+                    className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border hover:bg-gray-100 transition-colors"
+                  >
+                    <div className="flex-1">
+                      <p className="font-medium">{customer.name}</p>
+                      <p className="text-sm text-gray-600">{customer.points} points</p>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <span className="font-mono text-sm bg-white px-2 py-1 rounded border">
+                        {customer.code}
+                      </span>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleCopyCode(customer.code)}
+                      >
+                        {copiedCode === customer.code ? (
+                          <Check className="w-4 h-4 text-green-600" />
+                        ) : (
+                          <Copy className="w-4 h-4" />
+                        )}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleSelectCustomer(customer)}
+                      >
+                        Select
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        )}
+      </Card>
+    </div>
   );
 };
 

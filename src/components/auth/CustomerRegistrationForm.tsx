@@ -7,12 +7,15 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
+import CustomerCodeDisplay from '@/components/customer/CustomerCodeDisplay';
 
 const CustomerRegistrationForm = () => {
   const navigate = useNavigate();
   const { signUp } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [registrationSuccess, setRegistrationSuccess] = useState(false);
+  const [newCustomer, setNewCustomer] = useState<{ id: string; name: string } | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -39,7 +42,7 @@ const CustomerRegistrationForm = () => {
       user_role: 'customer',
     };
 
-    const { error } = await signUp(formData.email, formData.password, userData);
+    const { data, error } = await signUp(formData.email, formData.password, userData);
 
     if (error) {
       toast({
@@ -50,13 +53,48 @@ const CustomerRegistrationForm = () => {
     } else {
       toast({
         title: "Registration successful!",
-        description: "Please check your email to verify your account.",
+        description: "Your customer account has been created with your unique loyalty code.",
       });
-      navigate('/login');
+      
+      // Show the customer code display
+      setNewCustomer({
+        id: data.user?.id || '',
+        name: formData.name
+      });
+      setRegistrationSuccess(true);
     }
 
     setLoading(false);
   };
+
+  const handleContinue = () => {
+    navigate('/login');
+  };
+
+  if (registrationSuccess && newCustomer) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-12">
+        <div className="container mx-auto px-4">
+          <div className="max-w-md mx-auto">
+            <CustomerCodeDisplay
+              customerId={newCustomer.id}
+              customerName={newCustomer.name}
+              showInstructions={true}
+            />
+            
+            <div className="mt-6 text-center">
+              <Button onClick={handleContinue} className="w-full">
+                Continue to Login
+              </Button>
+              <p className="text-sm text-gray-600 mt-4">
+                Please check your email to verify your account before logging in.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 py-12">

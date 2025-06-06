@@ -115,7 +115,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             }, fallbackRole);
           }
         } else {
-          // RLS or other error - use user metadata
+          // RLS or other error - use user metadata but don't force to customer
           const fallbackRole = userMetadataRole || 'customer';
           console.log('Using user metadata role due to profile fetch error:', fallbackRole);
           setStoreUser({ 
@@ -171,6 +171,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     } catch (error) {
       console.error('Error in handleUserProfile:', error);
       // Fallback to user metadata when there's an unexpected error
+      const userMetadataRole = user.user_metadata?.user_role as UserRole;
       const fallbackRole = userMetadataRole || 'customer';
       console.log('Using fallback user role due to error:', fallbackRole);
       setStoreUser({ 

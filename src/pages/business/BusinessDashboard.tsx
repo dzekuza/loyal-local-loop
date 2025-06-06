@@ -9,13 +9,12 @@ import { Button } from '../../components/ui/button';
 import QRGenerator from '../../components/business/QRGenerator';
 import OfferForm from '../../components/offers/OfferForm';
 import OffersList from '../../components/offers/OffersList';
-import PointCollection from '../../components/business/PointCollection';
-import { Store, Users, Gift, TrendingUp, Scan, ArrowRight } from 'lucide-react';
+import { Store, Users, Gift, TrendingUp, Scan, ArrowRight, AlertTriangle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 const BusinessDashboard = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { toast } = useToast();
   const { 
     isAuthenticated, 
@@ -27,53 +26,72 @@ const BusinessDashboard = () => {
   const { analytics, loading: analyticsLoading } = useBusinessAnalytics();
   const [loading, setLoading] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    console.log('Dashboard: checking auth state', { isAuthenticated, userRole, user });
+    console.log('🏢 BusinessDashboard: checking auth state', { 
+      isAuthenticated, 
+      userRole, 
+      user: !!user,
+      authLoading 
+    });
     
-    if (!isAuthenticated) {
-      console.log('Not authenticated, redirecting to login');
+    if (authLoading) {
+      console.log('⏳ Still loading auth...');
+      return;
+    }
+
+    if (!isAuthenticated || !user) {
+      console.log('❌ Not authenticated, redirecting to login');
       navigate('/login');
       return;
     }
 
     if (userRole !== 'business') {
-      console.log('Not a business user, redirecting to businesses page');
+      console.log('❌ Not a business user, current role:', userRole);
       toast({
         title: "Access Denied",
-        description: "You need a business account to access the dashboard",
+        description: "You need a business account to access the dashboard. Please contact support if you believe this is an error.",
         variant: "destructive",
       });
       navigate('/businesses');
       return;
     }
 
+    // User is authenticated and has business role
     loadBusinessProfile();
-  }, [isAuthenticated, userRole, user]);
+  }, [isAuthenticated, userRole, user, authLoading]);
 
   const loadBusinessProfile = async () => {
     if (!user) {
-      console.log('No user found');
+      console.log('❌ No user found');
+      setError('No user session found');
+      setLoading(false);
       return;
     }
 
     try {
-      console.log('Loading business profile for user:', user.id);
+      console.log('🔍 Loading business profile for user:', user.id);
+      setError(null);
       
       // Check if business profile exists
       const { data: business, error } = await supabase
         .from('businesses')
         .select('*')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
-      if (error && error.code !== 'PGRST116') {
-        console.error('Error fetching business:', error);
-        throw error;
+      console.log('📊 Business query result:', { business, error });
+
+      if (error) {
+        console.error('❌ Error fetching business:', error);
+        setError(`Failed to load business profile: ${error.message}`);
+        setLoading(false);
+        return;
       }
 
       if (business) {
-        console.log('Business found:', business);
+        console.log('✅ Business found:', business.name);
         setCurrentBusiness({
           id: business.id,
           name: business.name,
@@ -84,12 +102,18 @@ const BusinessDashboard = () => {
           qrCode: business.qr_code,
           createdAt: new Date(business.created_at),
         });
+        
+        toast({
+          title: "Welcome back!",
+          description: `${business.name} dashboard loaded successfully`,
+        });
       } else {
-        console.log('No business found, creating one');
+        console.log('⚠️ No business found, creating one');
         await createBusinessProfile();
       }
     } catch (error) {
-      console.error('Error loading business profile:', error);
+      console.error('❌ Error loading business profile:', error);
+      setError(`Failed to load business profile: ${error instanceof Error ? error.message : 'Unknown error'}`);
       toast({
         title: "Error",
         description: "Failed to load business profile",
@@ -102,21 +126,22 @@ const BusinessDashboard = () => {
 
   const createBusinessProfile = async () => {
     if (!user || !currentUser) {
-      console.log('Missing user or currentUser data');
+      console.log('❌ Missing user or currentUser data');
+      setError('Missing user information');
       return;
     }
 
     try {
       const businessData = {
         user_id: user.id,
-        name: currentUser.name,
+        name: currentUser.name || user.email || 'My Business',
         email: user.email,
         business_type: currentUser.businessType || 'Restaurant',
-        description: `Welcome to ${currentUser.name}! We offer great products and services.`,
+        description: `Welcome to ${currentUser.name || 'our business'}! We offer great products and services.`,
         qr_code: `qr_${user.id}`,
       };
 
-      console.log('Creating business with data:', businessData);
+      console.log('🆕 Creating business with data:', businessData);
 
       const { data: business, error } = await supabase
         .from('businesses')
@@ -125,11 +150,12 @@ const BusinessDashboard = () => {
         .single();
 
       if (error) {
-        console.error('Error creating business:', error);
-        throw error;
+        console.error('❌ Error creating business:', error);
+        setError(`Failed to create business profile: ${error.message}`);
+        return;
       }
 
-      console.log('Business created successfully:', business);
+      console.log('✅ Business created successfully:', business);
 
       setCurrentBusiness({
         id: business.id,
@@ -143,11 +169,12 @@ const BusinessDashboard = () => {
       });
 
       toast({
-        title: "Business Profile Created",
+        title: "Business Profile Created! 🎉",
         description: "Your business profile has been set up successfully!",
       });
     } catch (error) {
-      console.error('Error creating business profile:', error);
+      console.error('❌ Error creating business profile:', error);
+      setError(`Failed to create business profile: ${error instanceof Error ? error.message : 'Unknown error'}`);
       toast({
         title: "Error",
         description: "Failed to create business profile",
@@ -160,26 +187,64 @@ const BusinessDashboard = () => {
     setRefreshKey(prev => prev + 1);
   };
 
-  if (loading) {
+  const handleRetry = () => {
+    setLoading(true);
+    setError(null);
+    loadBusinessProfile();
+  };
+
+  // Show loading state
+  if (authLoading || loading) {
     return (
       <div className="dashboard-loading min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Setting up your business dashboard...</p>
+          <p className="text-gray-600">
+            {authLoading ? 'Authenticating...' : 'Setting up your business dashboard...'}
+          </p>
         </div>
       </div>
     );
   }
 
+  // Show error state
+  if (error) {
+    return (
+      <div className="dashboard-error min-h-screen flex items-center justify-center">
+        <Card className="p-6 text-center max-w-md">
+          <AlertTriangle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">Error Loading Dashboard</h3>
+          <p className="text-gray-600 mb-4">{error}</p>
+          <div className="space-x-2">
+            <Button onClick={handleRetry}>
+              Try Again
+            </Button>
+            <Button variant="outline" onClick={() => navigate('/business-profile')}>
+              Set Up Profile
+            </Button>
+          </div>
+        </Card>
+      </div>
+    );
+  }
+
+  // Show message if no business profile
   if (!currentBusiness) {
     return (
       <div className="dashboard-error min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-gray-600 mb-4">Unable to load business profile.</p>
-          <Button onClick={loadBusinessProfile}>
-            Retry
-          </Button>
-        </div>
+        <Card className="p-6 text-center max-w-md">
+          <Store className="w-12 h-12 text-blue-500 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">No Business Profile Found</h3>
+          <p className="text-gray-600 mb-4">We couldn't find your business profile. Let's create one.</p>
+          <div className="space-x-2">
+            <Button onClick={createBusinessProfile}>
+              Create Business Profile
+            </Button>
+            <Button variant="outline" onClick={() => navigate('/business-profile')}>
+              Manual Setup
+            </Button>
+          </div>
+        </Card>
       </div>
     );
   }
@@ -231,7 +296,10 @@ const BusinessDashboard = () => {
                   <p className="text-green-100">Scan customer QR codes or enter customer codes manually</p>
                 </div>
                 <Button
-                  onClick={() => navigate('/business/scan')}
+                  onClick={() => {
+                    console.log('🎯 Navigating to scan page with business:', currentBusiness.id);
+                    navigate('/business/scan');
+                  }}
                   className="bg-white text-green-600 hover:bg-green-50 font-semibold"
                   size="lg"
                 >

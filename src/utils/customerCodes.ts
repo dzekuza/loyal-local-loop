@@ -79,20 +79,24 @@ export const formatCustomerCodeInput = (input: string): string => {
 };
 
 /**
- * NEW LOGIC: Find customer by code and verify business enrollment
- * Step 1: Find which customer ID generates the given code
- * Step 2: Check if that customer is enrolled in the specified business
+ * Enhanced customer lookup with better error handling and debugging
  */
 export const findCustomerByCode = async (code: string, businessId: string, supabase: any): Promise<{ customerId: string; customerName: string } | null> => {
   try {
-    console.log('🔍 NEW LOOKUP: Searching for customer with code:', code, 'for business:', businessId);
+    console.log('🔍 ENHANCED LOOKUP: Searching for customer with code:', code, 'for business:', businessId);
     
     if (!businessId) {
       console.error('❌ Business ID is required for customer lookup');
       return null;
     }
 
+    if (!validateCustomerCode(code)) {
+      console.error('❌ Invalid code format:', code);
+      return null;
+    }
+
     // Step 1: Get ALL customer profiles (only customers, not businesses)
+    console.log('👥 Fetching all customer profiles...');
     const { data: allCustomers, error: customersError } = await supabase
       .from('profiles')
       .select('id, name, user_role')
@@ -112,41 +116,53 @@ export const findCustomerByCode = async (code: string, businessId: string, supab
 
     // Step 2: Generate codes for all customers and find the matching one
     let matchingCustomer = null;
+    let checkedCount = 0;
+    
     for (const customer of allCustomers) {
       const generatedCode = generateCustomerCode(customer.id);
-      console.log('🔍 Checking customer:', customer.id, 'name:', customer.name, 'generated code:', generatedCode);
+      checkedCount++;
+      
+      if (checkedCount <= 5) { // Log first 5 for debugging
+        console.log(`🔍 Checking customer ${checkedCount}:`, customer.id.slice(0, 8), 'name:', customer.name, 'generated code:', generatedCode);
+      }
       
       if (generatedCode === code.toUpperCase()) {
-        console.log('✅ Found customer with matching code:', customer.id, 'for code:', code);
+        console.log('✅ MATCH FOUND! Customer:', customer.id, 'name:', customer.name, 'code:', generatedCode);
         matchingCustomer = customer;
         break;
       }
     }
 
+    console.log('📊 Checked', checkedCount, 'customers total');
+
     if (!matchingCustomer) {
       console.log('❌ No customer found with code:', code);
+      console.log('💡 TIP: Make sure the customer has registered and their profile exists');
       return null;
     }
 
     // Step 3: Check if this customer is enrolled in the specific business
+    console.log('🏢 Checking enrollment for customer:', matchingCustomer.id, 'in business:', businessId);
+    
     const { data: enrollmentData, error: enrollmentError } = await supabase
       .from('user_points')
-      .select('customer_id')
+      .select('customer_id, total_points')
       .eq('customer_id', matchingCustomer.id)
       .eq('business_id', businessId)
-      .single();
-
-    if (enrollmentError && enrollmentError.code === 'PGRST116') {
-      console.log('❌ Customer found but not enrolled in business:', matchingCustomer.id, 'business:', businessId);
-      return null;
-    }
+      .maybeSingle();
 
     if (enrollmentError) {
       console.error('❌ Error checking enrollment:', enrollmentError);
       return null;
     }
 
-    console.log('✅ Customer found and enrolled:', matchingCustomer.id, 'in business:', businessId);
+    if (!enrollmentData) {
+      console.log('❌ Customer found but not enrolled in business:', matchingCustomer.id, 'business:', businessId);
+      console.log('💡 Customer needs to join this business\'s loyalty program first');
+      return null;
+    }
+
+    console.log('✅ Customer found and enrolled! Points:', enrollmentData.total_points);
     
     return {
       customerId: matchingCustomer.id,
@@ -170,20 +186,16 @@ export const checkCustomerEnrollment = async (customerId: string, businessId: st
       .select('customer_id')
       .eq('customer_id', customerId)
       .eq('business_id', businessId)
-      .single();
-
-    if (error && error.code === 'PGRST116') {
-      console.log('❌ Customer not enrolled:', customerId, 'in business:', businessId);
-      return false;
-    }
+      .maybeSingle();
 
     if (error) {
       console.error('❌ Error checking enrollment:', error);
       return false;
     }
 
-    console.log('✅ Customer is enrolled:', customerId, 'in business:', businessId);
-    return true;
+    const isEnrolled = !!data;
+    console.log(isEnrolled ? '✅ Customer is enrolled' : '❌ Customer not enrolled');
+    return isEnrolled;
   } catch (error) {
     console.error('❌ Error checking customer enrollment:', error);
     return false;

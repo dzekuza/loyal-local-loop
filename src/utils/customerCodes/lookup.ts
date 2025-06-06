@@ -8,13 +8,18 @@ import { validateCustomerCode } from './validator';
 import { CustomerData } from './types';
 
 /**
- * Debug function: Find which customer ID generates a specific code
+ * Enhanced function: Find which customer ID generates a specific code
  */
 export const findCustomerIdByCode = async (targetCode: string, supabase: any): Promise<string | null> => {
   console.log('🔍 REVERSE LOOKUP: Finding customer ID for code:', targetCode);
   
+  if (!validateCustomerCode(targetCode)) {
+    console.error('❌ Invalid code format for reverse lookup:', targetCode);
+    return null;
+  }
+  
   try {
-    // Get all customer profiles
+    // Get all customer profiles with better error handling
     const { data: allCustomers, error } = await supabase
       .from('profiles')
       .select('id, name, user_role')
@@ -31,9 +36,12 @@ export const findCustomerIdByCode = async (targetCode: string, supabase: any): P
     }
 
     console.log('🔍 Checking', allCustomers.length, 'customers for reverse lookup...');
-
+    
+    // Check each customer with detailed logging
     for (const customer of allCustomers) {
       const generatedCode = generateCustomerCode(customer.id);
+      console.log(`🔄 Testing customer ${customer.id} (${customer.name}): generated ${generatedCode}`);
+      
       if (generatedCode === targetCode.toUpperCase()) {
         console.log('✅ REVERSE LOOKUP MATCH! Code:', targetCode, 'belongs to customer:', customer.id, 'name:', customer.name);
         return customer.id;
@@ -41,6 +49,10 @@ export const findCustomerIdByCode = async (targetCode: string, supabase: any): P
     }
 
     console.log('❌ REVERSE LOOKUP: No customer found with code:', targetCode);
+    console.log('💡 This could mean:');
+    console.log('   - The code was entered incorrectly');
+    console.log('   - The customer was deleted from the system');
+    console.log('   - There is an issue with code generation consistency');
     return null;
   } catch (error) {
     console.error('❌ Error in reverse lookup:', error);
@@ -49,7 +61,7 @@ export const findCustomerIdByCode = async (targetCode: string, supabase: any): P
 };
 
 /**
- * Enhanced customer lookup with comprehensive debugging
+ * Enhanced customer lookup with better error handling and data validation
  */
 export const findCustomerByCode = async (code: string, businessId: string, supabase: any): Promise<CustomerData | null> => {
   try {
@@ -71,22 +83,18 @@ export const findCustomerByCode = async (code: string, businessId: string, supab
     
     if (!reverseCustomerId) {
       console.log('❌ REVERSE LOOKUP FAILED: Code', code, 'does not match any customer in the system');
-      console.log('💡 This means either:');
-      console.log('   1. The code was entered incorrectly');
-      console.log('   2. The customer is not registered in the system');
-      console.log('   3. There is an issue with the code generation algorithm');
       return null;
     }
 
     console.log('✅ REVERSE LOOKUP SUCCESS: Code', code, 'belongs to customer:', reverseCustomerId);
 
-    // Step 2: Get customer profile
+    // Step 2: Get customer profile with better error handling
     const { data: customerProfile, error: profileError } = await supabase
       .from('profiles')
       .select('id, name, user_role')
       .eq('id', reverseCustomerId)
       .eq('user_role', 'customer')
-      .single();
+      .maybeSingle(); // Use maybeSingle to avoid errors when no data found
 
     if (profileError) {
       console.error('❌ Error fetching customer profile:', profileError);
@@ -94,7 +102,7 @@ export const findCustomerByCode = async (code: string, businessId: string, supab
     }
 
     if (!customerProfile) {
-      console.log('❌ Customer profile not found or not a customer');
+      console.log('❌ Customer profile not found or not a customer role');
       return null;
     }
 
@@ -122,7 +130,6 @@ export const findCustomerByCode = async (code: string, businessId: string, supab
       console.log('   - Name:', customerProfile.name);
       console.log('   - Code:', code);
       console.log('   - Business:', businessId);
-      console.log('💡 Customer needs to join this business\'s loyalty program first');
       return null;
     }
 

@@ -3,8 +3,8 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
-import { Bug, Code, Search, Users } from 'lucide-react';
-import { generateSampleCodes, findCustomerIdByCode, generateCustomerCode } from '@/utils/customerCodes';
+import { Bug, Code, Search, Users, TestTube } from 'lucide-react';
+import { generateSampleCodes, findCustomerIdByCode, generateCustomerCode, testCodeGeneration } from '@/utils/customerCodes';
 import { supabase } from '@/integrations/supabase/client';
 
 interface DebugPanelProps {
@@ -26,7 +26,6 @@ const DebugPanel: React.FC<DebugPanelProps> = ({ businessId, businessName }) => 
     addDebugOutput('Generating sample customer codes...');
     
     try {
-      // Capture console.log output
       const originalLog = console.log;
       const logs: string[] = [];
       
@@ -37,13 +36,56 @@ const DebugPanel: React.FC<DebugPanelProps> = ({ businessId, businessName }) => 
 
       await generateSampleCodes(supabase, 5);
       
-      // Restore console.log
       console.log = originalLog;
       
       logs.forEach(log => addDebugOutput(log));
       addDebugOutput('Sample codes generated! Check console for details.');
     } catch (error) {
       addDebugOutput(`Error generating sample codes: ${error}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleTestCodeConsistency = async () => {
+    setLoading(true);
+    addDebugOutput('Testing code generation consistency...');
+    
+    try {
+      // Get a few customer IDs to test
+      const { data: customers, error } = await supabase
+        .from('profiles')
+        .select('id, name')
+        .eq('user_role', 'customer')
+        .limit(3);
+
+      if (error) {
+        addDebugOutput(`Error fetching customers: ${error.message}`);
+        return;
+      }
+
+      if (!customers || customers.length === 0) {
+        addDebugOutput('No customers found for consistency testing');
+        return;
+      }
+
+      addDebugOutput(`Testing ${customers.length} customers for code consistency:`);
+      
+      for (const customer of customers) {
+        const test = testCodeGeneration(customer.id);
+        const isConsistent = test.code === test.verification;
+        
+        addDebugOutput(`Customer ${customer.name} (${customer.id}):`);
+        addDebugOutput(`  Generated: ${test.code}`);
+        addDebugOutput(`  Verified:  ${test.verification}`);
+        addDebugOutput(`  Consistent: ${isConsistent ? '✅ YES' : '❌ NO'}`);
+        
+        if (!isConsistent) {
+          addDebugOutput(`  ⚠️ INCONSISTENCY DETECTED for customer ${customer.id}`);
+        }
+      }
+    } catch (error) {
+      addDebugOutput(`Error testing code consistency: ${error}`);
     } finally {
       setLoading(false);
     }
@@ -59,7 +101,6 @@ const DebugPanel: React.FC<DebugPanelProps> = ({ businessId, businessName }) => 
       if (customerId) {
         addDebugOutput(`✅ Found customer ID: ${customerId}`);
         
-        // Generate the code for this customer to verify
         const generatedCode = generateCustomerCode(customerId);
         addDebugOutput(`🔄 Generated code for this customer: ${generatedCode}`);
         
@@ -70,6 +111,22 @@ const DebugPanel: React.FC<DebugPanelProps> = ({ businessId, businessName }) => 
         }
       } else {
         addDebugOutput(`❌ No customer found with code: ${testCode}`);
+        addDebugOutput('💡 Let me check what codes actually exist...');
+        
+        // Show what codes are actually generated
+        const { data: customers, error } = await supabase
+          .from('profiles')
+          .select('id, name')
+          .eq('user_role', 'customer')
+          .limit(5);
+          
+        if (customers && customers.length > 0) {
+          addDebugOutput('📋 Here are the first 5 actual customer codes:');
+          customers.forEach(customer => {
+            const actualCode = generateCustomerCode(customer.id);
+            addDebugOutput(`  ${customer.name}: ${actualCode}`);
+          });
+        }
       }
     } catch (error) {
       addDebugOutput(`Error in reverse lookup: ${error}`);
@@ -100,18 +157,27 @@ const DebugPanel: React.FC<DebugPanelProps> = ({ businessId, businessName }) => 
 
       addDebugOutput(`📊 Found ${enrolledData.length} enrolled customers:`);
       
-      // Get customer details and codes
-      for (const enrollment of enrolledData.slice(0, 5)) { // Limit to 5 for debugging
+      // Get customer details and codes with better error handling
+      for (const enrollment of enrolledData.slice(0, 5)) {
         const { data: profile, error: profileError } = await supabase
           .from('profiles')
-          .select('id, name')
+          .select('id, name, user_role')
           .eq('id', enrollment.customer_id)
-          .single();
+          .maybeSingle();
 
-        if (!profileError && profile) {
-          const code = generateCustomerCode(profile.id);
-          addDebugOutput(`   • ${profile.name}: ${code} (${enrollment.total_points} pts)`);
+        const code = generateCustomerCode(enrollment.customer_id);
+        
+        if (profileError) {
+          addDebugOutput(`   • Customer ${enrollment.customer_id}: ${code} (${enrollment.total_points} pts) - Profile Error: ${profileError.message}`);
+        } else if (!profile) {
+          addDebugOutput(`   • Customer ${enrollment.customer_id}: ${code} (${enrollment.total_points} pts) - No Profile Found`);
+        } else {
+          addDebugOutput(`   • ${profile.name || 'No Name'} (${profile.user_role || 'No Role'}): ${code} (${enrollment.total_points} pts)`);
         }
+      }
+      
+      if (enrolledData.length > 5) {
+        addDebugOutput(`   ... and ${enrolledData.length - 5} more customers`);
       }
     } catch (error) {
       addDebugOutput(`Error checking enrolled customers: ${error}`);
@@ -148,7 +214,7 @@ const DebugPanel: React.FC<DebugPanelProps> = ({ businessId, businessName }) => 
         <CardTitle className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <Bug className="w-5 h-5 text-orange-600" />
-            <span>Debug Panel</span>
+            <span>Enhanced Debug Panel</span>
             <Badge variant="outline">Development</Badge>
           </div>
           <Button
@@ -161,7 +227,7 @@ const DebugPanel: React.FC<DebugPanelProps> = ({ businessId, businessName }) => 
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
           <Button
             variant="outline"
             size="sm"
@@ -171,6 +237,16 @@ const DebugPanel: React.FC<DebugPanelProps> = ({ businessId, businessName }) => 
           >
             <Code className="w-4 h-4" />
             <span>Sample Codes</span>
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleTestCodeConsistency}
+            disabled={loading}
+            className="flex items-center space-x-2"
+          >
+            <TestTube className="w-4 h-4" />
+            <span>Test Consistency</span>
           </Button>
           <Button
             variant="outline"
@@ -215,8 +291,8 @@ const DebugPanel: React.FC<DebugPanelProps> = ({ businessId, businessName }) => 
         )}
 
         <div className="text-xs text-orange-700 bg-orange-100 p-2 rounded">
-          <strong>Debug Tools:</strong> Use these tools to diagnose customer code issues. 
-          Check the console for detailed logs during code generation and lookup.
+          <strong>Enhanced Debug Tools:</strong> Test code generation consistency, reverse lookup functionality, and enrolled customer queries. 
+          The "Test Consistency" button will verify that codes are generated the same way every time.
         </div>
       </CardContent>
     </Card>

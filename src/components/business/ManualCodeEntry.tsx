@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
@@ -52,7 +53,7 @@ const ManualCodeEntry: React.FC<ManualCodeEntryProps> = ({
     try {
       console.log('👥 Loading enrolled customers for business:', businessId);
       
-      // First get enrolled customers
+      // Get enrolled customers with improved query
       const { data: enrolledData, error: enrollmentError } = await supabase
         .from('user_points')
         .select('customer_id, total_points')
@@ -64,43 +65,72 @@ const ManualCodeEntry: React.FC<ManualCodeEntryProps> = ({
       }
 
       if (!enrolledData || enrolledData.length === 0) {
+        console.log('📊 No customers enrolled in this business yet');
         setEnrolledCustomers([]);
         return;
       }
 
       // Get customer IDs
       const customerIds = enrolledData.map(item => item.customer_id);
+      console.log('👥 Found', customerIds.length, 'enrolled customer IDs:', customerIds);
 
-      // Fetch profiles separately with role filtering
+      // Fetch profiles with better error handling - include customers with incomplete profiles
       const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
         .select('id, name, user_role')
-        .in('id', customerIds)
-        .eq('user_role', 'customer');
+        .in('id', customerIds);
 
       if (profilesError) {
         console.error('❌ Error fetching customer profiles:', profilesError);
         return;
       }
 
-      if (!profilesData || profilesData.length === 0) {
-        setEnrolledCustomers([]);
-        return;
-      }
+      console.log('👤 Retrieved', profilesData?.length || 0, 'profiles:', profilesData);
 
-      // Combine the data
-      const customers: EnrolledCustomer[] = profilesData.map(profile => {
-        const pointsData = enrolledData.find(item => item.customer_id === profile.id);
+      // Combine the data and handle missing or incomplete profiles
+      const customers: EnrolledCustomer[] = enrolledData.map(enrollment => {
+        const profile = profilesData?.find(p => p.id === enrollment.customer_id);
+        
+        // Handle cases where profile might be missing or incomplete
+        const customerName = profile?.name || 'Customer (Incomplete Profile)';
+        const code = generateCustomerCode(enrollment.customer_id);
+        
+        console.log(`👤 Processing customer ${enrollment.customer_id}:`, {
+          profile,
+          customerName,
+          code,
+          points: enrollment.total_points
+        });
+        
         return {
-          id: profile.id,
-          name: profile.name || 'Customer',
-          code: generateCustomerCode(profile.id),
-          points: pointsData?.total_points || 0
+          id: enrollment.customer_id,
+          name: customerName,
+          code,
+          points: enrollment.total_points
         };
       });
 
-      setEnrolledCustomers(customers);
-      console.log('✅ Loaded', customers.length, 'enrolled customers (customers only)');
+      // Filter out customers with invalid roles only if profile exists
+      const validCustomers = customers.filter(customer => {
+        const profile = profilesData?.find(p => p.id === customer.id);
+        
+        // Include customers without profiles (they might be valid but incomplete)
+        if (!profile) {
+          console.log(`⚠️ Customer ${customer.id} has no profile, including anyway`);
+          return true;
+        }
+        
+        // Only exclude if profile exists but role is not customer
+        if (profile.user_role && profile.user_role !== 'customer') {
+          console.log(`❌ Excluding ${customer.id} - wrong role: ${profile.user_role}`);
+          return false;
+        }
+        
+        return true;
+      });
+
+      setEnrolledCustomers(validCustomers);
+      console.log('✅ Loaded', validCustomers.length, 'enrolled customers (including incomplete profiles)');
     } catch (error) {
       console.error('❌ Error loading enrolled customers:', error);
     } finally {
@@ -317,7 +347,7 @@ Use the Debug Panel below to investigate further.`);
       {/* Debug Panel */}
       <DebugPanel businessId={businessId} businessName={businessName} />
 
-      {/* Enrolled Customers Helper */}
+      {/* Enhanced Enrolled Customers Helper */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
@@ -340,7 +370,7 @@ Use the Debug Panel below to investigate further.`);
             </Button>
           </CardTitle>
           <p className="text-sm text-gray-600">
-            View customers enrolled in your loyalty program and their codes
+            View customers enrolled in your loyalty program and their codes (including customers with incomplete profiles)
           </p>
         </CardHeader>
         {showEnrolledCustomers && (
@@ -360,6 +390,7 @@ Use the Debug Panel below to investigate further.`);
                     <div className="flex-1">
                       <p className="font-medium">{customer.name}</p>
                       <p className="text-sm text-gray-600">{customer.points} points</p>
+                      <p className="text-xs text-gray-400">ID: {customer.id.slice(0, 8)}...</p>
                     </div>
                     <div className="flex items-center space-x-2">
                       <span className="font-mono text-sm bg-white px-2 py-1 rounded border">
@@ -386,6 +417,14 @@ Use the Debug Panel below to investigate further.`);
                     </div>
                   </div>
                 ))}
+              </div>
+            )}
+            
+            {enrolledCustomers.length > 0 && (
+              <div className="mt-4 p-2 bg-green-50 rounded border border-green-200">
+                <p className="text-xs text-green-800">
+                  ✅ Found {enrolledCustomers.length} enrolled customers. Some may have incomplete profiles but are still valid for transactions.
+                </p>
               </div>
             )}
           </CardContent>

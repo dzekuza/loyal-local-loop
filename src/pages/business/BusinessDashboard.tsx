@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -7,7 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import QRGenerator from '../../components/business/QRGenerator';
-import OfferForm from '../../components/offers/OfferForm';
+import EnhancedOfferCreationForm from '../../components/offers/EnhancedOfferCreationForm';
 import OffersList from '../../components/offers/OffersList';
 import { Store, Users, Gift, TrendingUp, Scan, ArrowRight, AlertTriangle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -345,7 +346,10 @@ const BusinessDashboard = () => {
             </div>
 
             <div className="offer-section">
-              <OfferForm onOfferCreated={handleOfferCreated} />
+              <EnhancedOfferCreationForm 
+                businessId={currentBusiness.id}
+                onSuccess={handleOfferCreated} 
+              />
             </div>
           </div>
 

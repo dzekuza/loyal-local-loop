@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useAppStore } from '@/store/useAppStore';
 import { supabase } from '@/integrations/supabase/client';
@@ -7,7 +6,7 @@ import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import { Switch } from '../ui/switch';
 import { useToast } from '@/hooks/use-toast';
-import { Gift, Trash2, AlertCircle, Clock, Calendar } from 'lucide-react';
+import { Gift, Trash2, AlertCircle, Clock, Calendar, Star, Percent, Euro, ShoppingBag } from 'lucide-react';
 
 interface LoyaltyOffer {
   id: string;
@@ -19,7 +18,7 @@ interface LoyaltyOffer {
   is_active: boolean;
   created_at: string;
   updated_at: string;
-  offer_type?: 'points_deal' | 'special_offer';
+  offer_type?: 'points_deal' | 'special_offer' | 'stamp_card' | 'percentage_discount' | 'fixed_discount' | 'buy_x_get_y' | 'time_based' | 'first_customer' | 'birthday_anniversary' | 'referral' | 'tiered_spending' | 'product_specific';
   offer_name?: string;
   offer_rule?: string;
   points_per_euro?: number;
@@ -27,6 +26,10 @@ interface LoyaltyOffer {
   valid_to?: string;
   time_from?: string;
   time_to?: string;
+  offer_config?: any;
+  usage_limits?: any;
+  eligibility_rules?: any;
+  scheduling?: any;
 }
 
 const OffersList = () => {
@@ -72,7 +75,7 @@ const OffersList = () => {
       console.log('Successfully fetched offers:', data);
       const typedOffers = (data || []).map(offer => ({
         ...offer,
-        offer_type: (offer.offer_type as 'points_deal' | 'special_offer') || 'points_deal'
+        offer_type: (offer.offer_type as 'points_deal' | 'special_offer' | 'stamp_card' | 'percentage_discount' | 'fixed_discount' | 'buy_x_get_y' | 'time_based' | 'first_customer' | 'birthday_anniversary' | 'referral' | 'tiered_spending' | 'product_specific') || 'points_deal'
       }));
       setOffers(typedOffers);
     } catch (error) {
@@ -151,6 +154,184 @@ const OffersList = () => {
     }
   };
 
+  const getOfferTypeIcon = (offerType: string) => {
+    switch (offerType) {
+      case 'points_deal':
+        return <Star className="w-4 h-4" />;
+      case 'stamp_card':
+        return <Gift className="w-4 h-4" />;
+      case 'percentage_discount':
+        return <Percent className="w-4 h-4" />;
+      case 'fixed_discount':
+        return <Euro className="w-4 h-4" />;
+      case 'buy_x_get_y':
+        return <ShoppingBag className="w-4 h-4" />;
+      case 'special_offer':
+        return <Clock className="w-4 h-4" />;
+      default:
+        return <Gift className="w-4 h-4" />;
+    }
+  };
+
+  const getOfferTypeName = (offerType: string) => {
+    switch (offerType) {
+      case 'points_deal':
+        return 'Points Deal';
+      case 'stamp_card':
+        return 'Stamp Card';
+      case 'percentage_discount':
+        return 'Percentage Discount';
+      case 'fixed_discount':
+        return 'Fixed Discount';
+      case 'buy_x_get_y':
+        return 'Buy X Get Y';
+      case 'special_offer':
+        return 'Special Offer';
+      case 'time_based':
+        return 'Happy Hour';
+      case 'first_customer':
+        return 'First Customer';
+      case 'birthday_anniversary':
+        return 'Birthday/Anniversary';
+      case 'referral':
+        return 'Referral';
+      case 'tiered_spending':
+        return 'Tiered Spending';
+      case 'product_specific':
+        return 'Product Specific';
+      default:
+        return 'Unknown';
+    }
+  };
+
+  const getOfferTypeColor = (offerType: string) => {
+    switch (offerType) {
+      case 'points_deal':
+        return 'bg-blue-100 text-blue-800';
+      case 'stamp_card':
+        return 'bg-purple-100 text-purple-800';
+      case 'percentage_discount':
+        return 'bg-green-100 text-green-800';
+      case 'fixed_discount':
+        return 'bg-orange-100 text-orange-800';
+      case 'buy_x_get_y':
+        return 'bg-red-100 text-red-800';
+      case 'special_offer':
+        return 'bg-indigo-100 text-indigo-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const renderOfferDetails = (offer: LoyaltyOffer) => {
+    const config = offer.offer_config || {};
+    
+    switch (offer.offer_type) {
+      case 'points_deal':
+        return (
+          <>
+            <p className="break-words">
+              {offer.points_per_euro 
+                ? `${offer.points_per_euro} points per EUR spent`
+                : `Spend €${offer.spend_amount} → Earn ${offer.points_earned} points`
+              }
+            </p>
+            <p>Reward at {offer.reward_threshold} points</p>
+          </>
+        );
+
+      case 'stamp_card':
+        return (
+          <>
+            <p className="break-words">
+              {config.visits_required} visits required
+            </p>
+            {config.stamp_value && (
+              <p>Minimum €{config.stamp_value} per visit</p>
+            )}
+          </>
+        );
+
+      case 'percentage_discount':
+        return (
+          <>
+            <p className="break-words">
+              {config.discount_percentage}% discount
+            </p>
+            {config.minimum_spend > 0 && (
+              <p>Minimum spend: €{config.minimum_spend}</p>
+            )}
+            {config.maximum_discount > 0 && (
+              <p>Max discount: €{config.maximum_discount}</p>
+            )}
+          </>
+        );
+
+      case 'fixed_discount':
+        return (
+          <>
+            <p className="break-words">
+              €{config.discount_amount} off
+            </p>
+            {config.minimum_spend > 0 && (
+              <p>Minimum spend: €{config.minimum_spend}</p>
+            )}
+          </>
+        );
+
+      case 'buy_x_get_y':
+        return (
+          <>
+            <p className="break-words">
+              Buy {config.buy_quantity}, get {config.get_quantity} free
+            </p>
+            {config.item_category && (
+              <p>Category: {config.item_category}</p>
+            )}
+          </>
+        );
+
+      case 'special_offer':
+        return (
+          <>
+            {offer.offer_rule && (
+              <p className="break-words"><strong>Rule:</strong> {offer.offer_rule}</p>
+            )}
+            {(offer.valid_from || offer.valid_to) && (
+              <p className="flex items-start">
+                <Calendar className="w-3 h-3 mr-1 mt-0.5 flex-shrink-0" />
+                <span className="break-words">
+                  {offer.valid_from && `From ${formatDate(offer.valid_from)}`}
+                  {offer.valid_from && offer.valid_to && ' '}
+                  {offer.valid_to && `Until ${formatDate(offer.valid_to)}`}
+                </span>
+              </p>
+            )}
+            {(offer.time_from || offer.time_to) && (
+              <p className="flex items-start">
+                <Clock className="w-3 h-3 mr-1 mt-0.5 flex-shrink-0" />
+                <span className="break-words">
+                  {offer.time_from && `From ${formatTime(offer.time_from)}`}
+                  {offer.time_from && offer.time_to && ' '}
+                  {offer.time_to && `Until ${formatTime(offer.time_to)}`}
+                </span>
+              </p>
+            )}
+          </>
+        );
+
+      default:
+        return (
+          <p className="break-words">
+            {offer.points_per_euro 
+              ? `${offer.points_per_euro} points per EUR spent`
+              : `Spend €${offer.spend_amount} → Earn ${offer.points_earned} points`
+            }
+          </p>
+        );
+    }
+  };
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString();
   };
@@ -225,50 +406,18 @@ const OffersList = () => {
                         <Badge variant={offer.is_active ? "default" : "secondary"} className="text-xs">
                           {offer.is_active ? "Active" : "Inactive"}
                         </Badge>
-                        <Badge variant="outline" className="text-xs">
-                          {offer.offer_type === 'special_offer' ? 'Special Offer' : 'Points Deal'}
+                        <Badge 
+                          variant="outline" 
+                          className={`text-xs ${getOfferTypeColor(offer.offer_type || 'points_deal')}`}
+                        >
+                          <span className="mr-1">{getOfferTypeIcon(offer.offer_type || 'points_deal')}</span>
+                          {getOfferTypeName(offer.offer_type || 'points_deal')}
                         </Badge>
                       </div>
                     </div>
 
                     <div className="text-xs sm:text-sm text-gray-600 space-y-1">
-                      {offer.offer_type === 'special_offer' ? (
-                        <>
-                          {offer.offer_rule && (
-                            <p className="break-words"><strong>Rule:</strong> {offer.offer_rule}</p>
-                          )}
-                          {(offer.valid_from || offer.valid_to) && (
-                            <p className="flex items-start">
-                              <Calendar className="w-3 h-3 mr-1 mt-0.5 flex-shrink-0" />
-                              <span className="break-words">
-                                {offer.valid_from && `From ${formatDate(offer.valid_from)}`}
-                                {offer.valid_from && offer.valid_to && ' '}
-                                {offer.valid_to && `Until ${formatDate(offer.valid_to)}`}
-                              </span>
-                            </p>
-                          )}
-                          {(offer.time_from || offer.time_to) && (
-                            <p className="flex items-start">
-                              <Clock className="w-3 h-3 mr-1 mt-0.5 flex-shrink-0" />
-                              <span className="break-words">
-                                {offer.time_from && `From ${formatTime(offer.time_from)}`}
-                                {offer.time_from && offer.time_to && ' '}
-                                {offer.time_to && `Until ${formatTime(offer.time_to)}`}
-                              </span>
-                            </p>
-                          )}
-                        </>
-                      ) : (
-                        <>
-                          <p className="break-words">
-                            {offer.points_per_euro 
-                              ? `${offer.points_per_euro} points per EUR spent`
-                              : `Spend $${offer.spend_amount} → Earn ${offer.points_earned} points`
-                            }
-                          </p>
-                          <p>Reward at {offer.reward_threshold} points</p>
-                        </>
-                      )}
+                      {renderOfferDetails(offer)}
                     </div>
                   </div>
 

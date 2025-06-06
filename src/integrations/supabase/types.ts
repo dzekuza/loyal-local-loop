@@ -88,8 +88,10 @@ export type Database = {
         Row: {
           business_id: string | null
           created_at: string
+          eligibility_rules: Json | null
           id: string
           is_active: boolean
+          offer_config: Json | null
           offer_name: string | null
           offer_rule: string | null
           offer_type: string | null
@@ -97,18 +99,22 @@ export type Database = {
           points_per_euro: number | null
           reward_description: string
           reward_threshold: number
+          scheduling: Json | null
           spend_amount: number
           time_from: string | null
           time_to: string | null
           updated_at: string
+          usage_limits: Json | null
           valid_from: string | null
           valid_to: string | null
         }
         Insert: {
           business_id?: string | null
           created_at?: string
+          eligibility_rules?: Json | null
           id?: string
           is_active?: boolean
+          offer_config?: Json | null
           offer_name?: string | null
           offer_rule?: string | null
           offer_type?: string | null
@@ -116,18 +122,22 @@ export type Database = {
           points_per_euro?: number | null
           reward_description: string
           reward_threshold: number
+          scheduling?: Json | null
           spend_amount: number
           time_from?: string | null
           time_to?: string | null
           updated_at?: string
+          usage_limits?: Json | null
           valid_from?: string | null
           valid_to?: string | null
         }
         Update: {
           business_id?: string | null
           created_at?: string
+          eligibility_rules?: Json | null
           id?: string
           is_active?: boolean
+          offer_config?: Json | null
           offer_name?: string | null
           offer_rule?: string | null
           offer_type?: string | null
@@ -135,10 +145,12 @@ export type Database = {
           points_per_euro?: number | null
           reward_description?: string
           reward_threshold?: number
+          scheduling?: Json | null
           spend_amount?: number
           time_from?: string | null
           time_to?: string | null
           updated_at?: string
+          usage_limits?: Json | null
           valid_from?: string | null
           valid_to?: string | null
         }

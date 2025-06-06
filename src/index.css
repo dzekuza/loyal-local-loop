@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -13,16 +14,17 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    /* Airbnb-inspired primary colors */
+    --primary: 0 56% 50%; /* Airbnb red */
+    --primary-foreground: 0 0% 98%;
 
-    --secondary: 210 40% 96.1%;
+    --secondary: 210 40% 98%;
     --secondary-foreground: 222.2 47.4% 11.2%;
 
-    --muted: 210 40% 96.1%;
+    --muted: 210 40% 98%;
     --muted-foreground: 215.4 16.3% 46.9%;
 
-    --accent: 210 40% 96.1%;
+    --accent: 210 40% 98%;
     --accent-foreground: 222.2 47.4% 11.2%;
 
     --destructive: 0 84.2% 60.2%;
@@ -30,24 +32,17 @@
 
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --ring: 0 56% 50%;
 
-    --radius: 0.5rem;
+    --radius: 0.75rem; /* More rounded like Airbnb */
 
     --sidebar-background: 0 0% 98%;
-
     --sidebar-foreground: 240 5.3% 26.1%;
-
     --sidebar-primary: 240 5.9% 10%;
-
     --sidebar-primary-foreground: 0 0% 98%;
-
     --sidebar-accent: 240 4.8% 95.9%;
-
     --sidebar-accent-foreground: 240 5.9% 10%;
-
     --sidebar-border: 220 13% 91%;
-
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
@@ -61,7 +56,7 @@
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 210 40% 98%;
+    --primary: 0 56% 50%;
     --primary-foreground: 222.2 47.4% 11.2%;
 
     --secondary: 217.2 32.6% 17.5%;
@@ -97,5 +92,49 @@
 
   body {
     @apply bg-background text-foreground;
+    font-family: 'Circular', -apple-system, BlinkMacSystemFont, Roboto, 'Helvetica Neue', sans-serif;
+  }
+}
+
+@layer components {
+  /* Airbnb-style card hover effects */
+  .airbnb-card {
+    @apply transition-all duration-300 ease-out hover:shadow-xl hover:-translate-y-1 border border-gray-200 rounded-xl overflow-hidden bg-white;
+  }
+  
+  .airbnb-card-subtle {
+    @apply transition-all duration-200 ease-out hover:shadow-lg border border-gray-100 rounded-2xl overflow-hidden bg-white;
+  }
+  
+  /* Airbnb-style buttons */
+  .btn-airbnb-primary {
+    @apply bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl;
+  }
+  
+  .btn-airbnb-secondary {
+    @apply border-2 border-gray-900 text-gray-900 hover:bg-gray-900 hover:text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200;
+  }
+  
+  /* Airbnb-style search and input fields */
+  .airbnb-search {
+    @apply border border-gray-300 rounded-full px-6 py-4 shadow-sm hover:shadow-md transition-shadow duration-200 focus-within:shadow-lg;
+  }
+  
+  /* Typography inspired by Airbnb */
+  .heading-airbnb {
+    @apply font-bold text-gray-900 leading-tight;
+  }
+  
+  .subheading-airbnb {
+    @apply text-gray-600 font-normal leading-relaxed;
+  }
+  
+  /* Spacing system like Airbnb */
+  .section-spacing {
+    @apply py-16 md:py-24;
+  }
+  
+  .container-airbnb {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
   }
 }

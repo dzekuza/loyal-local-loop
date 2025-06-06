@@ -214,10 +214,15 @@ const EnhancedOfferCreationForm: React.FC<EnhancedOfferCreationFormProps> = ({
   };
 
   const buildOfferData = () => {
+    // Base data with all required fields
     const baseData = {
       business_id: businessId,
       offer_type: selectedOfferType,
       is_active: true,
+      points_earned: 0, // Default value, will be overridden per offer type
+      reward_description: '', // Default value, will be overridden per offer type
+      reward_threshold: 0, // Default value, will be overridden per offer type
+      spend_amount: 0, // Default value, will be overridden per offer type
     };
 
     switch (selectedOfferType) {
@@ -252,9 +257,7 @@ const EnhancedOfferCreationForm: React.FC<EnhancedOfferCreationFormProps> = ({
         return {
           ...baseData,
           reward_description: formData.offerDescription,
-          points_earned: 0,
           spend_amount: parseFloat(formData.minimumSpend || 0),
-          reward_threshold: 0,
           offer_config: {
             discount_percentage: parseFloat(formData.discountPercentage),
             minimum_spend: parseFloat(formData.minimumSpend || 0),
@@ -266,9 +269,7 @@ const EnhancedOfferCreationForm: React.FC<EnhancedOfferCreationFormProps> = ({
         return {
           ...baseData,
           reward_description: formData.offerDescription,
-          points_earned: 0,
           spend_amount: parseFloat(formData.minimumSpend),
-          reward_threshold: 0,
           offer_config: {
             discount_amount: parseFloat(formData.discountAmount),
             minimum_spend: parseFloat(formData.minimumSpend)
@@ -282,9 +283,6 @@ const EnhancedOfferCreationForm: React.FC<EnhancedOfferCreationFormProps> = ({
         return {
           ...baseData,
           reward_description: formData.offerDescription,
-          points_earned: 0,
-          spend_amount: 0,
-          reward_threshold: 0,
           offer_config: {
             buy_quantity: parseInt(formData.buyQuantity),
             get_quantity: parseInt(formData.getQuantity),
@@ -298,9 +296,6 @@ const EnhancedOfferCreationForm: React.FC<EnhancedOfferCreationFormProps> = ({
           offer_name: formData.offerName,
           offer_rule: formData.offerRule,
           reward_description: formData.offerName,
-          points_earned: 0,
-          spend_amount: 0,
-          reward_threshold: 0,
           valid_from: formData.validFrom ? new Date(formData.validFrom).toISOString() : null,
           valid_to: formData.validTo ? new Date(formData.validTo).toISOString() : null,
           time_from: formData.timeFrom || null,

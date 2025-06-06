@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
@@ -8,6 +7,7 @@ import { Keyboard, User, CheckCircle, AlertTriangle, UserX, Building, Users, Cop
 import { validateCustomerCode, formatCustomerCodeInput, findCustomerByCode, generateCustomerCode } from '@/utils/customerCodes';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import DebugPanel from './DebugPanel';
 
 interface ManualCodeEntryProps {
   businessId: string;
@@ -36,12 +36,14 @@ const ManualCodeEntry: React.FC<ManualCodeEntryProps> = ({
   const [showEnrolledCustomers, setShowEnrolledCustomers] = useState(false);
   const [loadingCustomers, setLoadingCustomers] = useState(false);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
+  const [debugInfo, setDebugInfo] = useState<string | null>(null);
   const { toast } = useToast();
 
   const handleCodeChange = (value: string) => {
     const formatted = formatCustomerCodeInput(value);
     setCode(formatted);
     setError(null);
+    setDebugInfo(null);
     console.log('📝 Code input changed:', { original: value, formatted, businessId });
   };
 
@@ -121,6 +123,7 @@ const ManualCodeEntry: React.FC<ManualCodeEntryProps> = ({
 
     setLoading(true);
     setError(null);
+    setDebugInfo(null);
 
     try {
       console.log('🔍 Looking up customer by code:', code, 'for business:', businessId);
@@ -129,6 +132,23 @@ const ManualCodeEntry: React.FC<ManualCodeEntryProps> = ({
       
       if (!customerData) {
         console.warn('❌ Customer code not found or not enrolled:', code, 'business:', businessId);
+        
+        // Provide detailed debug information
+        setDebugInfo(`Detailed diagnosis for code "${code}":
+        
+1. ✅ Code format is valid
+2. 🔍 Checking if code exists in system...
+3. 🏢 Checking enrollment in "${businessName}"
+4. ❌ Result: Code not found or customer not enrolled
+
+This could mean:
+• The code was entered incorrectly
+• The customer is not registered in the system  
+• The customer exists but is not enrolled in your loyalty program
+• There is a mismatch in code generation
+
+Use the Debug Panel below to investigate further.`);
+
         setError(`Customer code "${code}" not found or customer is not enrolled in ${businessName}'s loyalty program. Please check the code or ask the customer to join the program first.`);
         setLoading(false);
         return;
@@ -146,6 +166,7 @@ const ManualCodeEntry: React.FC<ManualCodeEntryProps> = ({
     } catch (error) {
       console.error('❌ Error looking up customer:', error);
       setError('Error looking up customer. Please try again.');
+      setDebugInfo(`System error occurred during lookup. Check console for details.`);
     } finally {
       setLoading(false);
     }
@@ -242,6 +263,20 @@ const ManualCodeEntry: React.FC<ManualCodeEntryProps> = ({
               </div>
             )}
 
+            {debugInfo && (
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                <div className="flex items-start space-x-2">
+                  <AlertTriangle className="w-5 h-5 text-yellow-500 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="text-sm font-medium text-yellow-800">Debug Information</p>
+                    <pre className="text-xs text-yellow-700 mt-1 whitespace-pre-wrap font-mono">
+                      {debugInfo}
+                    </pre>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div className="flex space-x-2">
               <Button
                 type="submit"
@@ -278,6 +313,9 @@ const ManualCodeEntry: React.FC<ManualCodeEntryProps> = ({
           </div>
         </CardContent>
       </Card>
+
+      {/* Debug Panel */}
+      <DebugPanel businessId={businessId} businessName={businessName} />
 
       {/* Enrolled Customers Helper */}
       <Card>

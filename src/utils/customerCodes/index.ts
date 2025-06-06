@@ -4,7 +4,7 @@
  */
 
 // Re-export all functions to maintain existing API
-export { generateCustomerCode } from './generator';
+export { generateCustomerCode, testCodeGeneration } from './generator';
 export { validateCustomerCode, formatCustomerCodeInput } from './validator';
 export { findCustomerIdByCode, findCustomerByCode, checkCustomerEnrollment } from './lookup';
 export { generateSampleCodes } from './debug';

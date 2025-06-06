@@ -61,7 +61,6 @@ const BusinessProfileForm: React.FC<BusinessProfileFormProps> = ({ business, onU
 
       if (error) throw error;
 
-      // Count unique customers who got rewards
       const uniqueCustomers = new Set(data?.map(t => t.customer_id));
       setRewardsCount(uniqueCustomers.size);
     } catch (error) {
@@ -103,19 +102,16 @@ const BusinessProfileForm: React.FC<BusinessProfileFormProps> = ({ business, onU
       let logoUrl = business.logo;
       let coverUrl = business.coverImage;
 
-      // Upload logo if selected
       if (logoFile) {
         console.log('Uploading logo file...');
         logoUrl = await handleFileUpload(logoFile, 'logo');
       }
 
-      // Upload cover image if selected
       if (coverFile) {
         console.log('Uploading cover file...');
         coverUrl = await handleFileUpload(coverFile, 'cover');
       }
 
-      // Update business in database
       const updateData = {
         name: values.name,
         description: values.description,
@@ -164,7 +160,6 @@ const BusinessProfileForm: React.FC<BusinessProfileFormProps> = ({ business, onU
         description: "Business profile updated successfully",
       });
 
-      // Clear file inputs
       setLogoFile(null);
       setCoverFile(null);
     } catch (error) {
@@ -187,43 +182,55 @@ const BusinessProfileForm: React.FC<BusinessProfileFormProps> = ({ business, onU
           <span>Edit Business Profile</span>
         </CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-4 sm:p-6">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            {/* Logo Upload */}
-            <div className="space-y-2">
+            {/* Logo Upload - Mobile Responsive */}
+            <div className="space-y-3">
               <Label>Business Logo</Label>
-              <div className="flex items-center space-x-4">
+              <div className="flex flex-col space-y-4">
                 {business.logo && (
-                  <img src={business.logo} alt="Current logo" className="w-16 h-16 object-cover rounded-lg" />
+                  <div className="flex justify-center sm:justify-start">
+                    <img 
+                      src={business.logo} 
+                      alt="Current logo" 
+                      className="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded-lg border border-gray-200" 
+                    />
+                  </div>
                 )}
-                <div>
+                <div className="w-full">
                   <Input
                     type="file"
                     accept="image/*"
                     onChange={(e) => setLogoFile(e.target.files?.[0] || null)}
-                    className="w-auto"
+                    className="w-full text-sm"
                   />
-                  <p className="text-sm text-gray-500 mt-1">Upload a new logo (optional)</p>
+                  <p className="text-xs sm:text-sm text-gray-500 mt-2">Upload a new logo (optional). Recommended size: 200x200px</p>
                 </div>
               </div>
             </div>
 
-            {/* Cover Image Upload */}
-            <div className="space-y-2">
+            {/* Cover Image Upload - Mobile Responsive */}
+            <div className="space-y-3">
               <Label>Cover Image</Label>
-              <div className="flex items-center space-x-4">
+              <div className="flex flex-col space-y-4">
                 {business.coverImage && (
-                  <img src={business.coverImage} alt="Current cover" className="w-24 h-16 object-cover rounded-lg" />
+                  <div className="flex justify-center sm:justify-start">
+                    <img 
+                      src={business.coverImage} 
+                      alt="Current cover" 
+                      className="w-full max-w-xs sm:w-32 sm:max-w-none h-20 sm:h-16 object-cover rounded-lg border border-gray-200" 
+                    />
+                  </div>
                 )}
-                <div>
+                <div className="w-full">
                   <Input
                     type="file"
                     accept="image/*"
                     onChange={(e) => setCoverFile(e.target.files?.[0] || null)}
-                    className="w-auto"
+                    className="w-full text-sm"
                   />
-                  <p className="text-sm text-gray-500 mt-1">Upload a cover image (optional)</p>
+                  <p className="text-xs sm:text-sm text-gray-500 mt-2">Upload a cover image (optional). Recommended size: 800x400px</p>
                 </div>
               </div>
             </div>
@@ -263,7 +270,7 @@ const BusinessProfileForm: React.FC<BusinessProfileFormProps> = ({ business, onU
                 <FormItem>
                   <FormLabel>Description</FormLabel>
                   <FormControl>
-                    <Textarea {...field} rows={4} />
+                    <Textarea {...field} rows={4} className="resize-none" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -305,7 +312,7 @@ const BusinessProfileForm: React.FC<BusinessProfileFormProps> = ({ business, onU
                 <FormItem>
                   <FormLabel>Address</FormLabel>
                   <FormControl>
-                    <Textarea {...field} rows={2} placeholder="Optional" />
+                    <Textarea {...field} rows={2} placeholder="Optional" className="resize-none" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -315,7 +322,7 @@ const BusinessProfileForm: React.FC<BusinessProfileFormProps> = ({ business, onU
             {/* Rewards Statistics */}
             <div className="bg-purple-50 p-4 rounded-lg">
               <h3 className="font-semibold text-purple-800 mb-2">Rewards Statistics</h3>
-              <p className="text-purple-700">
+              <p className="text-purple-700 text-sm">
                 {rewardsCount} customers have received rewards from your business
               </p>
             </div>

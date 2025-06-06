@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useAppStore } from '@/store/useAppStore';
 import { supabase } from '@/integrations/supabase/client';
@@ -69,7 +70,6 @@ const OffersList = () => {
       }
 
       console.log('Successfully fetched offers:', data);
-      // Type assertion to ensure offer_type is properly typed
       const typedOffers = (data || []).map(offer => ({
         ...offer,
         offer_type: (offer.offer_type as 'points_deal' | 'special_offer') || 'points_deal'
@@ -156,7 +156,7 @@ const OffersList = () => {
   };
 
   const formatTime = (timeString: string) => {
-    return timeString.slice(0, 5); // HH:MM format
+    return timeString.slice(0, 5);
   };
 
   if (loading) {
@@ -192,15 +192,17 @@ const OffersList = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center space-x-2">
-          <Gift className="w-5 h-5" />
-          <span>Your Loyalty Offers</span>
-          <Button onClick={fetchOffers} variant="ghost" size="sm" className="ml-auto">
+        <CardTitle className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex items-center space-x-2">
+            <Gift className="w-5 h-5" />
+            <span>Your Loyalty Offers</span>
+          </div>
+          <Button onClick={fetchOffers} variant="ghost" size="sm">
             Refresh
           </Button>
         </CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-4 sm:p-6">
         {offers.length === 0 ? (
           <div className="text-center py-8 text-gray-500">
             <Gift className="w-12 h-12 mx-auto mb-4 text-gray-300" />
@@ -209,49 +211,56 @@ const OffersList = () => {
         ) : (
           <div className="space-y-4">
             {offers.map((offer) => (
-              <div key={offer.id} className="border rounded-lg p-4">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-2 mb-2">
-                      <h3 className="font-medium">
+              <div key={offer.id} className="border rounded-lg p-3 sm:p-4">
+                <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+                  {/* Content Section */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-3">
+                      <h3 className="font-medium text-sm sm:text-base break-words">
                         {offer.offer_type === 'special_offer' && offer.offer_name 
                           ? offer.offer_name 
                           : offer.reward_description}
                       </h3>
-                      <Badge variant={offer.is_active ? "default" : "secondary"}>
-                        {offer.is_active ? "Active" : "Inactive"}
-                      </Badge>
-                      <Badge variant="outline">
-                        {offer.offer_type === 'special_offer' ? 'Special Offer' : 'Points Deal'}
-                      </Badge>
+                      <div className="flex flex-wrap gap-2">
+                        <Badge variant={offer.is_active ? "default" : "secondary"} className="text-xs">
+                          {offer.is_active ? "Active" : "Inactive"}
+                        </Badge>
+                        <Badge variant="outline" className="text-xs">
+                          {offer.offer_type === 'special_offer' ? 'Special Offer' : 'Points Deal'}
+                        </Badge>
+                      </div>
                     </div>
 
-                    <div className="text-sm text-gray-600 space-y-1">
+                    <div className="text-xs sm:text-sm text-gray-600 space-y-1">
                       {offer.offer_type === 'special_offer' ? (
                         <>
                           {offer.offer_rule && (
-                            <p><strong>Rule:</strong> {offer.offer_rule}</p>
+                            <p className="break-words"><strong>Rule:</strong> {offer.offer_rule}</p>
                           )}
                           {(offer.valid_from || offer.valid_to) && (
-                            <p className="flex items-center">
-                              <Calendar className="w-3 h-3 mr-1" />
-                              {offer.valid_from && `From ${formatDate(offer.valid_from)}`}
-                              {offer.valid_from && offer.valid_to && ' '}
-                              {offer.valid_to && `Until ${formatDate(offer.valid_to)}`}
+                            <p className="flex items-start">
+                              <Calendar className="w-3 h-3 mr-1 mt-0.5 flex-shrink-0" />
+                              <span className="break-words">
+                                {offer.valid_from && `From ${formatDate(offer.valid_from)}`}
+                                {offer.valid_from && offer.valid_to && ' '}
+                                {offer.valid_to && `Until ${formatDate(offer.valid_to)}`}
+                              </span>
                             </p>
                           )}
                           {(offer.time_from || offer.time_to) && (
-                            <p className="flex items-center">
-                              <Clock className="w-3 h-3 mr-1" />
-                              {offer.time_from && `From ${formatTime(offer.time_from)}`}
-                              {offer.time_from && offer.time_to && ' '}
-                              {offer.time_to && `Until ${formatTime(offer.time_to)}`}
+                            <p className="flex items-start">
+                              <Clock className="w-3 h-3 mr-1 mt-0.5 flex-shrink-0" />
+                              <span className="break-words">
+                                {offer.time_from && `From ${formatTime(offer.time_from)}`}
+                                {offer.time_from && offer.time_to && ' '}
+                                {offer.time_to && `Until ${formatTime(offer.time_to)}`}
+                              </span>
                             </p>
                           )}
                         </>
                       ) : (
                         <>
-                          <p>
+                          <p className="break-words">
                             {offer.points_per_euro 
                               ? `${offer.points_per_euro} points per EUR spent`
                               : `Spend $${offer.spend_amount} → Earn ${offer.points_earned} points`
@@ -262,18 +271,26 @@ const OffersList = () => {
                       )}
                     </div>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <Switch
-                      checked={offer.is_active}
-                      onCheckedChange={(checked) => toggleOfferStatus(offer.id, checked)}
-                    />
+
+                  {/* Actions Section */}
+                  <div className="flex flex-row lg:flex-col items-center gap-3 lg:gap-2 pt-2 lg:pt-0">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-gray-600 lg:hidden">
+                        {offer.is_active ? 'Active' : 'Inactive'}
+                      </span>
+                      <Switch
+                        checked={offer.is_active}
+                        onCheckedChange={(checked) => toggleOfferStatus(offer.id, checked)}
+                        className="scale-90 sm:scale-100"
+                      />
+                    </div>
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => deleteOffer(offer.id)}
-                      className="text-red-600 hover:text-red-800"
+                      className="text-red-600 hover:text-red-800 p-2 h-8 w-8"
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Trash2 className="w-3 h-3 sm:w-4 sm:h-4" />
                     </Button>
                   </div>
                 </div>

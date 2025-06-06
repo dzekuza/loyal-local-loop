@@ -1,82 +1,11 @@
 
 /**
- * Utility functions for generating and validating customer loyalty codes
+ * Customer lookup and search functions
  */
 
-// Characters that are easy to read and type (excluding confusing ones like 0, O, 1, I, l)
-const CODE_CHARS = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
-
-/**
- * Generate a readable customer code from user ID
- * Format: ABC-123-XYZ (3 letters - 3 numbers - 3 letters)
- */
-export const generateCustomerCode = (userId: string): string => {
-  console.log('🔢 Generating customer code for userId:', userId);
-  
-  // Use a simple hash of the user ID to ensure consistency
-  let hash = 0;
-  for (let i = 0; i < userId.length; i++) {
-    const char = userId.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
-    hash = hash & hash; // Convert to 32-bit integer
-  }
-  
-  // Make hash positive
-  hash = Math.abs(hash);
-  
-  // Generate code parts - fixed algorithm for consistency
-  const part1 = generateCodePart(hash, 3, true); // Letters
-  const part2 = generateCodePart(hash >> 8, 3, false); // Numbers
-  const part3 = generateCodePart(hash >> 16, 3, true); // Letters
-  
-  const code = `${part1}-${part2}-${part3}`;
-  console.log('✅ Generated customer code:', code, 'for userId:', userId);
-  return code;
-};
-
-/**
- * Generate a part of the customer code with deterministic algorithm
- */
-const generateCodePart = (seed: number, length: number, letters: boolean): string => {
-  let result = '';
-  let current = Math.abs(seed);
-  
-  const chars = letters ? 'ABCDEFGHJKLMNPQRSTUVWXYZ' : '23456789'; // Consistent character sets
-  
-  for (let i = 0; i < length; i++) {
-    result += chars[current % chars.length];
-    current = Math.floor(current / chars.length) + (i + 1); // Add deterministic increment
-  }
-  
-  return result;
-};
-
-/**
- * Validate customer code format
- */
-export const validateCustomerCode = (code: string): boolean => {
-  const pattern = /^[A-Z]{3}-[0-9]{3}-[A-Z]{3}$/;
-  const isValid = pattern.test(code.toUpperCase());
-  console.log('✓ Validating customer code:', code, 'valid:', isValid);
-  return isValid;
-};
-
-/**
- * Format customer code input (auto-add dashes)
- */
-export const formatCustomerCodeInput = (input: string): string => {
-  // Remove all non-alphanumeric characters
-  const clean = input.replace(/[^A-Z0-9]/gi, '').toUpperCase();
-  
-  // Add dashes at appropriate positions
-  if (clean.length <= 3) {
-    return clean;
-  } else if (clean.length <= 6) {
-    return `${clean.slice(0, 3)}-${clean.slice(3)}`;
-  } else {
-    return `${clean.slice(0, 3)}-${clean.slice(3, 6)}-${clean.slice(6, 9)}`;
-  }
-};
+import { generateCustomerCode } from './generator';
+import { validateCustomerCode } from './validator';
+import { CustomerData } from './types';
 
 /**
  * Debug function: Find which customer ID generates a specific code
@@ -122,7 +51,7 @@ export const findCustomerIdByCode = async (targetCode: string, supabase: any): P
 /**
  * Enhanced customer lookup with comprehensive debugging
  */
-export const findCustomerByCode = async (code: string, businessId: string, supabase: any): Promise<{ customerId: string; customerName: string } | null> => {
+export const findCustomerByCode = async (code: string, businessId: string, supabase: any): Promise<CustomerData | null> => {
   try {
     console.log('🔍 ENHANCED LOOKUP: Searching for customer with code:', code, 'for business:', businessId);
     
@@ -212,46 +141,6 @@ export const findCustomerByCode = async (code: string, businessId: string, supab
   } catch (error) {
     console.error('❌ Error finding customer by code:', error);
     return null;
-  }
-};
-
-/**
- * Debug function: Generate sample codes for testing
- */
-export const generateSampleCodes = async (supabase: any, limit: number = 10): Promise<void> => {
-  console.log('🧪 GENERATING SAMPLE CODES for debugging...');
-  
-  try {
-    const { data: customers, error } = await supabase
-      .from('profiles')
-      .select('id, name, user_role')
-      .eq('user_role', 'customer')
-      .limit(limit);
-
-    if (error) {
-      console.error('❌ Error fetching customers for sample codes:', error);
-      return;
-    }
-
-    if (!customers || customers.length === 0) {
-      console.log('❌ No customers found for sample codes');
-      return;
-    }
-
-    console.log('📋 SAMPLE CUSTOMER CODES:');
-    console.log('=' .repeat(50));
-    
-    customers.forEach((customer, index) => {
-      const code = generateCustomerCode(customer.id);
-      console.log(`${index + 1}. ${customer.name || 'Unknown'}`);
-      console.log(`   ID: ${customer.id}`);
-      console.log(`   Code: ${code}`);
-      console.log('');
-    });
-    
-    console.log('=' .repeat(50));
-  } catch (error) {
-    console.error('❌ Error generating sample codes:', error);
   }
 };
 

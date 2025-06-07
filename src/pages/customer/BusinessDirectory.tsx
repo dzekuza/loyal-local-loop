@@ -4,17 +4,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import BusinessCard from '@/components/business/BusinessCard';
-import BusinessSearchBar from '@/components/business/BusinessSearchBar';
-import BusinessCategoryFilter from '@/components/business/BusinessCategoryFilter';
+import BusinessCategoryIcons from '@/components/business/BusinessCategoryIcons';
 import { useBusinesses } from '@/hooks/useBusinesses';
 import { useTranslation } from 'react-i18next';
 
 const BusinessDirectory = () => {
   const { data: businesses, isLoading, error } = useBusinesses();
   const { t } = useTranslation();
-  const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
-  const [showSpecialDeals, setShowSpecialDeals] = useState(false);
 
   const categories = useMemo(() => {
     if (!businesses) return [];
@@ -26,17 +23,10 @@ const BusinessDirectory = () => {
     if (!businesses) return [];
     
     return businesses.filter(business => {
-      const matchesSearch = business.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           business.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           business.businessType.toLowerCase().includes(searchTerm.toLowerCase());
-      
       const matchesCategory = selectedCategory === 'All' || business.businessType === selectedCategory;
-      
-      const hasSpecialDeals = showSpecialDeals ? (business.loyaltyOffers?.length || 0) > 0 : true;
-      
-      return matchesSearch && matchesCategory && hasSpecialDeals;
+      return matchesCategory;
     });
-  }, [businesses, searchTerm, selectedCategory, showSpecialDeals]);
+  }, [businesses, selectedCategory]);
 
   // Debug values for interpolation
   const count = filteredBusinesses?.length || 0;
@@ -63,27 +53,16 @@ const BusinessDirectory = () => {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
-        <h1 className="text-2xl md:text-3xl font-bold mb-2">{t('nav.businesses')}</h1>
-        <p className="text-gray-600 break-words">{t('business.subtitle')}</p>
-      </div>
-
-      <div className="mb-6">
-        <BusinessSearchBar
-          searchTerm={searchTerm}
-          onSearchChange={setSearchTerm}
-          showSpecialDeals={showSpecialDeals}
-          onSpecialDealsToggle={() => setShowSpecialDeals(!showSpecialDeals)}
-        />
+        <h1 className="text-2xl md:text-3xl font-bold mb-2">Explore offers around you</h1>
+        <p className="text-gray-600 break-words">Discover amazing businesses and exclusive offers in your area</p>
       </div>
 
       {categories.length > 0 && (
-        <div className="mb-6">
-          <BusinessCategoryFilter
-            categories={categories}
-            selectedCategory={selectedCategory}
-            onCategoryChange={setSelectedCategory}
-          />
-        </div>
+        <BusinessCategoryIcons
+          categories={categories}
+          selectedCategory={selectedCategory}
+          onCategoryChange={setSelectedCategory}
+        />
       )}
       
       {isLoading ? (
@@ -119,11 +98,6 @@ const BusinessDirectory = () => {
                 t('search.showingResults', { count, total })
               }
             </p>
-            {showSpecialDeals && (
-              <Badge variant="secondary" className="self-start sm:self-auto">
-                {t('business.withSpecialDeals')}
-              </Badge>
-            )}
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredBusinesses.map((business) => (
@@ -142,7 +116,7 @@ const BusinessDirectory = () => {
           </CardHeader>
           <CardContent>
             <p className="break-words">
-              {searchTerm || selectedCategory !== 'All' || showSpecialDeals
+              {selectedCategory !== 'All'
                 ? t('business.noMatchingBusinesses')
                 : t('business.noBusinessesYet')}
             </p>

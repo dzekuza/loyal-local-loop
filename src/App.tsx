@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./hooks/useAuth";
 import Header from "./components/layout/Header";
 import MobileNavigation from "./components/layout/MobileNavigation";
@@ -24,9 +24,25 @@ import MainScreen from "./pages/customer/MainScreen";
 import MyCardsPage from "./pages/customer/MyCardsPage";
 import NotFound from "./pages/NotFound";
 import { useEffect } from "react";
+import { useAppStore } from "./store/useAppStore";
 import './i18n';
 
 const queryClient = new QueryClient();
+
+// Protected Home Route component that redirects authenticated users
+const ProtectedHome = () => {
+  const { isAuthenticated, userRole } = useAppStore();
+  
+  if (isAuthenticated) {
+    if (userRole === 'business') {
+      return <Navigate to="/dashboard" replace />;
+    } else {
+      return <Navigate to="/businesses" replace />;
+    }
+  }
+  
+  return <HomePage />;
+};
 
 const App = () => {
   useEffect(() => {
@@ -55,18 +71,18 @@ const App = () => {
               <Header />
               <div className="pb-20 md:pb-0">
                 <Routes>
-                  <Route path="/" element={<HomePage />} />
+                  <Route path="/" element={<ProtectedHome />} />
                   <Route path="/register" element={<RegisterPage />} />
                   <Route path="/login" element={<LoginPage />} />
                   
                   {/* Business-only routes */}
                   <Route path="/dashboard" element={
-                    <RoleBasedRoute allowedRoles={['business']} redirectTo="/main">
+                    <RoleBasedRoute allowedRoles={['business']} redirectTo="/businesses">
                       <BusinessDashboard />
                     </RoleBasedRoute>
                   } />
                   <Route path="/business/scan" element={
-                    <RoleBasedRoute allowedRoles={['business']} redirectTo="/main">
+                    <RoleBasedRoute allowedRoles={['business']} redirectTo="/businesses">
                       <BusinessScanPage />
                     </RoleBasedRoute>
                   } />

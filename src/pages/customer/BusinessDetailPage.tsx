@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -10,18 +11,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import CustomerLoyaltyCard from '@/components/customer/CustomerLoyaltyCard';
 import { ArrowLeft, Building2, MapPin, Phone, Mail, Info } from 'lucide-react';
-
-interface Business {
-  id: string;
-  name: string;
-  description: string;
-  business_type: string;
-  email: string;
-  phone?: string;
-  address?: string;
-  logo?: string;
-  cover_image?: string;
-}
+import { Business } from '@/types';
 
 interface UserPoints {
   total_points: number;
@@ -50,12 +40,54 @@ const BusinessDetailPage: React.FC = () => {
       // Load business details
       const { data: businessData, error: businessError } = await supabase
         .from('businesses')
-        .select('*')
+        .select(`
+          *,
+          loyalty_offers:loyalty_offers(
+            id,
+            offer_name,
+            reward_description,
+            is_active,
+            business_id,
+            spend_amount,
+            points_earned,
+            reward_threshold,
+            created_at,
+            updated_at
+          )
+        `)
         .eq('id', id)
         .single();
 
       if (businessError) throw businessError;
-      setBusiness(businessData);
+      
+      // Transform the database data to match our Business type
+      const transformedBusiness: Business = {
+        id: businessData.id,
+        name: businessData.name,
+        email: businessData.email,
+        logo: businessData.logo || undefined,
+        coverImage: businessData.cover_image || undefined,
+        address: businessData.address || undefined,
+        phone: businessData.phone || undefined,
+        businessType: businessData.business_type,
+        description: businessData.description || '',
+        qrCode: businessData.qr_code || '',
+        createdAt: new Date(businessData.created_at || ''),
+        loyaltyOffers: (businessData.loyalty_offers || []).map(offer => ({
+          id: offer.id,
+          business_id: offer.business_id || businessData.id,
+          spend_amount: offer.spend_amount || 0,
+          points_earned: offer.points_earned || 0,
+          reward_threshold: offer.reward_threshold || 0,
+          reward_description: offer.reward_description,
+          offer_name: offer.offer_name || '',
+          is_active: offer.is_active,
+          created_at: offer.created_at || '',
+          updated_at: offer.updated_at || ''
+        }))
+      };
+      
+      setBusiness(transformedBusiness);
 
       // Load user points only for authenticated customers
       if (user && userRole === 'customer') {
@@ -127,10 +159,10 @@ const BusinessDetailPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Cover Image */}
-      {business.cover_image && (
+      {business.coverImage && (
         <div 
           className="h-64 bg-cover bg-center relative"
-          style={{ backgroundImage: `url(${business.cover_image})` }}
+          style={{ backgroundImage: `url(${business.coverImage})` }}
         >
           <div className="absolute inset-0 bg-black bg-opacity-50" />
         </div>
@@ -167,7 +199,7 @@ const BusinessDetailPage: React.FC = () => {
                   <div>
                     <CardTitle className="text-2xl">{business.name}</CardTitle>
                     <Badge variant="secondary" className="mt-1">
-                      {business.business_type}
+                      {business.businessType}
                     </Badge>
                   </div>
                 </div>
@@ -225,7 +257,9 @@ const BusinessDetailPage: React.FC = () => {
             ) : (
               <CustomerLoyaltyCard 
                 business={business}
-                onJoinSuccess={loadBusinessDetails}
+                userPoints={userPoints?.total_points}
+                onJoinProgram={loadBusinessDetails}
+                isMember={!!userPoints}
               />
             )}
           </div>

@@ -1,0 +1,265 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loyable Email Confirmation</title>
+    <style>
+        /* Reset styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Circular', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            background-color: #f8fafc;
+            line-height: 1.6;
+            color: #334155;
+        }
+        
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        
+        .header {
+            background: linear-gradient(90deg, #EF4549 0%, #ED4890 100%);
+            padding: 40px 20px;
+            text-align: center;
+        }
+        
+        .logo {
+            width: 64px;
+            height: 48px;
+            margin: 0 auto 20px auto;
+            display: block;
+            object-fit: contain;
+        }
+        
+        .header-title {
+            color: white;
+            font-size: 28px;
+            font-weight: bold;
+            margin: 0;
+        }
+        
+        .header-subtitle {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 16px;
+            margin: 8px 0 0 0;
+        }
+        
+        .content {
+            padding: 40px 30px;
+        }
+        
+        .greeting {
+            font-size: 20px;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 16px;
+        }
+        
+        .message {
+            font-size: 16px;
+            color: #475569;
+            margin-bottom: 32px;
+            line-height: 1.7;
+        }
+        
+        .action-button {
+            display: inline-block;
+            background: linear-gradient(90deg, #EF4549 0%, #ED4890 100%);
+            color: white;
+            text-decoration: none;
+            padding: 16px 32px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 16px;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 14px 0 rgba(239, 69, 73, 0.39);
+        }
+        
+        .action-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px 0 rgba(239, 69, 73, 0.45);
+        }
+        
+        .button-container {
+            text-align: center;
+            margin: 32px 0;
+        }
+        
+        .divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #e2e8f0, transparent);
+            margin: 32px 0;
+        }
+        
+        .security-note {
+            background-color: #f1f5f9;
+            border-left: 4px solid #EF4549;
+            padding: 16px 20px;
+            border-radius: 8px;
+            margin: 24px 0;
+        }
+        
+        .security-note-title {
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 8px;
+        }
+        
+        .security-note-text {
+            font-size: 14px;
+            color: #64748b;
+        }
+        
+        .footer {
+            background-color: #f8fafc;
+            padding: 30px;
+            text-align: center;
+            border-top: 1px solid #e2e8f0;
+        }
+        
+        .footer-text {
+            font-size: 14px;
+            color: #64748b;
+            margin-bottom: 16px;
+        }
+        
+        .social-links {
+            margin: 20px 0;
+        }
+        
+        .social-links a {
+            display: inline-block;
+            margin: 0 12px;
+            color: #64748b;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        
+        .social-links a:hover {
+            color: #EF4549;
+        }
+        
+        .footer-note {
+            font-size: 12px;
+            color: #94a3b8;
+            margin-top: 20px;
+        }
+        
+        /* Responsive design */
+        @media only screen and (max-width: 600px) {
+            .email-container {
+                margin: 10px;
+                border-radius: 12px;
+            }
+            
+            .header {
+                padding: 30px 20px;
+            }
+            
+            .header-title {
+                font-size: 24px;
+            }
+            
+            .content {
+                padding: 30px 20px;
+            }
+            
+            .greeting {
+                font-size: 18px;
+            }
+            
+            .action-button {
+                padding: 14px 28px;
+                font-size: 15px;
+            }
+            
+            .footer {
+                padding: 25px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <!-- Header with gradient background -->
+        <div class="header">
+            <img src="https://eghaglafhlqajdktorjb.supabase.co/storage/v1/object/sign/files/loyablee%20logo.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wNzdkNmM5OS0yOWE0LTRkNzEtYTViOS0yNmFkYjRjMDRlYWIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJmaWxlcy9sb3lhYmxlZSBsb2dvLnBuZyIsImlhdCI6MTc0OTMxNDM1MywiZXhwIjoxNzQ5OTE5MTUzfQ.1H5sEQPDIPw5O-zdzDgLUEt_VM4KLpYIFH_0BKXx3PE" alt="Loyable" class="logo">
+            <h1 class="header-title">Welcome to Loyable</h1>
+            <p class="header-subtitle">Your loyalty journey starts here</p>
+        </div>
+        
+        <!-- Main content -->
+        <div class="content">
+            <h2 class="greeting">Hi {{USER_NAME}},</h2>
+            
+            <p class="message">
+                Thank you for joining Loyable! We're excited to have you as part of our community. 
+                To complete your registration and start earning loyalty points, please confirm your email address by clicking the button below.
+            </p>
+            
+            <div class="button-container">
+                <a href="{{CONFIRMATION_URL}}" class="action-button">Confirm Email Address</a>
+            </div>
+            
+            <div class="divider"></div>
+            
+            <p class="message">
+                Once confirmed, you'll be able to:
+            </p>
+            
+            <ul style="margin: 16px 0 24px 20px; color: #475569;">
+                <li style="margin-bottom: 8px;">Discover amazing local businesses</li>
+                <li style="margin-bottom: 8px;">Earn points with every purchase</li>
+                <li style="margin-bottom: 8px;">Redeem exclusive offers and rewards</li>
+                <li style="margin-bottom: 8px;">Track your loyalty progress</li>
+            </ul>
+            
+            <div class="security-note">
+                <div class="security-note-title">Security Note</div>
+                <div class="security-note-text">
+                    This confirmation link will expire in 24 hours. If you didn't create an account with Loyable, 
+                    you can safely ignore this email.
+                </div>
+            </div>
+            
+            <p class="message">
+                If the button above doesn't work, you can copy and paste this link into your browser:
+                <br>
+                <span style="color: #EF4549; word-break: break-all;">{{CONFIRMATION_URL}}</span>
+            </p>
+        </div>
+        
+        <!-- Footer -->
+        <div class="footer">
+            <p class="footer-text">
+                Questions? We're here to help! Contact us at 
+                <a href="mailto:support@loyable.com" style="color: #EF4549; text-decoration: none;">support@loyable.com</a>
+            </p>
+            
+            <div class="social-links">
+                <a href="{{WEBSITE_URL}}">Website</a>
+                <a href="{{PRIVACY_URL}}">Privacy Policy</a>
+                <a href="{{TERMS_URL}}">Terms of Service</a>
+            </div>
+            
+            <p class="footer-note">
+                © 2024 Loyable. All rights reserved.<br>
+                You're receiving this email because you signed up for a Loyable account.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

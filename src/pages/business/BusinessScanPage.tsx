@@ -12,6 +12,7 @@ import CustomerInfoCard from '@/components/business/CustomerInfoCard';
 import AmountInputCard from '@/components/business/AmountInputCard';
 import ScanModeSelector from '@/components/business/ScanModeSelector';
 import { ArrowLeft, AlertTriangle } from 'lucide-react';
+import ZXingScanner from '@/components/qr/ZXingScanner';
 
 interface CustomerData {
   customerId: string;
@@ -32,6 +33,7 @@ const BusinessScanPage: React.FC = () => {
   const [processing, setProcessing] = useState(false);
   const [pointsToEarn, setPointsToEarn] = useState(0);
   const [currentOffer, setCurrentOffer] = useState<any>(null);
+  const [useZXing, setUseZXing] = useState(false);
 
   const calculatePoints = async (spendAmount: number) => {
     if (!currentBusiness) return 0;
@@ -375,10 +377,27 @@ const BusinessScanPage: React.FC = () => {
 
             {/* Scanner or Manual Entry */}
             {scanMode === 'qr' ? (
-              <QRCodeScanner 
-                onScan={handleQRScan}
-                title="Scan Customer QR Code"
-              />
+              !useZXing ? (
+                <>
+                  <QRCodeScanner 
+                    onScan={handleQRScan}
+                    title="Scan Customer QR Code"
+                  />
+                  <Button className="mt-2 w-full" variant="outline" onClick={() => setUseZXing(true)}>
+                    Try ZXing Scanner
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <ZXingScanner 
+                    onResult={handleQRScan}
+                    onError={() => setUseZXing(false)}
+                  />
+                  <Button className="mt-2 w-full" variant="outline" onClick={() => setUseZXing(false)}>
+                    Back to Default Scanner
+                  </Button>
+                </>
+              )
             ) : (
               <ManualCodeEntry
                 businessId={currentBusiness.id}

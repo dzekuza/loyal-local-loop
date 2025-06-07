@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -12,6 +11,9 @@ import EnhancedOfferCreationForm from '../../components/offers/EnhancedOfferCrea
 import OffersList from '../../components/offers/OffersList';
 import { Store, Users, Gift, TrendingUp, Scan, ArrowRight, AlertTriangle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import ZXingScanner from '../../components/qr/ZXingScanner';
+import QRCodeScanner from '../../components/qr/QRCodeScanner';
+import { Dialog } from '../../components/ui/dialog';
 
 const BusinessDashboard = () => {
   const navigate = useNavigate();
@@ -28,6 +30,9 @@ const BusinessDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const [scannerOpen, setScannerOpen] = useState(false);
+  const [useZXing, setUseZXing] = useState(false);
+  const [scanResult, setScanResult] = useState<string | null>(null);
 
   useEffect(() => {
     console.log('🏢 BusinessDashboard: checking auth state', { 
@@ -297,10 +302,7 @@ const BusinessDashboard = () => {
                   <p className="text-green-100">Scan customer QR codes or enter customer codes manually</p>
                 </div>
                 <Button
-                  onClick={() => {
-                    console.log('🎯 Navigating to scan page with business:', currentBusiness.id);
-                    navigate('/business/scan');
-                  }}
+                  onClick={() => setScannerOpen(true)}
                   className="bg-white text-green-600 hover:bg-green-50 font-semibold"
                   size="lg"
                 >
@@ -312,6 +314,47 @@ const BusinessDashboard = () => {
             </CardContent>
           </Card>
         </div>
+
+        {/* Scanner Modal */}
+        <Dialog open={scannerOpen} onOpenChange={setScannerOpen}>
+          <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/40">
+            <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md relative">
+              <Button className="absolute top-2 right-2" variant="ghost" onClick={() => setScannerOpen(false)}>
+                Close
+              </Button>
+              <h2 className="text-lg font-bold mb-4">Scan Customer QR Code</h2>
+              {!useZXing ? (
+                <>
+                  <QRCodeScanner
+                    onScan={(result) => {
+                      setScanResult(result);
+                      setScannerOpen(false);
+                      toast({ title: 'QR Code Scanned', description: result });
+                    }}
+                    title="Scan Customer QR Code"
+                  />
+                  <Button className="mt-2 w-full" variant="outline" onClick={() => setUseZXing(true)}>
+                    Try ZXing Scanner
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <ZXingScanner
+                    onResult={(result) => {
+                      setScanResult(result);
+                      setScannerOpen(false);
+                      toast({ title: 'QR Code Scanned', description: result });
+                    }}
+                    onError={() => setUseZXing(false)}
+                  />
+                  <Button className="mt-2 w-full" variant="outline" onClick={() => setUseZXing(false)}>
+                    Back to Default Scanner
+                  </Button>
+                </>
+              )}
+            </div>
+          </div>
+        </Dialog>
 
         {/* Stats */}
         <div className="stats-grid grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">

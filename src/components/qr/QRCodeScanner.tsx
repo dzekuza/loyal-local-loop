@@ -6,6 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 import { detectDevice, getCameraConstraints, requestCameraPermission, getBasicCameraConstraints } from '@/utils/deviceDetection';
 import MobileQRScanner from './MobileQRScanner';
 import jsQR from 'jsqr';
+import ZXingScanner from './ZXingScanner';
 
 interface QRCodeScannerProps {
   onScan: (result: string) => void;
@@ -18,7 +19,7 @@ const QRCodeScanner: React.FC<QRCodeScannerProps> = ({ onScan, onClose, title = 
   const deviceInfo = detectDevice();
   
   // Early routing to mobile scanner for problematic devices - moved before hooks
-  if (deviceInfo.isProblematicDevice || deviceInfo.isMobile) {
+  if (deviceInfo.isProblematicDevice || deviceInfo.isMobile || deviceInfo.isIOS) {
     console.log('📱 Auto-routing to mobile scanner for device:', deviceInfo);
     return <MobileQRScanner onScan={onScan} onClose={onClose} title={title} />;
   }
@@ -33,6 +34,7 @@ const QRCodeScanner: React.FC<QRCodeScannerProps> = ({ onScan, onClose, title = 
   const [permissionDenied, setPermissionDenied] = useState(false);
   const [cameraLoading, setCameraLoading] = useState(false);
   const [useMobileScanner, setUseMobileScanner] = useState(false);
+  const [showZXing, setShowZXing] = useState(false);
   const { toast } = useToast();
 
   // If user manually switches to mobile scanner, render that
@@ -232,6 +234,28 @@ const QRCodeScanner: React.FC<QRCodeScannerProps> = ({ onScan, onClose, title = 
     onScan(customerData || demoData);
   };
 
+  if (showZXing) {
+    return (
+      <Card className="w-full max-w-md mx-auto shadow-lg">
+        <CardHeader>
+          <CardTitle>ZXing QR Scanner (Experimental)</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ZXingScanner
+            onResult={onScan}
+            onError={(err) => {
+              setError('ZXing error: ' + err.message);
+              setShowZXing(false);
+            }}
+          />
+          <Button className="mt-4 w-full" variant="outline" onClick={() => setShowZXing(false)}>
+            Back to Default Scanner
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card className="w-full max-w-md mx-auto shadow-lg">
       <CardHeader>
@@ -301,6 +325,14 @@ const QRCodeScanner: React.FC<QRCodeScannerProps> = ({ onScan, onClose, title = 
               >
                 <Smartphone className="w-4 h-4 mr-2" />
                 Mobile Scanner
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setShowZXing(true)}
+                className="flex-1"
+              >
+                Try ZXing Scanner
               </Button>
             </div>
           </div>

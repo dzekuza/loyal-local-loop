@@ -1,4 +1,3 @@
-
 import { useState, useRef, useCallback } from 'react';
 import { detectDevice, requestCameraPermission, getCameraConstraints } from '@/utils/deviceDetection';
 
@@ -12,8 +11,10 @@ export const useCameraStream = () => {
   const streamRef = useRef<MediaStream | null>(null);
   const deviceInfo = detectDevice();
 
+  console.log('[useCameraStream] Device info:', deviceInfo);
+
   const cleanup = useCallback(() => {
-    console.log('🧹 Cleaning up camera resources...');
+    console.log('[useCameraStream] Cleaning up camera resources...');
     
     if (streamRef.current) {
       streamRef.current.getTracks().forEach(track => {
@@ -29,6 +30,7 @@ export const useCameraStream = () => {
   }, []);
 
   const handleCameraError = useCallback((error: any) => {
+    console.error('[useCameraStream] Camera error handler called:', error);
     if (error instanceof Error) {
       if (error.name === 'NotAllowedError') {
         setPermissionGranted(false);

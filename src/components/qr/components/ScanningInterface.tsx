@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Camera } from 'lucide-react';
@@ -35,6 +34,7 @@ const ScanningInterface: React.FC<ScanningInterfaceProps> = ({
           playsInline
           muted
           style={{ transform: 'scaleX(-1)' }}
+          onClick={deviceInfo.isIOS && onTriggerVideo ? () => onTriggerVideo() : undefined}
         />
         <canvas ref={canvasRef} className="hidden" />
         

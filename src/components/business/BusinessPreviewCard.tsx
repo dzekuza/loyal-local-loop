@@ -1,9 +1,9 @@
 
 import React from 'react';
-import { Card, CardContent, CardHeader } from '../ui/card';
+import { Card, CardContent } from '../ui/card';
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
-import { Building2, MapPin, Gift } from 'lucide-react';
+import { MapPin } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Business } from '@/types';
 import { useTranslation } from 'react-i18next';
@@ -21,9 +21,9 @@ const BusinessPreviewCard: React.FC<BusinessPreviewCardProps> = ({ business }) =
   console.log('🏢 Business card for:', business.name, 'active offers:', activeOffersCount, 'total offers:', business.loyaltyOffers?.length);
 
   return (
-    <Card className="hover:shadow-lg transition-all duration-300">
-      {/* Cover Image */}
-      <div className="h-32 bg-gradient-to-br from-purple-500 to-blue-600 relative">
+    <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 border-0">
+      {/* Full Cover Image with Overlay */}
+      <div className="relative h-40 overflow-hidden">
         {business.coverImage ? (
           <img 
             src={business.coverImage} 
@@ -33,32 +33,31 @@ const BusinessPreviewCard: React.FC<BusinessPreviewCardProps> = ({ business }) =
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-purple-500 to-blue-600" />
         )}
-        {/* Logo positioned over cover - fixed positioning */}
-        <div className="absolute bottom-0 left-4 z-10 transform translate-y-1/2">
-          <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center shadow-lg border">
-            {business.logo ? (
-              <img src={business.logo} alt={business.name} className="w-10 h-10 object-cover rounded-md" />
-            ) : (
-              <Building2 className="w-6 h-6 text-gray-600" />
-            )}
+        
+        {/* Dark overlay */}
+        <div className="absolute inset-0 bg-black/40" />
+        
+        {/* Active Offers Badge */}
+        {activeOffersCount > 0 && (
+          <div className="absolute top-3 left-3 z-10">
+            <Badge className="bg-red-500 hover:bg-red-600 text-white text-xs font-medium px-3 py-1">
+              {activeOffersCount} {activeOffersCount === 1 ? 'aktyvus pasiūlymas' : 'aktyvūs pasiūlymai'}
+            </Badge>
           </div>
+        )}
+        
+        {/* Business Info Overlay */}
+        <div className="absolute bottom-0 left-0 right-0 p-4">
+          <h3 className="font-bold text-lg text-white mb-1 line-clamp-1">
+            {business.name}
+          </h3>
+          <Badge variant="secondary" className="bg-white/20 text-white border-white/30 text-xs">
+            {business.businessType}
+          </Badge>
         </div>
       </div>
 
-      <CardHeader className="pt-10 pb-3">
-        <div className="flex items-start justify-between">
-          <div className="flex-1 min-w-0">
-            <h3 className="font-semibold text-lg truncate mb-1">
-              {business.name}
-            </h3>
-            <Badge variant="secondary" className="text-xs">
-              {business.businessType}
-            </Badge>
-          </div>
-        </div>
-      </CardHeader>
-
-      <CardContent className="pt-0">
+      <CardContent className="p-4">
         {business.description && (
           <p className="text-gray-600 text-sm mb-3 line-clamp-2 break-words">
             {business.description}
@@ -66,20 +65,11 @@ const BusinessPreviewCard: React.FC<BusinessPreviewCardProps> = ({ business }) =
         )}
         
         {business.address && (
-          <div className="flex items-center text-xs text-gray-500 mb-3">
+          <div className="flex items-center text-xs text-gray-500 mb-4">
             <MapPin className="w-3 h-3 mr-1 flex-shrink-0" />
             <span className="truncate">{business.address}</span>
           </div>
         )}
-
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center text-sm text-green-600">
-            <Gift className="w-4 h-4 mr-1 flex-shrink-0" />
-            <span className="truncate">
-              {activeOffersCount} {activeOffersCount === 1 ? 'aktyvus pasiūlymas' : 'aktyvūs pasiūlymai'}
-            </span>
-          </div>
-        </div>
         
         <Button asChild variant="outline" size="sm" className="w-full">
           <Link to={`/business/${business.id}`}>

@@ -55,10 +55,14 @@ const Header = () => {
         <div className="flex items-center justify-between h-20">
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2 flex-shrink-0">
-            <div className="w-10 h-10 bg-gradient-to-br from-red-500 to-pink-500 rounded-xl flex items-center justify-center shadow-lg">
-              <CreditCard className="w-6 h-6 text-white" />
+            <div className="w-10 h-10 flex items-center justify-center">
+              <img 
+                src="/loyable-logo.png" 
+                alt="Loyable" 
+                className="w-10 h-10 object-contain"
+              />
             </div>
-            <span className="text-xl font-bold text-gray-900 hidden sm:block">LoyaltyWallet</span>
+            <span className="text-xl font-bold text-gray-900 hidden sm:block">Loyable</span>
           </Link>
 
           {/* Center Search - Only for authenticated customers */}

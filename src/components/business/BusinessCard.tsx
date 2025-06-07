@@ -1,9 +1,9 @@
 
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
+import { Card, CardContent } from '../ui/card';
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
-import { Building2, Calendar, Eye, Gift } from 'lucide-react';
+import { Calendar, Eye, Gift } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Business } from '@/types';
 import { useTranslation } from 'react-i18next';
@@ -35,38 +35,49 @@ const BusinessCard: React.FC<BusinessCardProps> = ({
   const activeOffersCount = business.loyaltyOffers?.filter(offer => offer.is_active)?.length || 0;
 
   return (
-    <Card className="hover:shadow-lg transition-all duration-300">
-      <CardHeader className="pb-3">
-        <div className="flex items-start space-x-3">
-          <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-blue-600 rounded-lg flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
-            {business.logo ? (
-              <img src={business.logo} alt={business.name} className="w-full h-full object-cover rounded-lg" />
-            ) : (
-              <Building2 className="w-6 h-6" />
-            )}
+    <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 border-0">
+      {/* Full Cover Image with Overlay */}
+      <div className="relative h-40 overflow-hidden">
+        {business.coverImage ? (
+          <img 
+            src={business.coverImage} 
+            alt={`${business.name} cover`}
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <div className="w-full h-full bg-gradient-to-br from-purple-500 to-blue-600" />
+        )}
+        
+        {/* Dark overlay */}
+        <div className="absolute inset-0 bg-black/40" />
+        
+        {/* Active Offers Badge */}
+        {activeOffersCount > 0 && (
+          <div className="absolute top-3 left-3 z-10">
+            <Badge className="bg-red-500 hover:bg-red-600 text-white text-xs font-medium px-3 py-1">
+              {activeOffersCount} offers
+            </Badge>
           </div>
-          <div className="flex-1 min-w-0">
-            <CardTitle className="text-lg font-semibold truncate">
-              {business.name}
-            </CardTitle>
-            <div className="flex items-center space-x-2 mt-1">
-              <Badge variant="secondary">
-                {business.businessType}
-              </Badge>
-              <div className="flex items-center text-xs text-green-600">
-                <Gift className="w-3 h-3 mr-1" />
-                <span>{activeOffersCount} offers</span>
-              </div>
-            </div>
-          </div>
+        )}
+        
+        {/* Business Info Overlay */}
+        <div className="absolute bottom-0 left-0 right-0 p-4">
+          <h3 className="font-bold text-lg text-white mb-1 line-clamp-1">
+            {business.name}
+          </h3>
+          <Badge variant="secondary" className="bg-white/20 text-white border-white/30 text-xs">
+            {business.businessType}
+          </Badge>
         </div>
-      </CardHeader>
-      <CardContent className="pt-0">
+      </div>
+
+      <CardContent className="p-4">
         {business.description && (
           <p className="text-gray-600 text-sm mb-3 line-clamp-2 break-words">
             {business.description}
           </p>
         )}
+        
         <div className="flex items-center justify-between text-xs text-gray-500 mb-4 gap-2">
           <div className="flex items-center space-x-1 flex-shrink-0">
             <Calendar className="w-3 h-3" />

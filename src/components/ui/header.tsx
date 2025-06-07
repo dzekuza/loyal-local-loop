@@ -126,7 +126,7 @@ function Header1() {
                     </NavigationMenu>
                 </div>
                 <div className="flex lg:justify-center">
-                    <Link to="/" className="font-semibold">LoyaltyApp</Link>
+                    <Link to="/" className="font-semibold">Loyable</Link>
                 </div>
                 <div className="flex justify-end w-full gap-4">
                     <Button variant="ghost" className="hidden md:inline" asChild>

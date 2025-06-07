@@ -44,7 +44,7 @@ const HomePage = () => {
             </h1>
             
             <p className="subheading-airbnb text-lg md:text-xl lg:text-2xl mb-10 max-w-3xl mx-auto">
-              Connect with local businesses, earn rewards, and enjoy exclusive offers - all in one beautiful app.
+              {t('home.connectWithLocal')}
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
@@ -54,7 +54,7 @@ const HomePage = () => {
                 onClick={handleGetStarted}
                 className="w-full sm:w-auto"
               >
-                Get Started Today
+                {t('home.getStartedToday')}
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
               <Button 
@@ -63,7 +63,7 @@ const HomePage = () => {
                 onClick={() => navigate('/discover')}
                 className="w-full sm:w-auto"
               >
-                Explore Businesses
+                {t('home.exploreBusinesses')}
               </Button>
             </div>
           </div>
@@ -105,9 +105,9 @@ const HomePage = () => {
           ) : (
             <Card variant="airbnb-subtle" className="text-center py-16">
               <CardContent>
-                <p className="text-gray-600 mb-6 text-lg">No businesses found yet.</p>
+                <p className="text-gray-600 mb-6 text-lg">{t('home.noBusinessesFound')}</p>
                 <Button variant="airbnb" onClick={() => navigate('/businesses')}>
-                  Explore All Businesses
+                  {t('home.exploreBusinesses')}
                 </Button>
               </CardContent>
             </Card>
@@ -120,7 +120,7 @@ const HomePage = () => {
                 size="lg"
                 onClick={() => navigate('/businesses')}
               >
-                View All Businesses
+                {t('home.viewAllBusinesses')}
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
             </div>

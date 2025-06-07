@@ -12,6 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 import CustomerLoyaltyCard from '@/components/customer/CustomerLoyaltyCard';
 import { ArrowLeft, Building2, MapPin, Phone, Mail, Info } from 'lucide-react';
 import { Business } from '@/types';
+import { useTranslation } from 'react-i18next';
 
 interface UserPoints {
   total_points: number;
@@ -23,6 +24,7 @@ const BusinessDetailPage: React.FC = () => {
   const { user } = useAuth();
   const { userRole } = useAppStore();
   const { toast } = useToast();
+  const { t } = useTranslation();
   const [business, setBusiness] = useState<Business | null>(null);
   const [userPoints, setUserPoints] = useState<UserPoints | null>(null);
   const [loading, setLoading] = useState(true);
@@ -107,8 +109,8 @@ const BusinessDetailPage: React.FC = () => {
     } catch (error) {
       console.error('Error loading business details:', error);
       toast({
-        title: "Error",
-        description: "Failed to load business details",
+        title: t('common.error'),
+        description: t('common.errorLoadingBusinesses'),
         variant: "destructive",
       });
     } finally {
@@ -147,9 +149,9 @@ const BusinessDetailPage: React.FC = () => {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Business not found</h1>
+          <h1 className="text-2xl font-bold mb-4">{t('businessDetail.businessNotFound')}</h1>
           <Button onClick={() => navigate('/discover')}>
-            Back to Discover
+            {t('businessDetail.backToDiscover')}
           </Button>
         </div>
       </div>
@@ -176,7 +178,7 @@ const BusinessDetailPage: React.FC = () => {
           className="mb-6 flex items-center space-x-2"
         >
           <ArrowLeft className="w-4 h-4" />
-          <span>Back to Discover</span>
+          <span>{t('businessDetail.backToDiscover')}</span>
         </Button>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -206,13 +208,13 @@ const BusinessDetailPage: React.FC = () => {
               </CardHeader>
               <CardContent className="space-y-6">
                 <div>
-                  <h3 className="text-lg font-semibold mb-2">About</h3>
+                  <h3 className="text-lg font-semibold mb-2">{t('businessDetail.about')}</h3>
                   <p className="text-gray-600">{business.description}</p>
                 </div>
 
                 {/* Contact Information */}
                 <div>
-                  <h3 className="text-lg font-semibold mb-3">Contact Information</h3>
+                  <h3 className="text-lg font-semibold mb-3">{t('businessDetail.contactInformation')}</h3>
                   <div className="space-y-2">
                     <div className="flex items-center space-x-2">
                       <Mail className="w-4 h-4 text-gray-500" />
@@ -242,15 +244,15 @@ const BusinessDetailPage: React.FC = () => {
               <Card>
                 <CardContent className="p-6 text-center">
                   <Info className="w-12 h-12 text-blue-500 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">Business Account</h3>
+                  <h3 className="text-lg font-semibold mb-2">{t('businessDetail.businessAccount')}</h3>
                   <p className="text-gray-600 mb-4">
-                    You're viewing this as a business owner. Customers can join your loyalty program and earn points here.
+                    {t('businessDetail.viewingAsBusiness')}
                   </p>
                   <Button 
                     onClick={() => navigate('/dashboard')}
                     className="w-full"
                   >
-                    Go to Dashboard
+                    {t('businessDetail.goToDashboard')}
                   </Button>
                 </CardContent>
               </Card>

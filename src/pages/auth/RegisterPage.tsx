@@ -3,12 +3,14 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Users, Store, ArrowLeft } from 'lucide-react';
+import { Users, Store } from 'lucide-react';
 import BusinessRegistrationWizard from '@/components/auth/BusinessRegistrationWizard';
 import CustomerRegistrationForm from '@/components/auth/CustomerRegistrationForm';
+import { useTranslation } from 'react-i18next';
 
 const RegisterPage = () => {
   const [accountType, setAccountType] = useState<'customer' | 'business' | null>(null);
+  const { t } = useTranslation();
 
   if (accountType === 'business') {
     return <BusinessRegistrationWizard />;
@@ -24,8 +26,8 @@ const RegisterPage = () => {
         <div className="max-w-md mx-auto">
           <Card>
             <CardHeader className="text-center">
-              <CardTitle className="text-2xl font-bold">Choose Account Type</CardTitle>
-              <p className="text-gray-600">Select how you want to use LoyaltyWallet</p>
+              <CardTitle className="text-2xl font-bold">{t('auth.chooseAccountType')}</CardTitle>
+              <p className="text-gray-600">{t('auth.selectHowToUse')}</p>
             </CardHeader>
             <CardContent className="space-y-4">
               <Button
@@ -35,8 +37,8 @@ const RegisterPage = () => {
               >
                 <Users className="w-8 h-8 text-purple-600" />
                 <div>
-                  <div className="font-semibold">I'm a Customer</div>
-                  <div className="text-sm text-gray-500">Collect loyalty points and rewards</div>
+                  <div className="font-semibold">{t('auth.customer')}</div>
+                  <div className="text-sm text-gray-500">{t('auth.customerDescription')}</div>
                 </div>
               </Button>
 
@@ -47,16 +49,16 @@ const RegisterPage = () => {
               >
                 <Store className="w-8 h-8 text-blue-600" />
                 <div>
-                  <div className="font-semibold">I'm a Business</div>
-                  <div className="text-sm text-gray-500">Create loyalty programs for customers</div>
+                  <div className="font-semibold">{t('auth.business')}</div>
+                  <div className="text-sm text-gray-500">{t('auth.businessDescription')}</div>
                 </div>
               </Button>
 
               <div className="text-center mt-6">
                 <p className="text-sm text-gray-600">
-                  Already have an account?{' '}
+                  {t('auth.alreadyHaveAccount')}{' '}
                   <Link to="/login" className="text-purple-600 hover:underline">
-                    Sign in here
+                    {t('auth.signInHere')}
                   </Link>
                 </p>
               </div>

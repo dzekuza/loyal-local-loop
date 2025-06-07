@@ -8,11 +8,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { useAppStore } from '@/store/useAppStore';
+import { useTranslation } from 'react-i18next';
 
 const LoginPage = () => {
   const navigate = useNavigate();
   const { signIn, user } = useAuth();
   const { toast } = useToast();
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
@@ -30,23 +32,23 @@ const LoginPage = () => {
       if (error) {
         console.error('Login error:', error);
         toast({
-          title: "Login failed",
-          description: error.message || "Please check your credentials and try again.",
+          title: t('auth.loginFailed'),
+          description: error.message || t('auth.checkCredentials'),
           variant: "destructive",
         });
       } else if (data.user) {
         console.log('Login successful for user:', data.user.id);
         toast({
-          title: "Welcome back!",
-          description: "You have been successfully logged in.",
+          title: t('auth.welcomeBackSuccess'),
+          description: t('auth.successfullyLoggedIn'),
         });
         // Navigation will be handled by useEffect
       }
     } catch (error) {
       console.error('Unexpected login error:', error);
       toast({
-        title: "Login failed",
-        description: "An unexpected error occurred. Please try again.",
+        title: t('auth.loginFailed'),
+        description: t('auth.unexpectedError'),
         variant: "destructive",
       });
     } finally {
@@ -83,13 +85,13 @@ const LoginPage = () => {
         <div className="max-w-md mx-auto">
           <Card className="login-card">
             <CardHeader className="text-center">
-              <CardTitle className="text-2xl font-bold">Welcome Back</CardTitle>
-              <p className="text-gray-600">Sign in to your account</p>
+              <CardTitle className="text-2xl font-bold">{t('auth.welcomeBack')}</CardTitle>
+              <p className="text-gray-600">{t('auth.signInToAccount')}</p>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="form-group">
-                  <Label htmlFor="email">Email</Label>
+                  <Label htmlFor="email">{t('auth.email')}</Label>
                   <Input
                     id="email"
                     type="email"
@@ -102,7 +104,7 @@ const LoginPage = () => {
                 </div>
 
                 <div className="form-group">
-                  <Label htmlFor="password">Password</Label>
+                  <Label htmlFor="password">{t('auth.password')}</Label>
                   <Input
                     id="password"
                     type="password"
@@ -119,15 +121,15 @@ const LoginPage = () => {
                   className="btn-login w-full" 
                   disabled={loading}
                 >
-                  {loading ? 'Signing In...' : 'Sign In'}
+                  {loading ? t('auth.signingIn') : t('auth.signIn')}
                 </Button>
               </form>
 
               <div className="text-center mt-6">
                 <p className="text-sm text-gray-600">
-                  Don't have an account?{' '}
+                  {t('auth.dontHaveAccount')}{' '}
                   <Link to="/register" className="text-purple-600 hover:underline">
-                    Create one here
+                    {t('auth.createOneHere')}
                   </Link>
                 </p>
               </div>

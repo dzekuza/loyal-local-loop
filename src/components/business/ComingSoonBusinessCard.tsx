@@ -6,6 +6,7 @@ import { Button } from '../ui/button';
 import { Building2 } from 'lucide-react';
 import { ComingSoonBusiness } from '@/types/comingSoon';
 import BusinessClaimModal from './BusinessClaimModal';
+import { useTranslation } from 'react-i18next';
 
 interface ComingSoonBusinessCardProps {
   business: ComingSoonBusiness;
@@ -13,6 +14,7 @@ interface ComingSoonBusinessCardProps {
 
 const ComingSoonBusinessCard: React.FC<ComingSoonBusinessCardProps> = ({ business }) => {
   const [showClaimModal, setShowClaimModal] = useState(false);
+  const { t } = useTranslation();
 
   return (
     <>
@@ -34,7 +36,7 @@ const ComingSoonBusinessCard: React.FC<ComingSoonBusinessCardProps> = ({ busines
           {/* Coming Soon Badge */}
           <div className="absolute top-3 left-3 z-10">
             <Badge className="bg-orange-500 hover:bg-orange-600 text-white text-xs font-medium px-3 py-1">
-              Coming Soon
+              {t('comingSoon.title')}
             </Badge>
           </div>
           
@@ -62,7 +64,7 @@ const ComingSoonBusinessCard: React.FC<ComingSoonBusinessCardProps> = ({ busines
             size="sm" 
             className="w-full"
           >
-            Own this business?
+            {t('comingSoon.ownThisBusiness')}
           </Button>
         </CardContent>
       </Card>

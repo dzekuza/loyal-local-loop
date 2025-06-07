@@ -7,10 +7,12 @@ import { ArrowLeft, Clock, Building2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import ComingSoonBusinessCard from '@/components/business/ComingSoonBusinessCard';
 import { useComingSoonBusinesses } from '@/hooks/useComingSoonBusinesses';
+import { useTranslation } from 'react-i18next';
 
 const ComingSoonBusinesses = () => {
   const { data: businesses, isLoading, error } = useComingSoonBusinesses();
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   if (error) {
     console.error('Error loading coming soon businesses:', error);
@@ -18,10 +20,10 @@ const ComingSoonBusinesses = () => {
       <div className="container mx-auto px-4 py-8">
         <Card className="max-w-md mx-auto">
           <CardHeader>
-            <CardTitle>Error Loading Businesses</CardTitle>
+            <CardTitle>{t('comingSoon.errorLoadingTitle')}</CardTitle>
           </CardHeader>
           <CardContent>
-            <p>There was an error loading the coming soon businesses. Please try again later.</p>
+            <p>{t('comingSoon.errorLoadingMessage')}</p>
           </CardContent>
         </Card>
       </div>
@@ -38,17 +40,17 @@ const ComingSoonBusinesses = () => {
           className="flex items-center space-x-2"
         >
           <ArrowLeft className="w-4 h-4" />
-          <span>Back to Businesses</span>
+          <span>{t('comingSoon.backToBusinesses')}</span>
         </Button>
       </div>
 
       <div className="mb-8">
         <h1 className="text-2xl md:text-3xl font-bold mb-2 flex items-center space-x-2">
           <Clock className="w-8 h-8" />
-          <span>Coming Soon</span>
+          <span>{t('comingSoon.title')}</span>
         </h1>
         <p className="text-gray-600">
-          These businesses will be joining our platform soon. Own one of these? Claim it now!
+          {t('comingSoon.subtitle')}
         </p>
       </div>
 
@@ -78,7 +80,7 @@ const ComingSoonBusinesses = () => {
         <>
           <div className="mb-4">
             <p className="text-gray-600">
-              {businesses.length} businesses coming soon
+              {businesses.length} {t('comingSoon.businessesComingSoon')}
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -95,12 +97,12 @@ const ComingSoonBusinesses = () => {
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
               <Building2 className="w-6 h-6" />
-              <span>No Coming Soon Businesses</span>
+              <span>{t('comingSoon.noComingSoonBusinesses')}</span>
             </CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-gray-600">
-              There are no businesses in the coming soon list at the moment. Check back later!
+              {t('comingSoon.noComingSoonMessage')}
             </p>
           </CardContent>
         </Card>

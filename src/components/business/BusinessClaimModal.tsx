@@ -9,6 +9,7 @@ import { Building2, Mail, User } from 'lucide-react';
 import { ComingSoonBusiness } from '@/types/comingSoon';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useTranslation } from 'react-i18next';
 
 interface BusinessClaimModalProps {
   business: ComingSoonBusiness;
@@ -29,14 +30,15 @@ const BusinessClaimModal: React.FC<BusinessClaimModalProps> = ({
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
+  const { t } = useTranslation();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!formData.email || !formData.firstName || !formData.lastName) {
       toast({
-        title: "Missing Information",
-        description: "Please fill in all required fields.",
+        title: t('businessClaim.missingInformation'),
+        description: t('businessClaim.fillAllFields'),
         variant: "destructive",
       });
       return;
@@ -78,8 +80,8 @@ const BusinessClaimModal: React.FC<BusinessClaimModalProps> = ({
       }
 
       toast({
-        title: "Claim Submitted!",
-        description: "Your business claim has been submitted successfully. We'll review it and get back to you soon.",
+        title: t('businessClaim.claimSubmitted'),
+        description: t('businessClaim.claimSubmittedMessage'),
       });
 
       // Reset form and close modal
@@ -89,8 +91,8 @@ const BusinessClaimModal: React.FC<BusinessClaimModalProps> = ({
     } catch (error) {
       console.error('Error:', error);
       toast({
-        title: "Submission Failed",
-        description: "There was an error submitting your claim. Please try again.",
+        title: t('businessClaim.submissionFailed'),
+        description: t('businessClaim.submissionFailedMessage'),
         variant: "destructive",
       });
     } finally {
@@ -104,7 +106,7 @@ const BusinessClaimModal: React.FC<BusinessClaimModalProps> = ({
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">
             <Building2 className="w-5 h-5" />
-            <span>Claim Business</span>
+            <span>{t('businessClaim.title')}</span>
           </DialogTitle>
         </DialogHeader>
 
@@ -117,7 +119,7 @@ const BusinessClaimModal: React.FC<BusinessClaimModalProps> = ({
           <div className="space-y-2">
             <Label htmlFor="email" className="flex items-center space-x-1">
               <Mail className="w-3 h-3" />
-              <span>Email Address *</span>
+              <span>{t('businessClaim.emailAddress')} *</span>
             </Label>
             <Input
               id="email"
@@ -133,7 +135,7 @@ const BusinessClaimModal: React.FC<BusinessClaimModalProps> = ({
             <div className="space-y-2">
               <Label htmlFor="firstName" className="flex items-center space-x-1">
                 <User className="w-3 h-3" />
-                <span>First Name *</span>
+                <span>{t('businessClaim.firstName')} *</span>
               </Label>
               <Input
                 id="firstName"
@@ -145,7 +147,7 @@ const BusinessClaimModal: React.FC<BusinessClaimModalProps> = ({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="lastName">Last Name *</Label>
+              <Label htmlFor="lastName">{t('businessClaim.lastName')} *</Label>
               <Input
                 id="lastName"
                 value={formData.lastName}
@@ -157,12 +159,12 @@ const BusinessClaimModal: React.FC<BusinessClaimModalProps> = ({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="message">Additional Message (Optional)</Label>
+            <Label htmlFor="message">{t('businessClaim.additionalMessage')}</Label>
             <Textarea
               id="message"
               value={formData.message}
               onChange={(e) => setFormData(prev => ({ ...prev, message: e.target.value }))}
-              placeholder="Tell us about your business or why you should own this listing..."
+              placeholder={t('businessClaim.messagePlaceholder')}
               rows={3}
             />
           </div>
@@ -175,14 +177,14 @@ const BusinessClaimModal: React.FC<BusinessClaimModalProps> = ({
               className="flex-1"
               disabled={isSubmitting}
             >
-              Cancel
+              {t('businessClaim.cancel')}
             </Button>
             <Button
               type="submit"
               className="flex-1"
               disabled={isSubmitting}
             >
-              {isSubmitting ? 'Submitting...' : 'Claim this business'}
+              {isSubmitting ? t('businessClaim.submitting') : t('businessClaim.claimBusiness')}
             </Button>
           </div>
         </form>

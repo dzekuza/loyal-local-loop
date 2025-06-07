@@ -58,15 +58,15 @@ const BusinessDirectory = () => {
       <div className="mb-8">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4">
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold mb-2">Explore offers around you</h1>
-            <p className="text-gray-600 break-words">Discover amazing businesses and exclusive offers in your area</p>
+            <h1 className="text-2xl md:text-3xl font-bold mb-2">{t('business.exploreOffersAround')}</h1>
+            <p className="text-gray-600 break-words">{t('business.discoverAmazing')}</p>
           </div>
           
           <div className="mt-4 sm:mt-0">
             <Button asChild variant="outline" className="flex items-center space-x-2">
               <Link to="/coming-soon">
                 <Clock className="w-4 h-4" />
-                <span>Coming Soon</span>
+                <span>{t('comingSoon.title')}</span>
               </Link>
             </Button>
           </div>

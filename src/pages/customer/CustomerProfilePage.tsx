@@ -9,12 +9,14 @@ import CustomerCodeDisplay from '@/components/customer/CustomerCodeDisplay';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useTranslation } from 'react-i18next';
 
 const CustomerProfilePage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { isAuthenticated, userRole, currentUser } = useAppStore();
   const { toast } = useToast();
+  const { t } = useTranslation();
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -45,8 +47,8 @@ const CustomerProfilePage = () => {
     } catch (error) {
       console.error('Error loading profile:', error);
       toast({
-        title: "Error",
-        description: "Failed to load profile",
+        title: t('common.error'),
+        description: t('profile.error'),
         variant: "destructive",
       });
     } finally {
@@ -58,7 +60,7 @@ const CustomerProfilePage = () => {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <p className="text-gray-600 mb-4">Loading profile...</p>
+          <p className="text-gray-600 mb-4">{t('profile.loadingProfile')}</p>
         </div>
       </div>
     );
@@ -74,7 +76,7 @@ const CustomerProfilePage = () => {
             className="mb-4"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Businesses
+            {t('profile.backToBusinesses')}
           </Button>
         </div>
 

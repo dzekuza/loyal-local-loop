@@ -183,7 +183,7 @@
     "redeem": "Iškeisti",
     "redeeming": "Iškeičiama...",
     "insufficientPoints": "Nepakanka Taškų",
-    "insufficientPointsMessage": "Jums reikia {required} taškų, bet turite tik {current}",
+    "insufficientPointsMessage": "Jums reikia {{required}} taškų, bet turite tik {{current}}",
     "rewardRedeemed": "Apdovanojimas Iškeistas! 🎉",
     "rewardRedeemedMessage": "Jūsų apdovanojimas sėkmingai iškeistas",
     "redemptionFailed": "Iškeistis Nepavyko",
@@ -196,14 +196,14 @@
     "activeOffers": "Aktyvūs Pasiūlymai",
     "member": "Narys",
     "pointsUntilNextReward": "taškų iki kito apdovanojimo",
-    "earnPointsFor": "Uždirbkite {points} taškų už kiekvienus €{amount}",
+    "earnPointsFor": "Uždirbkite {{points}} taškų už kiekvienus €{{amount}}",
     "qrCode": {
       "title": "Jūsų QR Kodas",
-      "description": "Parodykite šį QR kodą, kad užsidirbumėte taškų {businessName}"
+      "description": "Parodykite šį QR kodą, kad užsidirbumėte taškų {{businessName}}"
     },
     "wallet": {
       "title": "Pridėti į Piniginę",
-      "description": "Pasirinkite, kaip norėtumėte išsaugoti savo {businessName} lojalumo kortelę:",
+      "description": "Pasirinkite, kaip norėtumėte išsaugoti savo {{businessName}} lojalumo kortelę:",
       "web": "Internetinė Piniginė",
       "pwa": "Įdiegti kaip Programėlę (PWA)",
       "google": "Google Piniginė",
@@ -245,7 +245,22 @@
     "confirmPassword": "Patvirtinti Naują Slaptažodį",
     "updatePassword": "Atnaujinti Slaptažodį",
     "passwordSuccess": "Slaptažodis sėkmingai atnaujintas!",
-    "passwordError": "Nepavyko atnaujinti slaptažodžio"
+    "passwordError": "Nepavyko atnaujinti slaptažodžio",
+    "avatarUpload": "Pasirinkite nuotrauką profilio avatarui",
+    "firstName": "Vardas",
+    "lastName": "Pavardė",
+    "phoneOptional": "Telefono numeris (neprivalomas)",
+    "updating": "Atnaujinama...",
+    "updateProfile": "Atnaujinti Profilį",
+    "cancel": "Atšaukti",
+    "emailUpdate": "El. pašto atnaujinimas",
+    "emailUpdateDescription": "Patikrinkite savo el. paštą ir patvirtinkite naują adresą",
+    "profileUpdateSuccess": "Profilis sėkmingai atnaujintas!",
+    "profileUpdateError": "Nepavyko atnaujinti profilio",
+    "passwordUpdateSuccess": "Slaptažodis sėkmingai atnaujintas!",
+    "passwordUpdateError": "Nepavyko atnaujinti slaptažodžio",
+    "loadingProfile": "Kraunamas profilis...",
+    "backToBusinesses": "Grįžti į Verslus"
   },
   "offers": {
     "create": "Sukurti Naują Pasiūlymą",
@@ -258,7 +273,7 @@
     "placeholder": "Ieškoti verslų...",
     "noResults": "Verslų nerasta",
     "filters": "Filtrai",
-    "showingResults": "Rodoma {count} iš {total} verslų"
+    "showingResults": "Rodoma {{count}} iš {{total}} verslų"
   },
   "common": {
     "loading": "Kraunama...",

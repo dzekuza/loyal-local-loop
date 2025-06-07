@@ -58,10 +58,10 @@ const MobileNavigation = () => {
     // Customer user navigation
     return [
       {
-        href: '/',
+        href: '/main',
         icon: Home,
         label: t('nav.home'),
-        active: location.pathname === '/',
+        active: location.pathname === '/main',
       },
       {
         href: '/discover',

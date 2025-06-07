@@ -20,6 +20,7 @@ import BusinessDetailPage from "./pages/customer/BusinessDetailPage";
 import ScanQRCodePage from "./pages/customer/ScanQRCodePage";
 import WalletPage from "./pages/customer/WalletPage";
 import DiscoverPage from "./pages/customer/DiscoverPage";
+import MainScreen from "./pages/customer/MainScreen";
 import MyCardsPage from "./pages/customer/MyCardsPage";
 import NotFound from "./pages/NotFound";
 import { useEffect } from "react";
@@ -60,12 +61,12 @@ const App = () => {
                   
                   {/* Business-only routes */}
                   <Route path="/dashboard" element={
-                    <RoleBasedRoute allowedRoles={['business']} redirectTo="/discover">
+                    <RoleBasedRoute allowedRoles={['business']} redirectTo="/main">
                       <BusinessDashboard />
                     </RoleBasedRoute>
                   } />
                   <Route path="/business/scan" element={
-                    <RoleBasedRoute allowedRoles={['business']} redirectTo="/discover">
+                    <RoleBasedRoute allowedRoles={['business']} redirectTo="/main">
                       <BusinessScanPage />
                     </RoleBasedRoute>
                   } />
@@ -76,6 +77,11 @@ const App = () => {
                   } />
                   
                   {/* Customer-only routes */}
+                  <Route path="/main" element={
+                    <RoleBasedRoute allowedRoles={['customer']} redirectTo="/dashboard">
+                      <MainScreen />
+                    </RoleBasedRoute>
+                  } />
                   <Route path="/customer-profile" element={
                     <RoleBasedRoute allowedRoles={['customer']} redirectTo="/business-profile">
                       <CustomerProfilePage />

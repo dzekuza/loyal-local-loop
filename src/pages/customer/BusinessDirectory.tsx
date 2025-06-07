@@ -38,6 +38,12 @@ const BusinessDirectory = () => {
     });
   }, [businesses, searchTerm, selectedCategory, showSpecialDeals]);
 
+  // Debug values for interpolation
+  const count = filteredBusinesses?.length || 0;
+  const total = businesses?.length || 0;
+  
+  console.log('Translation values:', { count, total });
+
   if (error) {
     console.error('Error loading businesses:', error);
     return (
@@ -108,10 +114,10 @@ const BusinessDirectory = () => {
         <>
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-2">
             <p className="text-gray-600 break-words">
-              {t('search.showingResults', { 
-                count: filteredBusinesses.length, 
-                total: businesses?.length || 0 
-              })}
+              {businesses && filteredBusinesses ? 
+                `Showing ${count} of ${total} businesses` :
+                t('search.showingResults', { count, total })
+              }
             </p>
             {showSpecialDeals && (
               <Badge variant="secondary" className="self-start sm:self-auto">

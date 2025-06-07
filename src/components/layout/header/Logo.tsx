@@ -12,7 +12,6 @@ const Logo = () => {
           className="w-10 h-10 object-contain"
         />
       </div>
-      <span className="text-xl font-bold text-gray-900 hidden sm:block">Loyable</span>
     </Link>
   );
 };

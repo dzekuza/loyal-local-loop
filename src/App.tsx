@@ -17,6 +17,7 @@ import BusinessProfilePage from "./pages/business/BusinessProfilePage";
 import CustomerProfilePage from "./pages/customer/CustomerProfilePage";
 import BusinessDirectory from "./pages/customer/BusinessDirectory";
 import BusinessDetailPage from "./pages/customer/BusinessDetailPage";
+import ComingSoonBusinesses from "./pages/customer/ComingSoonBusinesses";
 import ScanQRCodePage from "./pages/customer/ScanQRCodePage";
 import WalletPage from "./pages/customer/WalletPage";
 import DiscoverPage from "./pages/customer/DiscoverPage";
@@ -121,6 +122,7 @@ const App = () => {
                   
                   {/* Public routes accessible to both roles */}
                   <Route path="/businesses" element={<BusinessDirectory />} />
+                  <Route path="/coming-soon" element={<ComingSoonBusinesses />} />
                   <Route path="/discover" element={<DiscoverPage />} />
                   <Route path="/business/:id" element={<BusinessDetailPage />} />
                   

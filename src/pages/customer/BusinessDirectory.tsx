@@ -3,6 +3,9 @@ import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Clock } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import BusinessCard from '@/components/business/BusinessCard';
 import BusinessCategoryIcons from '@/components/business/BusinessCategoryIcons';
 import { useBusinesses } from '@/hooks/useBusinesses';
@@ -53,8 +56,21 @@ const BusinessDirectory = () => {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
-        <h1 className="text-2xl md:text-3xl font-bold mb-2">Explore offers around you</h1>
-        <p className="text-gray-600 break-words">Discover amazing businesses and exclusive offers in your area</p>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4">
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold mb-2">Explore offers around you</h1>
+            <p className="text-gray-600 break-words">Discover amazing businesses and exclusive offers in your area</p>
+          </div>
+          
+          <div className="mt-4 sm:mt-0">
+            <Button asChild variant="outline" className="flex items-center space-x-2">
+              <Link to="/coming-soon">
+                <Clock className="w-4 h-4" />
+                <span>Coming Soon</span>
+              </Link>
+            </Button>
+          </div>
+        </div>
       </div>
 
       {categories.length > 0 && (

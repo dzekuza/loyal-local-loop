@@ -9,6 +9,47 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      business_claims: {
+        Row: {
+          coming_soon_business_id: string
+          created_at: string
+          email: string
+          first_name: string
+          id: string
+          last_name: string
+          message: string | null
+          status: string
+        }
+        Insert: {
+          coming_soon_business_id: string
+          created_at?: string
+          email: string
+          first_name: string
+          id?: string
+          last_name: string
+          message?: string | null
+          status?: string
+        }
+        Update: {
+          coming_soon_business_id?: string
+          created_at?: string
+          email?: string
+          first_name?: string
+          id?: string
+          last_name?: string
+          message?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_claims_coming_soon_business_id_fkey"
+            columns: ["coming_soon_business_id"]
+            isOneToOne: false
+            referencedRelation: "coming_soon_businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       businesses: {
         Row: {
           address: string | null
@@ -81,6 +122,33 @@ export type Database = {
           image_url?: string | null
           shop_name?: string
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      coming_soon_businesses: {
+        Row: {
+          business_name: string
+          business_type: string
+          created_at: string
+          description: string | null
+          id: string
+          logo: string | null
+        }
+        Insert: {
+          business_name: string
+          business_type: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          logo?: string | null
+        }
+        Update: {
+          business_name?: string
+          business_type?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          logo?: string | null
         }
         Relationships: []
       }

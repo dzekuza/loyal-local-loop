@@ -116,7 +116,10 @@
     "contactInformation": "Contact Information",
     "businessAccount": "Business Account",
     "viewingAsBusiness": "You're viewing this as a business owner. Customers can join your loyalty program and earn points here.",
-    "goToDashboard": "Go to Dashboard"
+    "goToDashboard": "Go to Dashboard",
+    "notMemberYet": "You are not a member yet",
+    "joinLoyaltyProgram": "Join Loyalty Program",
+    "moreOffersAvailable": "more offers available"
   },
   "comingSoon": {
     "title": "Coming Soon",
@@ -158,6 +161,8 @@
     "discoverLocal": "Discover local businesses",
     "exploreOffersAround": "Explore offers around you",
     "discoverAmazing": "Discover amazing businesses and exclusive offers in your area",
+    "browseByCategory": "Browse by Category",
+    "selected": "Selected",
     "categories": {
       "all": "All Categories",
       "restaurant": "Restaurants & Food",
@@ -186,6 +191,12 @@
     "keepEarning": "Keep earning points to unlock rewards!",
     "noRewardsYet": "No rewards available yet",
     "loadingOffers": "Loading offers...",
+    "program": "Loyalty Program",
+    "yourPoints": "Your Points",
+    "activeOffers": "Active Offers",
+    "member": "Member",
+    "pointsUntilNextReward": "points until next reward",
+    "earnPointsFor": "Earn {points} points for every €{amount} spent",
     "qrCode": {
       "title": "Your QR Code",
       "description": "Show this QR code to earn points at {businessName}"

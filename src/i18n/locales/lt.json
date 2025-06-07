@@ -116,7 +116,10 @@
     "contactInformation": "Kontaktinė Informacija",
     "businessAccount": "Verslo Paskyra",
     "viewingAsBusiness": "Jūs peržiūrite kaip verslo savininkas. Klientai gali prisijungti prie jūsų lojalumo programos ir čia uždirbti taškus.",
-    "goToDashboard": "Eiti į Valdymo Skydą"
+    "goToDashboard": "Eiti į Valdymo Skydą",
+    "notMemberYet": "Jūs dar nesate narys",
+    "joinLoyaltyProgram": "Prisijungti prie Lojalumo Programos",
+    "moreOffersAvailable": "daugiau pasiūlymų galima"
   },
   "comingSoon": {
     "title": "Greitai",
@@ -158,6 +161,8 @@
     "discoverLocal": "Atraskite vietinius verslus",
     "exploreOffersAround": "Tyrinėkite pasiūlymus aplink jus",
     "discoverAmazing": "Atraskite nuostabius verslus ir ekskluzyvius pasiūlymus jūsų rajone",
+    "browseByCategory": "Naršyti pagal kategoriją",
+    "selected": "Pasirinkta",
     "categories": {
       "all": "Visos Kategorijos",
       "restaurant": "Restoranai ir Maistas",
@@ -168,6 +173,43 @@
       "services": "Paslaugos"
     }
   },
+  "loyalty": {
+    "points": "taškai",
+    "availableBalance": "Galimas Balansas",
+    "nextReward": "Kitas apdovanojimas:",
+    "pointsAway": "taškų trūksta",
+    "availableRewards": "Galimi Apdovanojimai",
+    "pointsRequired": "reikalingi taškai",
+    "redeem": "Iškeisti",
+    "redeeming": "Iškeičiama...",
+    "insufficientPoints": "Nepakanka Taškų",
+    "insufficientPointsMessage": "Jums reikia {required} taškų, bet turite tik {current}",
+    "rewardRedeemed": "Apdovanojimas Iškeistas! 🎉",
+    "rewardRedeemedMessage": "Jūsų apdovanojimas sėkmingai iškeistas",
+    "redemptionFailed": "Iškeistis Nepavyko",
+    "redemptionFailedMessage": "Nepavyko iškeisti apdovanojimo. Bandykite dar kartą.",
+    "keepEarning": "Toliau rinkite taškus, kad atrakintumėte apdovanojimus!",
+    "noRewardsYet": "Apdovanojimų dar nėra",
+    "loadingOffers": "Kraunami pasiūlymai...",
+    "program": "Lojalumo Programa",
+    "yourPoints": "Jūsų Taškai",
+    "activeOffers": "Aktyvūs Pasiūlymai",
+    "member": "Narys",
+    "pointsUntilNextReward": "taškų iki kito apdovanojimo",
+    "earnPointsFor": "Uždirbkite {points} taškų už kiekvienus €{amount}",
+    "qrCode": {
+      "title": "Jūsų QR Kodas",
+      "description": "Parodykite šį QR kodą, kad užsidirbumėte taškų {businessName}"
+    },
+    "wallet": {
+      "title": "Pridėti į Piniginę",
+      "description": "Pasirinkite, kaip norėtumėte išsaugoti savo {businessName} lojalumo kortelę:",
+      "web": "Internetinė Piniginė",
+      "pwa": "Įdiegti kaip Programėlę (PWA)",
+      "google": "Google Piniginė",
+      "apple": "Apple Piniginė"
+    }
+  },
   "wallet": {
     "title": "Mano Lojalumo Piniginė",
     "description": "Tvarkykite visas savo lojalumo korteles vienoje vietoje",
@@ -175,7 +217,14 @@
     "noCardsDescription": "Pradėkite tyrinėti verslus, kad prisijungtumėte prie jų lojalumo programų",
     "exploreBusinesses": "Tyrinėti Verslus",
     "backToBusinesses": "Grįžti į Verslus",
-    "addCards": "Pridėti Korteles"
+    "addCards": "Pridėti Korteles",
+    "tabs": {
+      "web": "Internetas",
+      "pwa": "PWA",
+      "google": "Google",
+      "apple": "Apple",
+      "download": "Atsisiųsti"
+    }
   },
   "profile": {
     "title": "Profilio Nustatymai",
@@ -209,7 +258,7 @@
     "placeholder": "Ieškoti verslų...",
     "noResults": "Verslų nerasta",
     "filters": "Filtrai",
-    "showingResults": "Rodomi {count} iš {total} verslų"
+    "showingResults": "Rodoma {count} iš {total} verslų"
   },
   "common": {
     "loading": "Kraunama...",

@@ -16,6 +16,7 @@ import {
   Palette,
   ShoppingCart
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface BusinessCategoryIconsProps {
   categories: string[];
@@ -48,11 +49,12 @@ const BusinessCategoryIcons: React.FC<BusinessCategoryIconsProps> = ({
   selectedCategory,
   onCategoryChange,
 }) => {
+  const { t } = useTranslation();
   const allCategories = ['All', ...categories];
 
   return (
     <div className="mb-8">
-      <h3 className="text-lg font-semibold mb-4 text-gray-900">Browse by Category</h3>
+      <h3 className="text-lg font-semibold mb-4 text-gray-900">{t('business.browseByCategory')}</h3>
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
         {/* All Categories Card */}
         <Card 
@@ -74,11 +76,11 @@ const BusinessCategoryIcons: React.FC<BusinessCategoryIconsProps> = ({
             <span className={`text-sm font-medium ${
               selectedCategory === 'All' ? 'text-purple-700' : 'text-gray-700'
             }`}>
-              All
+              {t('business.categories.all')}
             </span>
             {selectedCategory === 'All' && (
               <Badge variant="secondary" className="bg-purple-100 text-purple-700 text-xs">
-                Selected
+                {t('business.selected')}
               </Badge>
             )}
           </div>
@@ -110,7 +112,7 @@ const BusinessCategoryIcons: React.FC<BusinessCategoryIconsProps> = ({
                 </span>
                 {isSelected && (
                   <Badge variant="secondary" className="bg-purple-100 text-purple-700 text-xs">
-                    Selected
+                    {t('business.selected')}
                   </Badge>
                 )}
               </div>
